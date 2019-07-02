@@ -4,22 +4,23 @@ using System.Collections.ObjectModel;
 using NModbus;
 using RPCExp.Modbus;
 using RPCExp.Common;
-using RPCExp.Common.TypeConverters;
 using System.Threading;
 using System.Threading.Tasks;
 
 
 using Newtonsoft.Json;
+using RPCExp.Modbus.TypeConverters;
 
 namespace RPCExp
 {
+
     class Program
     {
         static CancellationTokenSource Cts = new CancellationTokenSource();
 
         static void Main(string[] args)
         {
-
+            
             //var st = new Ticker();
             //string TickToSecStr(long ticks) => (ticks/10_000_000.0).ToString("#.###");
             //while (Console.ReadKey().Key != ConsoleKey.Escape)
@@ -38,35 +39,11 @@ namespace RPCExp
                 {
                     new Facility
                     {
-                        Devices = new List<Device>
+                        Devices = new List<DeviceAbstract>
                         {
                             new Device
                             {
                                 SlaveId = 1,
-                                Tags = new List<MTag>
-                                {
-                                    new MTag
-                                    {
-                                        Region = ModbusRegion.HoldingRegisters,
-                                        Name = "Tag1",
-                                        Begin = 2,
-                                        TypeConv = new TypeConverterInt16(DefaultByteOrder),
-                                    },
-                                    new MTag
-                                    {
-                                        Region = ModbusRegion.HoldingRegisters,
-                                        Name = "Tag2",
-                                        Begin = 3,
-                                        TypeConv = new TypeConverterFloat(DefaultByteOrder),
-                                    },
-                                    new MTag
-                                    {
-                                        Region = ModbusRegion.Coils,
-                                        Name = "BoolTag1",
-                                        Begin = 500,
-                                        TypeConv = new TypeConverterBool(DefaultByteOrder),
-                                    },
-                                }
                             }
                         }
                     }
@@ -77,18 +54,45 @@ namespace RPCExp
             //System.IO.File.WriteAllText(@"cfg.json", cfg);
             //return;
 
-            store.Facilities[0].Devices[0].Start();
+            var dev = (Device)store.Facilities[0].Devices[0];
+
+            dev.Tags.Add("tag1", new MTag {
+                Region = ModbusRegion.HoldingRegisters,
+                Name = "Tag1",
+                Begin = 2,
+                TypeConv = new TypeConverterInt16(DefaultByteOrder)});
+            
+            dev.Tags.Add("tag2", new MTag
+            {
+                Region = ModbusRegion.HoldingRegisters,
+                Name = "Tag2",
+                Begin = 3,
+                TypeConv = new TypeConverterFloat(DefaultByteOrder)
+            });
+            
+            dev.Tags.Add("BoolTag1", new MTag
+            {
+                Region = ModbusRegion.Coils,
+                Name = "BoolTag1",
+                Begin = 500,
+                TypeConv = new TypeConverterBool(DefaultByteOrder)
+            });
+
+            dev.Start();
             
             Console.CancelKeyPress += Console_CancelKeyPress;
-            
+
+            Timer t1 = new Timer((x)=>dev.Tags["tag1"].GetValue(), new AutoResetEvent(false), 1, 2000 );
+
+            Timer t2 = new Timer((x) => dev.Tags["tag2"].GetValue(), new AutoResetEvent(false), 60_000, 2100);
+
             while (!Cts.Token.IsCancellationRequested)
             {
-                TermForms.DisplayDevice(store.Facilities[0].Devices[0]);
+                Terminal.TermForms.DisplayModbusDevice(dev);
                 
                 Thread.Sleep(500);
             }
 
-            //store.Facilities[0].Devices[0].main.Wait();
             return;
 
 

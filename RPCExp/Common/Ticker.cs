@@ -35,8 +35,9 @@ namespace RPCExp.Common
         public void Tick()
         {
             int i = 0;
-            for (; i < t.Length - 1;)
-                t[i] = t[++i];
+
+            for (; i < t.Length - 1; i++)
+                t[i] = t[i + 1];
             
             t[i] = DateTime.Now.Ticks;
 
@@ -44,7 +45,7 @@ namespace RPCExp.Common
                 if (++cnt < 2)
                     return;
 
-            Period = (t[i] - t[t.Length - cnt])/cnt;
+            Period = (t[i] - t[t.Length - cnt])/(cnt - 1);
         }
     }
 }

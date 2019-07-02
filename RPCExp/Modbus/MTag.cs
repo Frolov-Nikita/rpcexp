@@ -1,5 +1,5 @@
 ﻿using RPCExp.Common;
-using RPCExp.Common.TypeConverters;
+using RPCExp.Modbus.TypeConverters;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,14 +8,23 @@ using System.Text;
 namespace RPCExp.Modbus
 {
 
-    public class MTag : IRange
+    public class MTag : TagAbstract, IRange
     {
-        private object value;
+        private bool canWrite;
 
-        private readonly Ticker ticker = new Ticker();
+        public override bool CanRead { get; set; }
 
-        public string Name { get; set; }
-
+        public override bool CanWrite
+        {
+            get
+            {
+                if ((Region == ModbusRegion.Coils) || (Region == ModbusRegion.HoldingRegisters))
+                    return canWrite;
+                else
+                    return false;
+            }
+            set => canWrite = value;
+        }
 
         //### специфично только для modbus
         public ModbusRegion Region { get; set; }
@@ -25,58 +34,12 @@ namespace RPCExp.Modbus
         public int Length => TypeConv.ByteLength / 2;
 
         public int End => Begin + (Length - 1);
-
         //### специфично только для modbus */
 
-        public long TimestampLast { get; private set; } = 0;
-
-        public long TimestampSuccess { get; private set; } = 0;
-
-        public long UpdatePeriod
-        {
-            get
-            {
-                long p = ticker.Cache;
-
-                p = p > ticker.Period ? p : ticker.Period;
-
-                return p;
-            }
-        }
-
-        public bool IsActive { get; private set; } = true;
-
-        public TagQuality Quality { get; private set; } = TagQuality.BAD;
-
-        public TypeConverterAbstract TypeConv { get; set; } 
-
-        public object GetValue()
-        {
-            ticker.Tick();
-            return value;
-        }
-
-        internal object GetInternalValue() => value;
-
-        internal void SetValue(Span<byte> data)
-        {
-            TimestampLast = DateTime.Now.Ticks;
-
-            //TODO костыль с конвертером
-            if ((Region == ModbusRegion.Coils) || (Region == ModbusRegion.DiscreteInputs))
-                value = data[0] > 0;
-            else
-                value = TypeConv.GetValue(data);
-
-            SetQty(TagQuality.GOOD);
-        }
-
-        internal void SetQty(TagQuality qty = TagQuality.GOOD)
-        {
-            if (qty == TagQuality.GOOD)
-                TimestampSuccess = TimestampLast;
-            Quality = qty;
-        }
+        public TypeConverterAbstract TypeConv { get; set; }
+        
+        internal void SetValue(Span<byte> data) =>
+            SetValue(TypeConv.GetValue(data));
     }
 
 }

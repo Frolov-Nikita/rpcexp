@@ -1,5 +1,5 @@
 ﻿using NModbus;
-using RPCExp.Modbus;
+using RPCExp.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,15 +7,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RPCExp.Common
+namespace RPCExp.Modbus
 {
 
-    public class Device: ServiceAbstract, IDevice
-    {
-        public string Name { get; set; }
-
-        public IEnumerable<MTag> Tags { get; set; }
-
+    public class Device: DeviceAbstract
+    {        
         public byte SlaveId { get; set; }
 
         public string Host { get; set; } = "127.0.0.1";
@@ -54,7 +50,7 @@ namespace RPCExp.Common
             {
                 if (ConnectedOrConnect())
                 {
-                    nextTime = await Update(Tags, nextTime == 0);
+                    nextTime = await Update( nextTime == 0);
 
                     waitTime = nextTime - DateTime.Now.Ticks;
                     waitTime = waitTime > 10_000 ? waitTime : 10_000; // 10_000 = 1 миллисекунда
@@ -66,7 +62,7 @@ namespace RPCExp.Common
                 else
                 {
                     foreach (var t in Tags)
-                        t.SetQty(TagQuality.BAD_COMM_FAILURE);
+                        t.Value.SetValue(null, TagQuality.BAD_COMM_FAILURE);
                     await Task.Delay(TimeSpan.FromTicks(BadCommWaitPeriod));
                 }
             }
@@ -89,7 +85,7 @@ namespace RPCExp.Common
             catch
             {
                 foreach (var t in g)
-                    t.SetQty(TagQuality.BAD);
+                    t.SetValue(null, TagQuality.BAD);
             }
 }
 
@@ -111,7 +107,7 @@ namespace RPCExp.Common
             catch
             {
                 foreach (var t in g)
-                    t.SetQty(TagQuality.BAD);
+                    t.SetValue(null, TagQuality.BAD);
             }
 }
 
@@ -121,12 +117,12 @@ namespace RPCExp.Common
                 var bits = await master.ReadCoilsAsync(SlaveId, (ushort)g.Begin, (ushort)g.Length).ConfigureAwait(false);
 
                 foreach (var t in g)
-                    t.SetValue( bits[t.Begin - g.Begin] ? new byte[] { 0xff}: new byte[] { 0x00 }); // Архитектурно убрать костыли с конвертером
+                    t.SetValue( bits[t.Begin - g.Begin]);
             }
             catch
             {
                 foreach (var t in g)
-                    t.SetQty(TagQuality.BAD);
+                    t.SetValue(null, TagQuality.BAD);
             }
         }
 
@@ -136,16 +132,16 @@ namespace RPCExp.Common
             {
                 var bits = await master.ReadCoilsAsync(SlaveId, (ushort)g.Begin, (ushort)g.Length).ConfigureAwait(false);
                 foreach (var t in g)
-                    t.SetValue(bits[t.Begin - g.Begin] ? new byte[] { 0xff } : new byte[] { 0x00 });
+                    t.SetValue(bits[t.Begin - g.Begin]);
             }
             catch
             {
                 foreach (var t in g)
-                    t.SetQty(TagQuality.BAD);                
+                    t.SetValue(null, TagQuality.BAD);
             }
         }
 
-        private async Task<long> Update(IEnumerable<MTag> tags, bool force = false)
+        private async Task<long> Update(bool force = false)
         {
             var afterTick = DateTime.Now.Ticks + TimeSpan.FromSeconds(1).Ticks;
             long groupNextUpdate = long.MaxValue;
@@ -157,14 +153,15 @@ namespace RPCExp.Common
 
             var count = 0;
 
-            foreach (var t in tags)
+            foreach (var tvp in Tags)
             {
-                if ((!t.IsActive)&&(!force))
+                var tag = (MTag)tvp.Value;
+                if ((!tag.StatIsAlive)&&(!force))
                     continue;
 
-                long tagNextTick = (t.Quality == TagQuality.GOOD) ?
-                    t.TimestampLast + t.UpdatePeriod:
-                    t.TimestampLast + BadCommWaitPeriod;
+                long tagNextTick = (tag.Quality == TagQuality.GOOD) ?
+                    tag.Last + tag.StatPeriod:
+                    tag.Last + BadCommWaitPeriod;
 
                 if (tagNextTick > afterTick)
                 {
@@ -177,19 +174,19 @@ namespace RPCExp.Common
 
                 count++;
 
-                switch (t.Region)
+                switch (tag.Region)
                 {
                     case ModbusRegion.Coils:
-                        coils.Add(t);
+                        coils.Add(tag);
                         break;
                     case ModbusRegion.DiscreteInputs:
-                        discreteInputs.Add(t);
+                        discreteInputs.Add(tag);
                         break;
                     case ModbusRegion.InputRegisters:
-                        inputRegisters.Add(t);
+                        inputRegisters.Add(tag);
                         break;
                     case ModbusRegion.HoldingRegisters:
-                        holdingRegisters.Add(t);
+                        holdingRegisters.Add(tag);
                         break;
                     default:
                         break;
@@ -213,6 +210,10 @@ namespace RPCExp.Common
             
             return groupNextUpdate;
         }
-                
+
+        public override async Task<bool> Write(IDictionary<string, object> tagsValues)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

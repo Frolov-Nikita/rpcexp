@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RPCExp.Common.TypeConverters
+namespace RPCExp.Modbus.TypeConverters
 {
     public abstract class TypeConverterAbstract
     {

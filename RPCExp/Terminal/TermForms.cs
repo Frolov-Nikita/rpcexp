@@ -1,9 +1,10 @@
-﻿using RPCExp.Modbus;
+﻿using RPCExp.Common;
+using RPCExp.Modbus;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RPCExp.Common
+namespace RPCExp.Terminal
 {
     // TODO сделать двухбуферный рендерер:) 
     public static class TermTable
@@ -131,7 +132,7 @@ namespace RPCExp.Common
     public static class TermForms
     {
 
-        public static void DisplayDevice(Device device)
+        public static void DisplayModbusDevice(Device device)
         {
             // ─│┌┐└┘├┤┬┴┼
             var origColor = Console.ForegroundColor;
@@ -151,7 +152,7 @@ namespace RPCExp.Common
                 Console.Write("─");
             Console.WriteLine("─");
 
-            var headers = new string[] { "Name", "Region", "Addr", "Value", "Quality", "Success", "TimestampLast" };
+            var headers = new string[] { "Name", "Region", "Addr", "Value", "Quality", "Success", "TimestampLast", "Period", "Alive"};
 
             var rowsCountAviable = h - 2;
             var rowsCount = 0;
@@ -159,7 +160,7 @@ namespace RPCExp.Common
 
             foreach (var t in device.Tags)
             {
-                tags.Add(t);
+                tags.Add((MTag)t.Value);
                 if (++rowsCount > rowsCountAviable)
                     break;
             }
@@ -173,8 +174,10 @@ namespace RPCExp.Common
                 vals[r, 2] = t.Begin.ToString();
                 vals[r, 3] = t.GetInternalValue()?.ToString()??"null";
                 vals[r, 4] = t.Quality.ToString();
-                vals[r, 5] = DateTime.FromBinary( t.TimestampSuccess).ToString();
-                vals[r, 6] = DateTime.FromBinary(t.TimestampLast).ToString();
+                vals[r, 5] = DateTime.FromBinary( t.LastGood).ToString();
+                vals[r, 6] = DateTime.FromBinary(t.Last).ToString();
+                vals[r, 7] = TimeSpan.FromTicks(t.StatPeriod).ToString();
+                vals[r, 8] = t.StatIsAlive.ToString();
             }
                 
             //{

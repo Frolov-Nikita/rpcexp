@@ -6,7 +6,7 @@ namespace RPCExp.Common
 {
     public class Facility
     {
-        public List<Device> Devices { get; set; }
+        public List<DeviceAbstract> Devices { get; set; }
 
     }
 }

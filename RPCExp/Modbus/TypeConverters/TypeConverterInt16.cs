@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RPCExp.Common.TypeConverters
+namespace RPCExp.Modbus.TypeConverters
 {
-    public class TypeConverterBool : TypeConverterAbstract
+    public class TypeConverterInt16 : TypeConverterAbstract
     {
-        public TypeConverterBool(byte[] byteOrder) : base(byteOrder)
+        public TypeConverterInt16(byte[] byteOrder) : base(byteOrder)
         {
         }
 
@@ -15,13 +15,12 @@ namespace RPCExp.Common.TypeConverters
         public override void GetBytes(Span<byte> buffer, object value)
         {
             var buff = BitConverter.GetBytes((Int16)value);
-            buffer[ByteOrder[0]] = buff[0];
-            buffer[ByteOrder[1]] = buff[1];
+            SetOrderedBuffer(buffer, buff);
         }
 
         public override object GetValue(Span<byte> buffer)
         {
-            return buffer[0] > 0;
+            return BitConverter.ToInt16(GetOrderedBuffer(buffer));
         }
     }
 }
