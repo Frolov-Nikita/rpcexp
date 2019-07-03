@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace RPCExp.Common
 {
+    
     public class TagData
     {
         private readonly Ticker ticker = new Ticker();

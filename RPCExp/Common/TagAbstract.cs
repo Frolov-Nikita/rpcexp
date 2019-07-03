@@ -8,7 +8,6 @@ namespace RPCExp.Common
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public abstract bool CanRead { get; set; }
         public abstract bool CanWrite { get; set; }
 
 

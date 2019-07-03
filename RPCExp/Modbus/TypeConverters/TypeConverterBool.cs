@@ -10,8 +10,10 @@ namespace RPCExp.Modbus.TypeConverters
         {
         }
 
-        public override int ByteLength => 2;
-        
+        public override ModbusValueType ValueType => ModbusValueType.Bool;
+
+        //public override int ByteLength => 2;
+
         public override void GetBytes(Span<byte> buffer, object value)
         {
             var buff = BitConverter.GetBytes((Int16)value);

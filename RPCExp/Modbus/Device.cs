@@ -1,5 +1,6 @@
 ﻿using NModbus;
 using RPCExp.Common;
+using RPCExp.Modbus.TypeConverters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +11,29 @@ using System.Threading.Tasks;
 namespace RPCExp.Modbus
 {
 
-    public class Device: DeviceAbstract
+    public class Device : DeviceAbstract
     {
+
+        private Dictionary<ModbusValueType, TypeConverterAbstract> typeConverters = new Dictionary<ModbusValueType, TypeConverterAbstract>();
+
+        private void updateTypeConverters() {
+            typeConverters.Clear();
+            typeConverters.Add(ModbusValueType.Bool, new TypeConverterBool(ByteOrder));
+            typeConverters.Add(ModbusValueType.Float, new TypeConverterFloat(ByteOrder));
+            typeConverters.Add(ModbusValueType.Int16, new TypeConverterInt16(ByteOrder));
+            typeConverters.Add(ModbusValueType.Int32, new TypeConverterInt32(ByteOrder));
+        }
+
+        private TypeConverterAbstract GetTypeConverter(ModbusValueType modbusValueType)
+        {
+            if (typeConverters.ContainsKey(modbusValueType))
+                return typeConverters[modbusValueType];
+            updateTypeConverters();
+            return typeConverters[modbusValueType];
+        }
+
+        private byte[] byteOrder = new byte[] { 2, 3, 0, 1 };
+
         public byte SlaveId { get; set; }
 
         public string Host { get; set; } = "127.0.0.1";
@@ -26,7 +48,14 @@ namespace RPCExp.Modbus
 
         public long InActiveUpdatePeriod { get; set; } = 20 * 10_000_000;
 
-        
+        public byte[] ByteOrder {
+            get => byteOrder;
+            set {
+                byteOrder = value;
+                updateTypeConverters();
+            }
+        } 
+
         private IModbusMaster master;
 
         private bool ConnectedOrConnect()
@@ -39,14 +68,14 @@ namespace RPCExp.Modbus
                 var factory = new ModbusFactory();
                 client = new System.Net.Sockets.TcpClient(Host, Port);
                 master = factory.CreateMaster(client);
-                return true;                   
+                return true;
             }
             catch
             {
                 return false;
             }
         }
-
+        
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             long nextTime = 0, waitTime = 0;
@@ -55,27 +84,28 @@ namespace RPCExp.Modbus
             {
                 if (ConnectedOrConnect())
                 {
-                    nextTime = await Update( nextTime == 0);
+                    nextTime = await Update(nextTime == 0);
 
                     waitTime = nextTime - DateTime.Now.Ticks;
                     waitTime = waitTime > 10_000 ? waitTime : 10_000; // 10_000 = 1 миллисекунда
                     waitTime = waitTime > 50_000_000 ? waitTime / 2 : waitTime;
                     waitTime = waitTime < 50_000_000 ? waitTime : 50_000_000;// 100_000_000 = 10 сек
 
-                    await Task.Delay((int) waitTime / 10_000);
+                    await Task.Delay((int)waitTime / 10_000);
                 }
                 else
                 {
                     foreach (var t in Tags)
                         t.Value.SetValue(null, TagQuality.BAD_COMM_FAILURE);
-                    await Task.Delay((int) BadCommWaitPeriod/ 10_000);
+                    await Task.Delay((int)BadCommWaitPeriod / 10_000);
                 }
             }
         }
 
         private async Task UpdateHoldingRegisters(MTagsGroup g)
         {
-            try { 
+            try
+            {
                 var registers = await master.ReadHoldingRegistersAsync(SlaveId, (ushort)g.Begin, (ushort)g.Length).ConfigureAwait(false);
 
                 var buff = new byte[g.Length * 2];
@@ -85,18 +115,23 @@ namespace RPCExp.Modbus
                         .CopyTo(buff, (k) * 2);
 
                 foreach (var t in g)
-                    t.SetValue(buff.AsSpan((t.Begin - g.Begin)*2));
+                {
+                    var tc = GetTypeConverter(t.ValueType);
+                    var val = tc.GetValue(buff.AsSpan((t.Begin - g.Begin) * 2));
+                    t.SetValue(val);
+                }
             }
             catch
             {
                 foreach (var t in g)
                     t.SetValue(null, TagQuality.BAD);
             }
-}
+        }
 
         private async Task UpdateInputRegisters(MTagsGroup g)
         {
-            try { 
+            try
+            {
                 var registers = await master.ReadInputRegistersAsync(SlaveId, (ushort)g.Begin, (ushort)g.Length).ConfigureAwait(false);
 
                 var buff = new byte[g.Length * 2];
@@ -106,23 +141,27 @@ namespace RPCExp.Modbus
                         .CopyTo(buff, (k) * 2);
 
                 foreach (var t in g)
-                    t.SetValue(buff.AsSpan((t.Begin - g.Begin) * 2));
-
+                {
+                    var tc = GetTypeConverter(t.ValueType);
+                    var val = tc.GetValue(buff.AsSpan((t.Begin - g.Begin) * 2));
+                    t.SetValue(val);
+                }
             }
             catch
             {
                 foreach (var t in g)
                     t.SetValue(null, TagQuality.BAD);
             }
-}
+        }
 
         private async Task UpdateCoils(MTagsGroup g)
         {
-            try { 
+            try
+            {
                 var bits = await master.ReadCoilsAsync(SlaveId, (ushort)g.Begin, (ushort)g.Length).ConfigureAwait(false);
 
                 foreach (var t in g)
-                    t.SetValue( bits[t.Begin - g.Begin]);
+                    t.SetValue(bits[t.Begin - g.Begin]);
             }
             catch
             {
@@ -145,7 +184,7 @@ namespace RPCExp.Modbus
                     t.SetValue(null, TagQuality.BAD);
             }
         }
-        
+
         private async Task<long> Update(bool force = false)
         {
             var nowTick = DateTime.Now.Ticks;
@@ -163,9 +202,9 @@ namespace RPCExp.Modbus
             {
                 if ((!tag.StatIsAlive) && (!InActiveUpdate) && (!force))
                     continue;
-                
+
                 long period = (tag.Quality == TagQuality.GOOD) ?
-                    tag.StatPeriod:
+                    tag.StatPeriod :
                     BadCommWaitPeriod;
 
                 if ((!tag.StatIsAlive) && InActiveUpdate)
@@ -208,7 +247,7 @@ namespace RPCExp.Modbus
                 }
             }
 
-            if(count > 0)
+            if (count > 0)
             {
                 foreach (var g in (coils).Slice())
                     await UpdateCoils(g);
@@ -222,12 +261,13 @@ namespace RPCExp.Modbus
                 foreach (var g in (holdingRegisters).Slice())
                     await UpdateHoldingRegisters(g);
             }
-            
+
             return groupNextUpdate;
         }
 
         public override async Task<bool> Write(IDictionary<string, object> tagsValues)
         {
+            await Task.Delay(0);
             throw new NotImplementedException();
         }
     }

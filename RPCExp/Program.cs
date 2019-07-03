@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 using RPCExp.Modbus.TypeConverters;
+using RPCExp.Modbus.Factory;
 
 namespace RPCExp
 {
@@ -41,56 +42,58 @@ namespace RPCExp
                     {
                         Devices = new List<DeviceAbstract>
                         {
-                            new Device
-                            {
-                                SlaveId = 1,
-                            }
+                            //new Device
+                            //{
+                            //    SlaveId = 1,
+                            //}
                         }
                     }
                 }
             };
 
-            //var cfg = JsonConvert.SerializeObject(store, Formatting.Indented);
-            //System.IO.File.WriteAllText(@"cfg.json", cfg);
+            var dev = Factory.LoadDevice("cfg.json");
+            store.Facilities[0].Devices.Add(dev);
+            //var dev = (Device)store.Facilities[0].Devices[0];
+            
+            //dev.Tags.Add("tag1", new MTag {
+            //    Region = ModbusRegion.HoldingRegisters,
+            //    Name = "Tag1",
+            //    Begin = 2,
+            //    ValueType = ModbusValueType.Int16,
+            //});
+
+            //dev.Tags.Add("tag2", new MTag
+            //{
+            //    Region = ModbusRegion.HoldingRegisters,
+            //    Name = "Tag2",
+            //    Begin = 3,
+            //    ValueType = ModbusValueType.Float,
+            //}); ;
+            
+            //dev.Tags.Add("BoolTag1", new MTag
+            //{
+            //    Region = ModbusRegion.Coils,
+            //    Name = "BoolTag1",
+            //    Begin = 500,
+            //    ValueType = ModbusValueType.Bool,
+            //});
+
+            //Factory.SaveDevice(dev, "cfg2.json");
             //return;
-
-            var dev = (Device)store.Facilities[0].Devices[0];
-
-            dev.Tags.Add("tag1", new MTag {
-                Region = ModbusRegion.HoldingRegisters,
-                Name = "Tag1",
-                Begin = 2,
-                TypeConv = new TypeConverterInt16(DefaultByteOrder)});
-            
-            dev.Tags.Add("tag2", new MTag
-            {
-                Region = ModbusRegion.HoldingRegisters,
-                Name = "Tag2",
-                Begin = 3,
-                TypeConv = new TypeConverterFloat(DefaultByteOrder)
-            });
-            
-            dev.Tags.Add("BoolTag1", new MTag
-            {
-                Region = ModbusRegion.Coils,
-                Name = "BoolTag1",
-                Begin = 500,
-                TypeConv = new TypeConverterBool(DefaultByteOrder)
-            });
 
             dev.Start();
             
             Console.CancelKeyPress += Console_CancelKeyPress;
 
-            Timer t1 = new Timer((x)=>dev.Tags["tag1"].GetValue(), new AutoResetEvent(false), 0, 2000 );
+            Timer t1 = new Timer((x)=>dev.Tags["Tag1"].GetValue(), new AutoResetEvent(false), 0, 2000 );
 
-            //Timer t2 = new Timer((x) => dev.Tags["tag2"].GetValue(), new AutoResetEvent(false), 0, 2100);
+            Timer t2 = new Timer((x) => dev.Tags["Tag2"].GetValue(), new AutoResetEvent(false), 0, 2100);
 
-            Task.Run(() =>
-            {
-                Task.Delay(10_000).Wait();
-                dev.Tags["tag2"].GetValue();
-            });
+            //Task.Run(() =>
+            //{
+            //    Task.Delay(10_000).Wait();
+            //    dev.Tags["Tag2"].GetValue();
+            //});
 
             while (!Cts.Token.IsCancellationRequested)
             {

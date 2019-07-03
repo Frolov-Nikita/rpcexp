@@ -9,9 +9,7 @@ namespace RPCExp.Common
         string Name { get; set; }
 
         string Description { get; set; }
-
-        bool CanRead { get; set; }
-
+        
         bool CanWrite { get; set; }
     }
 }

@@ -18,8 +18,10 @@ namespace RPCExp.Modbus.TypeConverters
                 ByteOrder[i] -= min;
         }
 
-        public abstract int ByteLength { get; }
-        
+        public int ByteLength => GetByteLength(ValueType);
+
+        public abstract ModbusValueType ValueType { get; }
+
         protected byte[] ByteOrder;
 
         protected void SetOrderedBuffer(Span<byte> dest, Span<byte> src)
@@ -39,5 +41,22 @@ namespace RPCExp.Modbus.TypeConverters
         public abstract object GetValue(Span<byte> buffer);
 
         public abstract void GetBytes(Span<byte> buffer, object value);
+
+        public static int GetByteLength(ModbusValueType modbusValueType)
+        {
+            switch (modbusValueType)
+            {
+                case ModbusValueType.Bool:
+                    return 1;
+                case ModbusValueType.Float:
+                    return 4;
+                case ModbusValueType.Int16:
+                    return 2;
+                case ModbusValueType.Int32:
+                    return 4;
+                default:
+                    return 2;
+            }
+        }
     }
 }
