@@ -6,46 +6,33 @@ namespace RPCExp.Common
 {
     public class Ticker
     {
-        private byte cnt = 0;
+        //private byte cnt = 0;
+        private int i = 0;
+
+        private long period;
 
         private readonly long[] t = new long[3];// { 0, 0, DateTime.Now.Ticks };
 
-        public long Min { get; set; } = 10_000_000;
+        public long Min { get; set; } = 10_000_000; // 1 сек
 
-        public long Cache { get; set; } = 20_000_000;
+        public bool IsActive => DateTime.Now.Ticks < Last + 3 * Period;
 
-        public long Max { get; set; } = 100_000_000;
-
-        public bool IsActive
-        {
-            get
-            {
-                var p = 3 * (Period);
-                p = p > Cache ? p : Cache;
-                return DateTime.Now.Ticks < Last + p;
-            }
+        public long Period {
+            get => period > Min ? period : Min;
         }
-
-        public long Period { get; private set; } = 0;
-
-        public long Last => t[t.Length - 1];
-
-        public long Next => Last + (IsActive ? Period : Max);
+        public long Last => t[i];
 
         public void Tick()
         {
-            int i = 0;
+            i = (i + 1) % t.Length;
 
-            for (; i < t.Length - 1; i++)
-                t[i] = t[i + 1];
-            
+            long s = t[i];
             t[i] = DateTime.Now.Ticks;
+            if(s == 0)
+                period = (t[i] - t[1]) / (i != 0 ? i : t.Length );
+            else
+                period = (t[i] - s) / t.Length;
 
-            if (cnt < t.Length)
-                if (++cnt < 2)
-                    return;
-
-            Period = (t[i] - t[t.Length - cnt])/(cnt - 1);
         }
     }
 }

@@ -8,7 +8,8 @@ namespace RPCExp.Common
 
     public interface IDevice
     {
-        string Name { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
 
         IDictionary<string, TagAbstract> Tags { get; }
                 

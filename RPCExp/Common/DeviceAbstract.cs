@@ -10,8 +10,11 @@ namespace RPCExp.Common
     {
         public virtual string Name { get ; set ; }
 
+        public string Description { get; set; }
+
         public virtual IDictionary<string, TagAbstract> Tags { get; } = new Dictionary<string, TagAbstract>();
         
+
         public abstract Task<bool> Write(IDictionary<string, object> tagsValues);
     }
 }

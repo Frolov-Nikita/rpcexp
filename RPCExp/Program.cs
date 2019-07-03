@@ -20,9 +20,9 @@ namespace RPCExp
 
         static void Main(string[] args)
         {
-            
+
             //var st = new Ticker();
-            //string TickToSecStr(long ticks) => (ticks/10_000_000.0).ToString("#.###");
+            //string TickToSecStr(long ticks) => (ticks / 10_000_000.0).ToString("#.###");
             //while (Console.ReadKey().Key != ConsoleKey.Escape)
             //{
             //    Console.Write($"was active: {st.IsActive},\tperiod: {TickToSecStr(st.Period)}");
@@ -82,9 +82,15 @@ namespace RPCExp
             
             Console.CancelKeyPress += Console_CancelKeyPress;
 
-            Timer t1 = new Timer((x)=>dev.Tags["tag1"].GetValue(), new AutoResetEvent(false), 1, 2000 );
+            Timer t1 = new Timer((x)=>dev.Tags["tag1"].GetValue(), new AutoResetEvent(false), 0, 2000 );
 
-            Timer t2 = new Timer((x) => dev.Tags["tag2"].GetValue(), new AutoResetEvent(false), 60_000, 2100);
+            //Timer t2 = new Timer((x) => dev.Tags["tag2"].GetValue(), new AutoResetEvent(false), 0, 2100);
+
+            Task.Run(() =>
+            {
+                Task.Delay(10_000).Wait();
+                dev.Tags["tag2"].GetValue();
+            });
 
             while (!Cts.Token.IsCancellationRequested)
             {

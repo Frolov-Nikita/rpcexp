@@ -11,17 +11,22 @@ namespace RPCExp.Modbus
 {
 
     public class Device: DeviceAbstract
-    {        
+    {
         public byte SlaveId { get; set; }
 
         public string Host { get; set; } = "127.0.0.1";
 
         public int Port { get; set; } = 11502;
-        
-        public long BadCommWaitPeriod { get; set; } = 10 * 10_000_000;
 
         private System.Net.Sockets.TcpClient client;
 
+        public long BadCommWaitPeriod { get; set; } = 10 * 10_000_000;
+
+        public bool InActiveUpdate { get; set; } = true;
+
+        public long InActiveUpdatePeriod { get; set; } = 20 * 10_000_000;
+
+        
         private IModbusMaster master;
 
         private bool ConnectedOrConnect()
@@ -57,13 +62,13 @@ namespace RPCExp.Modbus
                     waitTime = waitTime > 50_000_000 ? waitTime / 2 : waitTime;
                     waitTime = waitTime < 50_000_000 ? waitTime : 50_000_000;// 100_000_000 = 10 сек
 
-                    await Task.Delay(TimeSpan.FromTicks(waitTime));
+                    await Task.Delay((int) waitTime / 10_000);
                 }
                 else
                 {
                     foreach (var t in Tags)
                         t.Value.SetValue(null, TagQuality.BAD_COMM_FAILURE);
-                    await Task.Delay(TimeSpan.FromTicks(BadCommWaitPeriod));
+                    await Task.Delay((int) BadCommWaitPeriod/ 10_000);
                 }
             }
         }
@@ -140,11 +145,12 @@ namespace RPCExp.Modbus
                     t.SetValue(null, TagQuality.BAD);
             }
         }
-
+        
         private async Task<long> Update(bool force = false)
         {
-            var afterTick = DateTime.Now.Ticks + TimeSpan.FromSeconds(1).Ticks;
-            long groupNextUpdate = long.MaxValue;
+            var nowTick = DateTime.Now.Ticks;
+            var afterTick = nowTick + TimeSpan.FromSeconds(1).Ticks;
+            long groupNextUpdate = nowTick + BadCommWaitPeriod;
 
             var holdingRegisters = new MTagsGroup();
             var inputRegisters = new MTagsGroup();
@@ -153,23 +159,32 @@ namespace RPCExp.Modbus
 
             var count = 0;
 
-            foreach (var tvp in Tags)
+            foreach (MTag tag in Tags.Values)
             {
-                var tag = (MTag)tvp.Value;
-                if ((!tag.StatIsAlive)&&(!force))
+                if ((!tag.StatIsAlive) && (!InActiveUpdate) && (!force))
                     continue;
+                
+                long period = (tag.Quality == TagQuality.GOOD) ?
+                    tag.StatPeriod:
+                    BadCommWaitPeriod;
 
-                long tagNextTick = (tag.Quality == TagQuality.GOOD) ?
-                    tag.Last + tag.StatPeriod:
-                    tag.Last + BadCommWaitPeriod;
+                if ((!tag.StatIsAlive) && InActiveUpdate)
+                    period = InActiveUpdatePeriod;
+
+                long tagNextTick = tag.Last + period;
 
                 if (tagNextTick > afterTick)
                 {
                     if (groupNextUpdate > tagNextTick)
                         groupNextUpdate = tagNextTick;
-
                     if (!force)
                         continue;
+                }
+                else
+                {
+                    tagNextTick = nowTick + period;
+                    if (groupNextUpdate > tagNextTick)
+                        groupNextUpdate = tagNextTick;
                 }
 
                 count++;
