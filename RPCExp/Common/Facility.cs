@@ -10,6 +10,7 @@ namespace RPCExp.Common
 
         public string Description { get; set; }
 
+        //TODO: переделать на словарь!!
         public List<DeviceAbstract> Devices { get; set; }
 
     }

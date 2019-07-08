@@ -32,10 +32,8 @@ namespace RPCExp.Modbus
 
         public int Begin { get; set; }
 
-        [JsonIgnore]
         public int Length => TypeConverterAbstract.GetByteLength(ValueType) / 2;
 
-        [JsonIgnore]
         public int End => Begin + (Length - 1);
         //### специфично только для modbus */
 

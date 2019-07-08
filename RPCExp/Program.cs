@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using RPCExp.Modbus.TypeConverters;
 using RPCExp.Modbus.Factory;
+using static RPCExp.Modbus.Factory.Factory;
 
 namespace RPCExp
 {
@@ -32,92 +33,65 @@ namespace RPCExp
             //}
             //return;
 
-            var DefaultByteOrder = new byte[] { 2, 3, 0, 1 };
+            Console.WriteLine("Starting");
 
-            var store = new Common.Store
-            {
-                Facilities = new List<Facility>
-                {
-                    new Facility
-                    {
-                        Devices = new List<DeviceAbstract>
-                        {
-                            //new Device
-                            //{
-                            //    SlaveId = 1,
-                            //}
-                        }
-                    }
-                }
-            };
+            var facility = Factory.LoadFacility("cfg.json");
 
-            var dev = Factory.LoadDevice("cfg.json");
-            store.Facilities[0].Devices.Add(dev);
-            //var dev = (Device)store.Facilities[0].Devices[0];
-            
-            //dev.Tags.Add("tag1", new MTag {
-            //    Region = ModbusRegion.HoldingRegisters,
-            //    Name = "Tag1",
-            //    Begin = 2,
-            //    ValueType = ModbusValueType.Int16,
-            //});
+            Console.WriteLine("conf - ok");
 
-            //dev.Tags.Add("tag2", new MTag
-            //{
-            //    Region = ModbusRegion.HoldingRegisters,
-            //    Name = "Tag2",
-            //    Begin = 3,
-            //    ValueType = ModbusValueType.Float,
-            //}); ;
-            
-            //dev.Tags.Add("BoolTag1", new MTag
-            //{
-            //    Region = ModbusRegion.Coils,
-            //    Name = "BoolTag1",
-            //    Begin = 500,
-            //    ValueType = ModbusValueType.Bool,
-            //});
-
-            //Factory.SaveDevice(dev, "cfg2.json");
-            //return;
+            var dev = facility.Devices[0];
 
             dev.Start();
-            
+
+            Console.WriteLine("Start  tasks");
             Console.CancelKeyPress += Console_CancelKeyPress;
 
-            Timer t1 = new Timer((x)=>dev.Tags["Tag1"].GetValue(), new AutoResetEvent(false), 0, 2000 );
-
-            Timer t2 = new Timer((x) => dev.Tags["Tag2"].GetValue(), new AutoResetEvent(false), 0, 2100);
+            //Timer t1 = new Timer((x)=>dev.Tags["Tag1"].GetValue(), new AutoResetEvent(false), 0, 2000 );
+            //Timer t2 = new Timer((x) => dev.Tags["Tag2"].GetValue(), new AutoResetEvent(false), 0, 2100);
 
             //Task.Run(() =>
             //{
             //    Task.Delay(10_000).Wait();
-            //    dev.Tags["Tag2"].GetValue();
+            //    dev.Write(new Dictionary<string, object> { ["Tag3"] = 33.21 });
             //});
 
+            // ==== WebSocket ====
+            Console.WriteLine("Start Socket");
+            Router router = new Router();
+            router.RegisterMethods(dev, nameof(dev));
+
+            WebSocketServer wss = new WebSocketServer(router, new string[] { "http://localhost:8888/"/*, "http://*:8888/"*/});
+            
+            wss.Start();
+            
+            Console.Clear();
             while (!Cts.Token.IsCancellationRequested)
             {
-                Terminal.TermForms.DisplayModbusDevice(dev);
+                try
+                {
+                    Terminal.TermForms.DisplayModbusDevice((Device)dev);
+                    //Console.WriteLine("Tag1: " + dev.Tags["Tag1"].GetInternalValue());
+                    //Console.WriteLine("Tag2: " + dev.Tags["Tag2"].GetInternalValue());
+                }
+                catch (Exception ex)
+                {
+                    Console.BackgroundColor = ConsoleColor.Black;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(ex.ToString());
+                    Console.ResetColor();
+                    break;
+                }
                 
-                Thread.Sleep(500);
+                Thread.Sleep(1000);
             }
 
+            wss.Stop();
+
+            Console.ReadKey();
+            Console.Clear();
             return;
 
-
-            //var factory = new ModbusFactory();
-            //var client = new System.Net.Sockets.TcpClient("127.0.0.1", 11502);
-            //IModbusMaster dev1 = factory.CreateMaster(client);
-            //var hr1 = dev1.ReadHoldingRegisters(1, 0, 10);
-
-            //Router router = new Router();
-            //router.RegisterMethods(dev1, nameof(dev1));
-
-            //WebSocketServer wss = new WebSocketServer(router);
-            //var host = "http://localhost:8888/";
-            //wss.Start(host);
-            //Console.WriteLine("Started");
-            //Console.ReadKey();
+            //Console.WriteLine("Started");            
             //wss.Stop();
             //client.Dispose();
         }

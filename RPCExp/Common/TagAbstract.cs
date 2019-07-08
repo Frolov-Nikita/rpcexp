@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RPCExp.Common
 {
-    public abstract class TagAbstract : TagData, ITagInfo
+    public abstract class TagAbstract : TagDataStat, ITagInfo
     {
         public string Name { get; set; }
         public string Description { get; set; }

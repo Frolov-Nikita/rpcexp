@@ -14,7 +14,7 @@ namespace RPCExp.Modbus.TypeConverters
 
         public override void GetBytes(Span<byte> buffer, object value)
         {
-            var buff = BitConverter.GetBytes((Int16)value);
+            var buff = BitConverter.GetBytes((Int16)Convert.ChangeType(value, typeof(Int16)));
             SetOrderedBuffer(buffer, buff);
         }
 

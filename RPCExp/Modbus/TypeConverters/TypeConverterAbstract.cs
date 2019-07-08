@@ -47,7 +47,7 @@ namespace RPCExp.Modbus.TypeConverters
             switch (modbusValueType)
             {
                 case ModbusValueType.Bool:
-                    return 1;
+                    return 2;
                 case ModbusValueType.Float:
                     return 4;
                 case ModbusValueType.Int16:

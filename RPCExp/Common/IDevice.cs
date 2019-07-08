@@ -13,6 +13,6 @@ namespace RPCExp.Common
 
         IDictionary<string, TagAbstract> Tags { get; }
                 
-        Task<bool> Write(IDictionary<string, object> tagsValues);
+        Task<int> Write(IDictionary<string, object> tagsValues);
     }
 }

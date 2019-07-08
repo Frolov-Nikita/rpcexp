@@ -139,8 +139,12 @@ namespace RPCExp.Terminal
 
             var w = Console.WindowWidth;
             var h = Console.WindowHeight;
-            Console.Clear();
-            Console.CursorVisible = false;
+
+            //Console.Clear();
+            var cursorL = Console.CursorLeft;
+            var cursorT = Console.CursorTop;
+
+            //Console.CursorVisible = false;
             Console.ForegroundColor = ConsoleColor.DarkGreen;
 
             Console.WriteLine($"IP: {device.Host}:{device.Port}, " +
@@ -186,7 +190,7 @@ namespace RPCExp.Terminal
             //}
 
             TermTable.Draw(vals, headers);
-
+            Console.SetCursorPosition(cursorL, cursorT);
         }
     }
 }

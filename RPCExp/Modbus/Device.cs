@@ -16,9 +16,8 @@ namespace RPCExp.Modbus
 
         private Dictionary<ModbusValueType, TypeConverterAbstract> typeConverters = new Dictionary<ModbusValueType, TypeConverterAbstract>();
 
-        private void updateTypeConverters() {
+        private void UpdateTypeConverters() {
             typeConverters.Clear();
-            typeConverters.Add(ModbusValueType.Bool, new TypeConverterBool(ByteOrder));
             typeConverters.Add(ModbusValueType.Float, new TypeConverterFloat(ByteOrder));
             typeConverters.Add(ModbusValueType.Int16, new TypeConverterInt16(ByteOrder));
             typeConverters.Add(ModbusValueType.Int32, new TypeConverterInt32(ByteOrder));
@@ -28,7 +27,7 @@ namespace RPCExp.Modbus
         {
             if (typeConverters.ContainsKey(modbusValueType))
                 return typeConverters[modbusValueType];
-            updateTypeConverters();
+            UpdateTypeConverters();
             return typeConverters[modbusValueType];
         }
 
@@ -41,18 +40,12 @@ namespace RPCExp.Modbus
         public int Port { get; set; } = 11502;
 
         private System.Net.Sockets.TcpClient client;
-
-        public long BadCommWaitPeriod { get; set; } = 10 * 10_000_000;
-
-        public bool InActiveUpdate { get; set; } = true;
-
-        public long InActiveUpdatePeriod { get; set; } = 20 * 10_000_000;
-
+        
         public byte[] ByteOrder {
             get => byteOrder;
             set {
                 byteOrder = value;
-                updateTypeConverters();
+                UpdateTypeConverters();
             }
         } 
 
@@ -187,47 +180,15 @@ namespace RPCExp.Modbus
 
         private async Task<long> Update(bool force = false)
         {
-            var nowTick = DateTime.Now.Ticks;
-            var afterTick = nowTick + TimeSpan.FromSeconds(1).Ticks;
-            long groupNextUpdate = nowTick + BadCommWaitPeriod;
+            var tags = NeedToUpdate(out long groupNextUpdate, force);
 
             var holdingRegisters = new MTagsGroup();
             var inputRegisters = new MTagsGroup();
             var coils = new MTagsGroup();
             var discreteInputs = new MTagsGroup();
 
-            var count = 0;
-
-            foreach (MTag tag in Tags.Values)
+            foreach (MTag tag in tags)
             {
-                if ((!tag.StatIsAlive) && (!InActiveUpdate) && (!force))
-                    continue;
-
-                long period = (tag.Quality == TagQuality.GOOD) ?
-                    tag.StatPeriod :
-                    BadCommWaitPeriod;
-
-                if ((!tag.StatIsAlive) && InActiveUpdate)
-                    period = InActiveUpdatePeriod;
-
-                long tagNextTick = tag.Last + period;
-
-                if (tagNextTick > afterTick)
-                {
-                    if (groupNextUpdate > tagNextTick)
-                        groupNextUpdate = tagNextTick;
-                    if (!force)
-                        continue;
-                }
-                else
-                {
-                    tagNextTick = nowTick + period;
-                    if (groupNextUpdate > tagNextTick)
-                        groupNextUpdate = tagNextTick;
-                }
-
-                count++;
-
                 switch (tag.Region)
                 {
                     case ModbusRegion.Coils:
@@ -247,7 +208,7 @@ namespace RPCExp.Modbus
                 }
             }
 
-            if (count > 0)
+            if (tags.Count > 0)
             {
                 foreach (var g in (coils).Slice())
                     await UpdateCoils(g);
@@ -265,10 +226,71 @@ namespace RPCExp.Modbus
             return groupNextUpdate;
         }
 
-        public override async Task<bool> Write(IDictionary<string, object> tagsValues)
+        /// <summary>
+        /// Записать значения тегов в устройство 
+        /// (Еще не реализовано)
+        /// </summary>
+        /// <param name="tagsValues"></param>
+        /// <returns></returns>
+        public override async Task<int> Write(IDictionary<string, object> tagsValues)
         {
-            await Task.Delay(0);
-            throw new NotImplementedException();
+            
+            List<MTag> tags = new List<MTag>();
+            foreach (var tv in tagsValues)
+                if (Tags.ContainsKey(tv.Key))
+                    tags.Add((MTag)Tags[tv.Key]);
+
+            if(tags.Count > 0)
+            {
+                var holdingRegisters = new MTagsGroup();
+                var coils = new MTagsGroup();
+
+                foreach (MTag tag in tags)
+                {
+                    switch (tag.Region)
+                    {
+                        case ModbusRegion.Coils:
+                            coils.Add(tag);
+                            break;
+                        case ModbusRegion.HoldingRegisters:
+                            holdingRegisters.Add(tag);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                foreach (var g in holdingRegisters.Slice())
+                {
+                    ushort[] values = new ushort[g.Length];
+                    byte[] buff = new byte[32];
+
+                    foreach (var t in g)
+                    {
+                        var v = tagsValues[t.Name];
+                        var tc = GetTypeConverter(t.ValueType);
+                        
+                        tc.GetBytes(buff, v);
+                        var b = t.Begin - g.Begin;
+                        for (int i = 0; i < t.Length; i++)
+                            values[b + i] = BitConverter.ToUInt16(buff, i * 2);
+                    }
+
+                    await master.WriteMultipleRegistersAsync(SlaveId, (ushort)g.Begin, values);
+                }
+
+                foreach (var g in coils.Slice())
+                {
+                    var values = new bool[g.Length];
+                    int i = 0;
+                    foreach (var t in g)
+                        values[i++] = (bool)tagsValues[t.Name];
+                    await master.WriteMultipleCoilsAsync(SlaveId, (ushort)g.Begin, values);
+                }
+            }
+
+            return 0;
+            //throw new NotImplementedException();
         }
     }
 }

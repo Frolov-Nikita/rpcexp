@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using RPCExp.JsonRpc;
+using System.ComponentModel.DataAnnotations;
 
 namespace RPCExp
 {
@@ -14,17 +16,43 @@ namespace RPCExp
 
         List<RpcMethod> rpcMethods = new List<RpcMethod>();
 
+
+        public IEnumerable<RpcMetodInfo> GetMethods()
+        {
+            List<RpcMetodInfo> infos = new List<RpcMetodInfo>();
+            foreach (var r in rpcMethods)
+                infos.Add(new RpcMetodInfo(r));
+            return infos;
+        }
+
+        public Router()
+        {
+            var rm = new RpcMethod();
+            rm.ObjName = "rpc";
+            rm.Obj = this;
+            rm.MethodName = "GetMethods";
+            rm.Parameters = null;
+            rm.Description = "Описание всех доступных методов";
+            rpcMethods.Add(rm);
+        }
+
+        private string GetDesc(MethodInfo methodInfo)
+        {
+            return methodInfo.GetDocumentation()?.InnerXml;
+        }
+
         public void RegisterMethods(object obj, string objName = default)
         {
             var methods = obj.GetType().GetMethods();
             Type asyncAttrType = typeof(System.Runtime.CompilerServices.AsyncStateMachineAttribute);
             foreach (var m in methods)
             {
-                if (!m.IsPublic) continue;
+                if (!m.IsPublic || m.IsSpecialName || (m.DeclaringType == typeof(Object))) continue;
                 var rm = new RpcMethod();
                 rm.Obj = obj;
                 rm.ObjName = objName;
                 rm.MethodName = m.Name;
+                rm.Description = GetDesc(m);
                 rm.IsAsync = m.GetCustomAttributes(asyncAttrType, false).Length > 0;
                 rm.Parameters = m.GetParameters();
                 rpcMethods.Add(rm);
@@ -63,11 +91,8 @@ namespace RPCExp
                 m => m.MethodName == methodName &&
                 m.ObjName == objName);
 
-            var method = methods.Find(m => m.Parameters.Length == parameters.Count);
-
-            if(method == default(RpcMethod))
-                method = methods.Find(m => m.Parameters.Length >= parameters.Count);
-
+            var method = methods.Find(m => (m.Parameters?.Length ?? 0) == parameters.Count);
+            
             if (method == default(RpcMethod))
                 return Response.GetErrorMethodNotFound(request.Id, request.MethodName);
 

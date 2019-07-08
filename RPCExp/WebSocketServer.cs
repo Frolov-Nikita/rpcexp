@@ -14,19 +14,20 @@ namespace RPCExp
         private HttpListener httpListener;        
         private List<Task> socketsHandlers = new List<Task>(4);
         private Router router;
-        private string host;
+        private string[] hosts;
         
-        public WebSocketServer(Router router, string host = "http://localhost:8888/")
+        public WebSocketServer(Router router, string[] hosts = null)
         {
             this.router = router;
-            this.host = host;
+            this.hosts = hosts?? new string[] { "http://localhost:8888/" };
         }
 
 
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             httpListener = new HttpListener();
-            httpListener.Prefixes.Add(host);
+            foreach(var host in hosts)
+                httpListener.Prefixes.Add(host);
 
             httpListener.Start();
 
