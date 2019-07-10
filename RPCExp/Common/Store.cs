@@ -1,8 +1,4 @@
-﻿using NModbus;
-using RPCExp.Modbus;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace RPCExp.Common
 {

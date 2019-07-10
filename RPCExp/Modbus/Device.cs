@@ -1,10 +1,8 @@
-﻿using NModbus;
+﻿using ModbusBasic;
 using RPCExp.Common;
 using RPCExp.Modbus.TypeConverters;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

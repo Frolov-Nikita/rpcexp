@@ -8,8 +8,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RPCExp
 {
-
- 
     public class Router
     {
         Encoding enc = Encoding.UTF8;
