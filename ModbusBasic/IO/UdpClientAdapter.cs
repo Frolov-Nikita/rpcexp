@@ -42,6 +42,8 @@ namespace ModbusBasic.IO
             set => _udpClient.Client.SendTimeout = value;
         }
 
+        public bool IsOpen => _udpClient?.Client?.Connected ?? false;
+
         public void DiscardInBuffer()
         {
             // no-op

@@ -8,6 +8,8 @@ namespace ModbusBasic.IO
     /// </summary>
     public interface IStreamResource : IDisposable
     {
+        bool IsOpen { get; }
+
         /// <summary>
         ///     Indicates that no timeout should occur.
         /// </summary>

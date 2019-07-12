@@ -31,6 +31,13 @@ namespace ModbusBasic
         IModbusSerialMaster CreateMaster(IModbusSerialTransport transport);
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="streamResource"></param>
+        /// <returns></returns>
+        IModbusMaster CreateIpMaster(IStreamResource streamResource);
+
+        /// <summary>
         /// Create a TCP master.
         /// </summary>
         /// <param name="client"></param>

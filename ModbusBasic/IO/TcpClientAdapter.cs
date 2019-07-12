@@ -34,6 +34,8 @@ namespace ModbusBasic.IO
             set => _tcpClient.GetStream().WriteTimeout = value;
         }
 
+        public bool IsOpen => _tcpClient?.Connected ?? false;
+
         public void Write(byte[] buffer, int offset, int size)
         {
             _tcpClient.GetStream().Write(buffer, offset, size);

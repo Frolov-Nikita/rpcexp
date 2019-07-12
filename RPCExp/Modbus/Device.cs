@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace RPCExp.Modbus
 {
-
     public class Device : DeviceAbstract
     {
+        ModbusFactory factory = new ModbusFactory(); //TODO ПЕРЕДЕЛАТЬ!!
 
         private Dictionary<ModbusValueType, TypeConverterAbstract> typeConverters = new Dictionary<ModbusValueType, TypeConverterAbstract>();
 
@@ -32,12 +32,6 @@ namespace RPCExp.Modbus
         private byte[] byteOrder = new byte[] { 2, 3, 0, 1 };
 
         public byte SlaveId { get; set; }
-
-        public string Host { get; set; } = "127.0.0.1";
-
-        public int Port { get; set; } = 11502;
-
-        private System.Net.Sockets.TcpClient client;
         
         public byte[] ByteOrder {
             get => byteOrder;
@@ -45,35 +39,19 @@ namespace RPCExp.Modbus
                 byteOrder = value;
                 UpdateTypeConverters();
             }
-        } 
-
-        private IModbusMaster master;
-
-        private bool ConnectedOrConnect()
-        {
-            if ((client != null) && client.Connected)
-                return true;
-
-            try
-            {
-                var factory = new ModbusFactory();
-                client = new System.Net.Sockets.TcpClient(Host, Port);
-                master = factory.CreateMaster(client);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
         }
-        
+
+        public ConnectionSource Connection { get; set; }
+
+        public MasterSource MasterSource { get; set; }
+                
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             long nextTime = 0, waitTime = 0;
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                if (ConnectedOrConnect())
+                if (Connection.IsOpen)
                 {
                     nextTime = await Update(nextTime == 0);
 
@@ -93,7 +71,7 @@ namespace RPCExp.Modbus
             }
         }
 
-        private async Task UpdateHoldingRegisters(MTagsGroup g)
+        private async Task UpdateHoldingRegisters(IModbusMaster master, MTagsGroup g)
         {
             try
             {
@@ -119,7 +97,7 @@ namespace RPCExp.Modbus
             }
         }
 
-        private async Task UpdateInputRegisters(MTagsGroup g)
+        private async Task UpdateInputRegisters(IModbusMaster master, MTagsGroup g)
         {
             try
             {
@@ -145,7 +123,7 @@ namespace RPCExp.Modbus
             }
         }
 
-        private async Task UpdateCoils(MTagsGroup g)
+        private async Task UpdateCoils(IModbusMaster master, MTagsGroup g)
         {
             try
             {
@@ -161,7 +139,7 @@ namespace RPCExp.Modbus
             }
         }
 
-        private async Task UpdateDiscreteInputs(MTagsGroup g)
+        private async Task UpdateDiscreteInputs(IModbusMaster master, MTagsGroup g)
         {
             try
             {
@@ -208,17 +186,19 @@ namespace RPCExp.Modbus
 
             if (tags.Count > 0)
             {
+                IModbusMaster master = MasterSource.Get(factory,Connection);
+
                 foreach (var g in (coils).Slice())
-                    await UpdateCoils(g);
+                    await UpdateCoils(master, g);
 
                 foreach (var g in (discreteInputs).Slice())
-                    await UpdateDiscreteInputs(g);
+                    await UpdateDiscreteInputs(master, g);
 
                 foreach (var g in (inputRegisters).Slice())
-                    await UpdateInputRegisters(g);
+                    await UpdateInputRegisters(master, g);
 
                 foreach (var g in (holdingRegisters).Slice())
-                    await UpdateHoldingRegisters(g);
+                    await UpdateHoldingRegisters(master, g);
             }
 
             return groupNextUpdate;
@@ -257,6 +237,8 @@ namespace RPCExp.Modbus
                             break;
                     }
                 }
+
+                IModbusMaster master = MasterSource.Get(factory, Connection);
 
                 foreach (var g in holdingRegisters.Slice())
                 {

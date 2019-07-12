@@ -115,9 +115,7 @@ namespace ModbusBasic
         {
             return new ModbusAsciiTransport(streamResource, this);
         }
-
         
-
         public IModbusFunctionService[] GetAllFunctionServices()
         {
             return _functionServices
@@ -125,27 +123,30 @@ namespace ModbusBasic
                 .ToArray();
         }
 
+
         public IModbusSerialMaster CreateMaster(IModbusSerialTransport transport)
         {
             return new ModbusSerialMaster(transport);
         }
 
+        public IModbusMaster CreateIpMaster(IStreamResource streamResource)
+        {
+            var transport = new ModbusIpTransport(streamResource, this);
+
+            return new ModbusIpMaster(transport);
+        }
         public IModbusMaster CreateMaster(UdpClient client)
         {
             var adapter = new UdpClientAdapter(client);
 
-            var transport = new ModbusIpTransport(adapter, this);
-
-            return new ModbusIpMaster(transport);
+            return CreateIpMaster(adapter);
         }
 
         public IModbusMaster CreateMaster(TcpClient client)
         {
             var adapter = new TcpClientAdapter(client);
 
-            var transport = new ModbusIpTransport(adapter, this);
-
-            return new ModbusIpMaster(transport);
+            return CreateIpMaster(adapter);
         }
 
         public IModbusFunctionService GetFunctionService(byte functionCode)

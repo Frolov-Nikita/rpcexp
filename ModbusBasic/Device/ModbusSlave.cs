@@ -16,11 +16,10 @@ namespace ModbusBasic.Device
 
         public ModbusSlave(byte unitId, ISlaveDataStore dataStore, IEnumerable<IModbusFunctionService> handlers)
         {
-            if (dataStore == null) throw new ArgumentNullException(nameof(dataStore));
             if (handlers == null) throw new ArgumentNullException(nameof(handlers));
 
             _unitId = unitId;
-            _dataStore = dataStore;
+            _dataStore = dataStore ?? throw new ArgumentNullException(nameof(dataStore));
             _handlers = handlers.ToDictionary(h => h.FunctionCode, h => h);
         }
 

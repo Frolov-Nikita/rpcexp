@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using RPCExp.Modbus;
 using Newtonsoft.Json;
 using RPCExp.Modbus.TypeConverters;
@@ -10,18 +10,27 @@ namespace RPCExp.Modbus.Factory
 {
     public static class Factory
     {
+        static JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
+        {
+            //TODO ! Избегать такого при помощи сервисов-ресурсов.
+            PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+            NullValueHandling = NullValueHandling.Ignore,
+            DefaultValueHandling = DefaultValueHandling.Ignore,
+            Formatting = Formatting.Indented,
+        };
+
         public static void SaveFacility(Facility obj, string file = "cfg.json")
         {
             var dcw = new FacilityCfgWrapper();
             dcw.Wrap(obj);
-            var cfg = JsonConvert.SerializeObject(dcw, Formatting.Indented);
+            var cfg = JsonConvert.SerializeObject(dcw, jsonSerializerSettings);
             System.IO.File.WriteAllText(file, cfg);
         }
 
         public static Facility LoadFacility(string file)
         {
             var cfg = System.IO.File.ReadAllText(file);
-            return JsonConvert.DeserializeObject<FacilityCfgWrapper>(cfg)?.Unwrap();
+            return JsonConvert.DeserializeObject<FacilityCfgWrapper>(cfg, jsonSerializerSettings)?.Unwrap();
         }
     }
 
@@ -80,14 +89,10 @@ namespace RPCExp.Modbus.Factory
 
         public string Description { get; set; }
 
-        public List<MTagCfgWrapper> Tags { get; set; }
+        public ICollection<MTagCfgWrapper> Tags { get; set; }
 
         public byte SlaveId { get; set; }
-
-        public string Host { get; set; }
-
-        public int Port { get; set; }
-
+        
         public long BadCommWaitPeriod { get; set; }
 
         public bool InActiveUpdate { get; set; }
@@ -96,19 +101,22 @@ namespace RPCExp.Modbus.Factory
 
         public byte[] ByteOrder { get; set; }
 
-        public string DevType => "ModbusTCP";
-        
+        public string FrameType { get; set; }
+
+        public string ConnectionCfg { get; set; }
+
         public void Wrap(Device obj)
         {
             Name = obj.Name;
             Description = obj.Description;
             SlaveId = obj.SlaveId;
-            Host = obj.Host;
-            Port = obj.Port;
             BadCommWaitPeriod = obj.BadCommWaitPeriod;
             InActiveUpdate = obj.InActiveUpdate;
             InActiveUpdatePeriod = obj.InActiveUpdatePeriod;
             ByteOrder = obj.ByteOrder;
+            FrameType = obj.MasterSource.frameType.ToString();
+            ConnectionCfg = obj.Connection.ConnectionCfg;
+            
             Tags = new List<MTagCfgWrapper>();
             foreach (MTag t in obj.Tags.Values)
             {
@@ -121,22 +129,25 @@ namespace RPCExp.Modbus.Factory
 
         public Device Unwrap()
         {
-            var d = new Device
+
+            if (!Enum.TryParse(typeof(FrameType), FrameType, out object ft))
+                throw new Exception($"FrameType: {FrameType} is invalid");
+
+            var obj = new Device
             {
                 Name = this.Name,
                 Description = this.Description,
                 SlaveId = this.SlaveId,
-                Host = this.Host,
-                Port = this.Port,
                 BadCommWaitPeriod = this.BadCommWaitPeriod,
                 InActiveUpdate = this.InActiveUpdate,
                 InActiveUpdatePeriod = this.InActiveUpdatePeriod,
                 ByteOrder = this.ByteOrder,
+                MasterSource = new MasterSource { frameType = (FrameType)ft},
             };
             foreach (var t in Tags)
-                d.Tags.Add(t.Name, t.Unwrap());
+                obj.Tags.Add(t.Name, t.Unwrap());
 
-            return d;
+            return obj;
         }
     }
 
@@ -148,34 +159,38 @@ namespace RPCExp.Modbus.Factory
 
         public string Description { get; set; }
 
-        public List<DeviceCfgWrapper> Devices { get; set; }
+        public ICollection<ConnectionSource> Connections { get; set; }
+
+        public ICollection<DeviceCfgWrapper> Devices { get; set; }
+
 
         public Facility Unwrap()
         {
-            var f = new Facility
+            var obj = new Facility
             {
                 Name = this.Name,
                 Description = this.Description,
             };
-            f.Devices = new List<DeviceAbstract>();
 
-            foreach (var d in Devices)
-                f.Devices.Add(d.Unwrap());
+            obj.DevicesSource = Devices.ToDictionary(d=>d.Name, d=> (DeviceAbstract)d.Unwrap());
 
-            return f;
+            obj.ConnectionsSource = Connections.ToDictionary(c=>c.Name, c=>c);
+
+            return obj;
         }
 
         public void Wrap(Facility obj)
         {
             Name = obj.Name;
             Description = obj.Description;
-            Devices = new List<DeviceCfgWrapper>(obj.Devices.Count);
-            foreach (var d in obj.Devices)
+            Devices = new List<DeviceCfgWrapper>(obj.DevicesSource.Count);
+            foreach (var d in obj.DevicesSource.Values)
             {
                 var dev = new DeviceCfgWrapper();
                 dev.Wrap((Device)d);
                 Devices.Add(dev);
             }
+            Connections = obj.ConnectionsSource.Values;
         }
     }
 

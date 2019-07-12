@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 namespace RPCExp.Common
 {
 
-    public interface IDevice
+    public interface IDevice: INameDescription
     {
-        string Name { get; set; }
-        string Description { get; set; }
-
         IDictionary<string, TagAbstract> Tags { get; }
                 
         Task<int> Write(IDictionary<string, object> tagsValues);
