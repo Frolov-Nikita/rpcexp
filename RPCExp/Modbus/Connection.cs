@@ -182,10 +182,16 @@ namespace RPCExp.Modbus
             [Physic.Udp] = new UdpConnectionString(),
         };
 
+        public ConnectionSource(string cfg = default)
+        {
+            if(cfg != default)
+                Cfg = cfg;
+        }
+
         public string Name { get; set; }
 
         public string Description { get; set; }
-        
+
         public Physic Physic { get; set; }
 
         // Параметры подключения
@@ -195,19 +201,47 @@ namespace RPCExp.Modbus
 
         private IStreamResource streamResource;
 
-        public IStreamResource Get()
+        public bool TryOpen()
         {
             if (!IsOpen)
             {
-                streamResource = ConnConvs[Physic].FromString(ConnectionCfg);
-
-                if (!IsOpen)
-                    throw new Exception("Connections string is not correct");
+                try
+                {
+                    streamResource = ConnConvs[Physic].FromString(ConnectionCfg);
+                }
+                catch
+                {
+                    streamResource?.Dispose();
+                    streamResource = null;
+                    return false;
+                }
+                
             }
-            
-            return streamResource;
+            return IsOpen;
         }
 
+        public IStreamResource Get()
+        {
+            TryOpen();
+
+            return streamResource;
+        }
+        
+        // TODO: продумать по луччше 
+        public string Cfg {
+            get
+            {
+                return $"{Name};{Physic};{ConnectionCfg}";
+            }
+            set
+            {
+                var p = value.Split(';', 3);
+                Name = p[0];
+                if (Enum.TryParse(typeof(Physic), p[1], true, out object physic))
+                    Physic = (Physic)physic;
+                ConnectionCfg = p[2];
+            }
+        }
     }
 
     public class MasterSource
@@ -221,8 +255,12 @@ namespace RPCExp.Modbus
         
         public IModbusMaster Get(IModbusFactory factory, ConnectionSource connectionSource)
         {
-            if ((connectionSource == _connectionSource) && (_connectionSource.IsOpen) && (modbusMaster != default))
+            if ((connectionSource == _connectionSource) && 
+                (_connectionSource.IsOpen) && 
+                (modbusMaster != default) && 
+                (modbusMaster?.Transport?.StreamResource?.IsOpen??false))
                 return modbusMaster;
+                
 
             _connectionSource = connectionSource;
             var streamResource = _connectionSource.Get();

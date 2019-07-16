@@ -26,5 +26,6 @@ namespace System.Linq
 
             return enumerable.Skip(startIndex).Take(size);
         }
+
     }
 }

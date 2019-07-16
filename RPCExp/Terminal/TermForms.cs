@@ -147,7 +147,7 @@ namespace RPCExp.Terminal
             //Console.CursorVisible = false;
             Console.ForegroundColor = ConsoleColor.DarkGreen;
 
-            Console.WriteLine($"Connection: {device.Connection.ConnectionCfg}");
+            Console.WriteLine($"Connection: {device.Connection.ConnectionCfg}, state: {device.State}");
 
             Console.Write("─");
             for (var i = 0; i < w - 2; i++)

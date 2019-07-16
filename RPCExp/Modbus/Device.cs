@@ -48,7 +48,7 @@ namespace RPCExp.Modbus
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             long nextTime = 0, waitTime = 0;
-
+                        
             while (!cancellationToken.IsCancellationRequested)
             {
                 if (Connection.IsOpen)
@@ -64,37 +64,46 @@ namespace RPCExp.Modbus
                 }
                 else
                 {
-                    foreach (var t in Tags)
-                        t.Value.SetValue(null, TagQuality.BAD_COMM_FAILURE);
-                    await Task.Delay((int)BadCommWaitPeriod / 10_000);
+                    if (!Connection.TryOpen())
+                    {
+                        foreach (var t in Tags)
+                            t.Value.SetValue(null, TagQuality.BAD_COMM_FAILURE);
+                        await Task.Delay((int)BadCommWaitPeriod / 10_000);
+                    }
+
                 }
             }
         }
 
         private async Task UpdateHoldingRegisters(IModbusMaster master, MTagsGroup g)
         {
-            try
-            {
-                var registers = await master.ReadHoldingRegistersAsync(SlaveId, (ushort)g.Begin, (ushort)g.Length).ConfigureAwait(false);
-
-                var buff = new byte[g.Length * 2];
-
-                for (var k = 0; k < g.Length; k++)
-                    BitConverter.GetBytes(registers[k])
-                        .CopyTo(buff, (k) * 2);
-
-                foreach (var t in g)
+            await master.ReadHoldingRegistersAsync(SlaveId, (ushort)g.Begin, (ushort)g.Length)
+                .ContinueWith(
+                (TResult) =>
                 {
-                    var tc = GetTypeConverter(t.ValueType);
-                    var val = tc.GetValue(buff.AsSpan((t.Begin - g.Begin) * 2));
-                    t.SetValue(val);
-                }
-            }
-            catch
-            {
-                foreach (var t in g)
-                    t.SetValue(null, TagQuality.BAD);
-            }
+                    if (TResult.Status == TaskStatus.RanToCompletion)
+                    { // успех
+                        var data = TResult.Result;
+
+                        var buff = new byte[g.Length * 2];
+
+                        for (var k = 0; k < g.Length; k++)
+                            BitConverter.GetBytes(data[k])
+                                .CopyTo(buff, (k) * 2);
+
+                        foreach (var t in g)
+                        {
+                            var tc = GetTypeConverter(t.ValueType);
+                            var val = tc.GetValue(buff.AsSpan((t.Begin - g.Begin) * 2));
+                            t.SetValue(val);
+                        }
+                    }
+                    else
+                    { // сбой
+                        foreach (var t in g)
+                            t.SetValue(null, TagQuality.BAD);
+                    }
+                }).ConfigureAwait(false);
         }
 
         private async Task UpdateInputRegisters(IModbusMaster master, MTagsGroup g)
@@ -125,18 +134,22 @@ namespace RPCExp.Modbus
 
         private async Task UpdateCoils(IModbusMaster master, MTagsGroup g)
         {
-            try
-            {
-                var bits = await master.ReadCoilsAsync(SlaveId, (ushort)g.Begin, (ushort)g.Length).ConfigureAwait(false);
-
-                foreach (var t in g)
-                    t.SetValue(bits[t.Begin - g.Begin]);
-            }
-            catch
-            {
-                foreach (var t in g)
-                    t.SetValue(null, TagQuality.BAD);
-            }
+            await master.ReadCoilsAsync(SlaveId, (ushort)g.Begin, (ushort)g.Length)
+                .ContinueWith(
+                (TResult) => 
+                {
+                    if(TResult.Status == TaskStatus.RanToCompletion)
+                    { // успех
+                        var data = TResult.Result;
+                        foreach (var t in g)
+                            t.SetValue(data[t.Begin - g.Begin]);
+                    }
+                    else
+                    { // сбой
+                        foreach (var t in g)
+                            t.SetValue(null, TagQuality.BAD);
+                    }
+                }).ConfigureAwait(false);
         }
 
         private async Task UpdateDiscreteInputs(IModbusMaster master, MTagsGroup g)
@@ -186,7 +199,7 @@ namespace RPCExp.Modbus
 
             if (tags.Count > 0)
             {
-                IModbusMaster master = MasterSource.Get(factory,Connection);
+                IModbusMaster master = MasterSource.Get(factory, Connection);
 
                 foreach (var g in (coils).Slice())
                     await UpdateCoils(master, g);

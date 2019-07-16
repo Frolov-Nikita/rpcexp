@@ -5,6 +5,7 @@ using RPCExp.Modbus;
 using Newtonsoft.Json;
 using RPCExp.Modbus.TypeConverters;
 using RPCExp.Common;
+using System.Collections;
 
 namespace RPCExp.Modbus.Factory
 {
@@ -12,8 +13,8 @@ namespace RPCExp.Modbus.Factory
     {
         static JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
         {
-            //TODO ! Избегать такого при помощи сервисов-ресурсов.
-            PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+            // TODO ! Избегать такого при помощи сервисов-ресурсов.
+            // PreserveReferencesHandling = PreserveReferencesHandling.Objects,
             NullValueHandling = NullValueHandling.Ignore,
             DefaultValueHandling = DefaultValueHandling.Ignore,
             Formatting = Formatting.Indented,
@@ -115,7 +116,7 @@ namespace RPCExp.Modbus.Factory
             InActiveUpdatePeriod = obj.InActiveUpdatePeriod;
             ByteOrder = obj.ByteOrder;
             FrameType = obj.MasterSource.frameType.ToString();
-            ConnectionCfg = obj.Connection.ConnectionCfg;
+            ConnectionCfg = obj.Connection.Cfg;
             
             Tags = new List<MTagCfgWrapper>();
             foreach (MTag t in obj.Tags.Values)
@@ -142,7 +143,8 @@ namespace RPCExp.Modbus.Factory
                 InActiveUpdate = this.InActiveUpdate,
                 InActiveUpdatePeriod = this.InActiveUpdatePeriod,
                 ByteOrder = this.ByteOrder,
-                MasterSource = new MasterSource { frameType = (FrameType)ft},
+                MasterSource = new MasterSource { frameType = (FrameType)ft },
+                //Connection = null,
             };
             foreach (var t in Tags)
                 obj.Tags.Add(t.Name, t.Unwrap());
@@ -159,10 +161,9 @@ namespace RPCExp.Modbus.Factory
 
         public string Description { get; set; }
 
-        public ICollection<ConnectionSource> Connections { get; set; }
+        public ICollection<string> Connections { get; set; }
 
         public ICollection<DeviceCfgWrapper> Devices { get; set; }
-
 
         public Facility Unwrap()
         {
@@ -172,9 +173,27 @@ namespace RPCExp.Modbus.Factory
                 Description = this.Description,
             };
 
-            obj.DevicesSource = Devices.ToDictionary(d=>d.Name, d=> (DeviceAbstract)d.Unwrap());
+            obj.ConnectionsSource = new Dictionary<string, ConnectionSource>();
+            foreach (var c in Connections)
+            {
+                var cs = new ConnectionSource(c);
+                obj.ConnectionsSource.Add(cs.Cfg, cs);
+            }
 
-            obj.ConnectionsSource = Connections.ToDictionary(c=>c.Name, c=>c);
+            obj.DevicesSource = Devices.ToDictionary(d=>d.Name, d=> {
+                var dev = d.Unwrap();
+                if (obj.ConnectionsSource.TryGetValue(d.ConnectionCfg, out ConnectionSource cs))
+                    dev.Connection = cs;
+                else
+                {
+                    var csnew = new ConnectionSource(d.ConnectionCfg);
+                    obj.ConnectionsSource.Add(csnew.Cfg, csnew);
+                    dev.Connection = csnew;
+                }
+                return (DeviceAbstract)dev;
+            });
+
+
 
             return obj;
         }
@@ -190,7 +209,7 @@ namespace RPCExp.Modbus.Factory
                 dev.Wrap((Device)d);
                 Devices.Add(dev);
             }
-            Connections = obj.ConnectionsSource.Values;
+            Connections = obj.ConnectionsSource.Values.Select(v=>v.Cfg).ToList();
         }
     }
 
