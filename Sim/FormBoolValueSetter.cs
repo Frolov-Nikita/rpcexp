@@ -22,16 +22,42 @@ namespace Sim
             labelCurrentValue.Text = tag.Value.ToString();
         }
         
+        void EditValue(bool val)
+        {
+            tag.Value = val;
+            labelCurrentValue.Text = tag.Value.ToString();
+        }
+
         private void ButtonReset_Click(object sender, EventArgs e)
         {
-            tag.Value = false;
-            labelCurrentValue.Text = tag.Value.ToString();
+            EditValue(false);
         }
 
         private void ButtonSet_Click(object sender, EventArgs e)
         {
-            tag.Value = true;
-            labelCurrentValue.Text = tag.Value.ToString();
+            EditValue(true);
+        }
+
+        private void FormBoolValueSetter_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+                this.Close();
+
+            if (e.KeyCode == Keys.NumPad0)
+                EditValue(false);
+
+            if (e.KeyCode == Keys.NumPad1)
+                EditValue(true);
+
+            if (e.KeyCode == Keys.Add)
+                EditValue(true);
+
+            if (e.KeyCode == Keys.Subtract)
+                EditValue(false);
+
+            if (e.KeyCode == Keys.Multiply)
+                EditValue(!(bool)tag.Value);
+
         }
     }
 }

@@ -43,12 +43,28 @@ namespace Sim
                 default:
                     throw new NotImplementedException();
             }
+            numericUpDown1.Focus();
+            numericUpDown1.Select(0, numericUpDown1.Text.Length);
         }
-        
-        private void ButtonSet_Click(object sender, EventArgs e)
+
+        void EditValue()
         {
             tag.Value = numericUpDown1.Value;
             labelCurrentValue.Text = tag.Value.ToString();
+        }
+
+        private void ButtonSet_Click(object sender, EventArgs e)
+        {
+            EditValue();
+        }
+
+        private void On_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+                EditValue();
+
+            if (e.KeyCode == Keys.Escape)
+                this.Close();
         }
     }
 }

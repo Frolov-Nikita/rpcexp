@@ -34,7 +34,7 @@ namespace RPCExp.JsonRpc
             public string ToJson()
             {
                 var jsonData = Data == null ? "" : ",\"data\"" + JsonConvert.SerializeObject(Data, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-                return $"{{\"code\":{Code}, \"message\":\"{Message}\"{jsonData}}}";
+                return $"{{\"code\":{Code}, \"message\":{JsonConvert.SerializeObject(Message)}{jsonData}}}";
             }
         }//class ResponseError
 
@@ -45,7 +45,7 @@ namespace RPCExp.JsonRpc
         {
             var jsonId = "\"id\":" + (Id == default ? "null": "\"" + Id +"\"");
             if (Error == null)
-                return $"{{\"jsonrpc\":\"{Version}\",{jsonId},\"result\":{JsonConvert.SerializeObject(Result, Formatting.Indented, new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore})}";
+                return $"{{\"jsonrpc\":\"{Version}\",{jsonId},\"result\":{JsonConvert.SerializeObject(Result, Formatting.Indented, new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore})}}}";
             else
                 return $"{{\"jsonrpc\":\"{Version}\",{jsonId},\"error\":{Error.ToJson()}}}";
         }

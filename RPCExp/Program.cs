@@ -19,8 +19,6 @@ namespace RPCExp
 
         static void Main(string[] args)
         {
-
-
             //var st = new Ticker();
             //string TickToSecStr(long ticks) => (ticks / 10_000_000.0).ToString("#.###");
             //while (Console.ReadKey().Key != ConsoleKey.Escape)

@@ -39,7 +39,7 @@
             this.buttonSet.Location = new System.Drawing.Point(133, 33);
             this.buttonSet.Name = "buttonSet";
             this.buttonSet.Size = new System.Drawing.Size(77, 26);
-            this.buttonSet.TabIndex = 0;
+            this.buttonSet.TabIndex = 1;
             this.buttonSet.Text = "Set";
             this.buttonSet.UseVisualStyleBackColor = true;
             this.buttonSet.Click += new System.EventHandler(this.ButtonSet_Click);
@@ -50,7 +50,8 @@
             this.numericUpDown1.Location = new System.Drawing.Point(16, 33);
             this.numericUpDown1.Name = "numericUpDown1";
             this.numericUpDown1.Size = new System.Drawing.Size(111, 26);
-            this.numericUpDown1.TabIndex = 1;
+            this.numericUpDown1.TabIndex = 0;
+            this.numericUpDown1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.On_KeyDown);
             // 
             // labelCurrentValue
             // 
@@ -71,6 +72,7 @@
             this.Controls.Add(this.buttonSet);
             this.Name = "FormValueSetter";
             this.Text = "FormValueSetter";
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.On_KeyDown);
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

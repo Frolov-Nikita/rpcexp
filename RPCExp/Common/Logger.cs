@@ -22,6 +22,8 @@ namespace RPCExp.Common
             if (!Enabled)
                 return;
 
+            LogMessageCategory mc = LogMessageCategory.Error | LogMessageCategory.Info;
+
             var dt = DateTime.Now.ToString();
 
             Console.WriteLine($"{dt};{source};{category};{message}");

@@ -81,12 +81,9 @@ namespace RPCExp.Common
                     td = new TagData(tag);
                 }
                 datas.Add(td);
-
             }
 
-
             return datas;
-
         }
 
         public abstract Task<int> Write(IDictionary<string, object> tagsValues);

@@ -72,6 +72,7 @@
             this.Controls.Add(this.buttonReet);
             this.Name = "FormBoolValueSetter";
             this.Text = "FormValueSetter";
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormBoolValueSetter_KeyDown);
             this.ResumeLayout(false);
             this.PerformLayout();
 
