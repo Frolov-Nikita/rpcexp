@@ -12,13 +12,9 @@ namespace RPCExp
     {
         static CancellationTokenSource Cts = new CancellationTokenSource();
 
-        public interface ITest
-        {
-
-        }
-
         static void Main(string[] args)
         {
+
             //var st = new Ticker();
             //string TickToSecStr(long ticks) => (ticks / 10_000_000.0).ToString("#.###");
             //while (Console.ReadKey().Key != ConsoleKey.Escape)
@@ -35,7 +31,7 @@ namespace RPCExp
            
             Console.WriteLine("conf - ok");
 
-            //Factory.SaveFacility(facility);
+            Factory.SaveFacility(facility);
 
             var dev = facility.DevicesSource["Plc1"];
             dev.Start();

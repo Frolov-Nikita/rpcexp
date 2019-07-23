@@ -7,6 +7,8 @@ namespace RPCExp.Common
 {
     public class TagData
     {
+        const long ZeroTick = 621_355_968_000_000_000; //1970.01.01 00:00:00.000
+
         public TagData(TagData tagData = null)
         {
             if (tagData == null) return;
@@ -28,25 +30,6 @@ namespace RPCExp.Common
 
         public virtual object GetValue() => val;
 
-    }
-
-
-    public class TagDataStat: TagData
-    {
-        private readonly Ticker ticker = new Ticker();
-
-        public long StatPeriod => ticker.Period;
-
-        public bool StatIsAlive => ticker.IsActive;
-
-        public override object GetValue()
-        {
-            ticker.Tick();
-            return val;
-        }
-
-        internal object GetInternalValue() => val;
-
         internal void SetValue(object value, TagQuality qty = TagQuality.GOOD)
         {
             Quality = qty;
@@ -56,6 +39,29 @@ namespace RPCExp.Common
                 val = value;
                 LastGood = Last;
             }
+        }
+
+        //public static int Hash(string val)
+        //{
+        //    int h = 0;
+        //    for (var i = 0; i < val.Length; i++)
+        //        h += (h << 8) ^ val[i];
+        //    return h;
+        //}
+
+        public string ToJson()
+        {
+            long tsLast = (Last - ZeroTick) / 10_000; // миллисекунды с начала времен (1970)
+            var result = $"[\"{val.ToString()}\",\"{ Quality}\",{tsLast}";
+            
+            if (Quality < TagQuality.GOOD)
+            {
+                long tsLastGood = (LastGood - ZeroTick) / 10_000;
+                result += $",{tsLastGood}";
+            }
+            
+            result += "]"; 
+            return result;
         }
     }
 }

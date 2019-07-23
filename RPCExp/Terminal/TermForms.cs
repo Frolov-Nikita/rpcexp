@@ -174,12 +174,12 @@ namespace RPCExp.Terminal
                 vals[r, 0] = t.Name;
                 vals[r, 1] = t.Region.ToString();
                 vals[r, 2] = t.Begin.ToString();
-                vals[r, 3] = t.GetInternalValue()?.ToString()??"null";
+                vals[r, 3] = t.GetValue()?.ToString()??"null";
                 vals[r, 4] = t.Quality.ToString();
                 vals[r, 5] = DateTime.FromBinary( t.LastGood).ToString();
                 vals[r, 6] = DateTime.FromBinary(t.Last).ToString();
-                vals[r, 7] = TimeSpan.FromTicks(t.StatPeriod).ToString();
-                vals[r, 8] = t.StatIsAlive.ToString();
+                vals[r, 7] = TimeSpan.FromTicks(t.Period).ToString();
+                vals[r, 8] = t.IsActive.ToString();
             }
                 
             //{

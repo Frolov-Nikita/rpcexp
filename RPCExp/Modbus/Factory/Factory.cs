@@ -43,7 +43,7 @@ namespace RPCExp.Modbus.Factory
 
         T Unwrap();
     }
-    
+
     public class MTagCfgWrapper : IClassWrapper<MTag>
     {
         public string ClassName => nameof(MTag);
@@ -52,6 +52,8 @@ namespace RPCExp.Modbus.Factory
 
         public string Description { get; set; }
 
+        public string[] Sets { get; set; }
+
         public int Begin { get; set; }
 
         public bool CanWrite { get; set; }
@@ -59,17 +61,6 @@ namespace RPCExp.Modbus.Factory
         public ModbusRegion Region { get; set; }
 
         public ModbusValueType ValueType { get; set; }
-        
-        public MTag Unwrap() =>
-            new MTag
-            {
-                Name = this.Name,
-                Description = this.Description,
-                Begin = this.Begin,
-                CanWrite = this.CanWrite,
-                Region = this.Region,
-                ValueType = this.ValueType,
-            };
 
         public void Wrap(MTag obj)
         {
@@ -79,7 +70,20 @@ namespace RPCExp.Modbus.Factory
             CanWrite = obj.CanWrite;
             Region = obj.Region;
             ValueType = obj.ValueType;
+            Sets = obj.Sets.Keys?.ToArray();
         }
+
+        public MTag Unwrap() =>
+            new MTag
+            {
+                Name = this.Name,
+                Description = this.Description,
+                Begin = this.Begin,
+                CanWrite = this.CanWrite,
+                Region = this.Region,
+                ValueType = this.ValueType,
+                Sets = new Dictionary<string, TagsSet>(),
+            };
     }
 
     public class DeviceCfgWrapper : IClassWrapper<Device>
@@ -91,6 +95,8 @@ namespace RPCExp.Modbus.Factory
         public string Description { get; set; }
 
         public ICollection<MTagCfgWrapper> Tags { get; set; }
+
+        public ICollection<TagsSet> Sets { get; set; }
 
         public byte SlaveId { get; set; }
         
@@ -106,6 +112,15 @@ namespace RPCExp.Modbus.Factory
 
         public string ConnectionCfg { get; set; }
 
+        class TagsSetComparer : IEqualityComparer<TagsSet>
+        {
+            public bool Equals(TagsSet x, TagsSet y) =>  
+                x.Name == y.Name;
+            
+            public int GetHashCode(TagsSet obj)=>
+                obj.Name.GetHashCode();
+        }
+
         public void Wrap(Device obj)
         {
             Name = obj.Name;
@@ -117,20 +132,36 @@ namespace RPCExp.Modbus.Factory
             ByteOrder = obj.ByteOrder;
             FrameType = obj.MasterSource.frameType.ToString();
             ConnectionCfg = obj.Connection.Cfg;
+            Sets = new List<TagsSet>(obj.Sets.Count);
+            Tags = new List<MTagCfgWrapper>(obj.Tags.Count);
             
-            Tags = new List<MTagCfgWrapper>();
+            foreach (var s in obj.Sets.Values)
+            {
+                var tagsSet = new TagsSet
+                {
+                    Name = s.Name,
+                    Description = s.Description
+                };
+                Sets.Add(tagsSet);
+            }
+
             foreach (MTag t in obj.Tags.Values)
             {
                 var tagWraped = new MTagCfgWrapper();
                 tagWraped.Wrap(t);
                 Tags.Add(tagWraped);
-            }
-                
+
+                foreach (var s in t.Sets.Values)
+                    if (!obj.Sets.ContainsKey(s.Name))
+                        Sets.Add(new TagsSet {
+                            Name = s.Name,
+                            Description = s.Description
+                        });
+            }                
         }
 
         public Device Unwrap()
         {
-
             if (!Enum.TryParse(typeof(FrameType), FrameType, out object ft))
                 throw new Exception($"FrameType: {FrameType} is invalid");
 
@@ -144,10 +175,37 @@ namespace RPCExp.Modbus.Factory
                 InActiveUpdatePeriod = this.InActiveUpdatePeriod,
                 ByteOrder = this.ByteOrder,
                 MasterSource = new MasterSource { frameType = (FrameType)ft },
+                Sets = new Dictionary<string, TagsSet>(),
                 //Connection = null,
             };
+
+            if((Sets?.Count??0) > 0)
+                foreach (var s in Sets)
+                    obj.Sets.Add(s.Name, new TagsSet(s));
+
+            var unUsed = new TagsSet { Name = "UnUsed", Description = "Tag config does not point the tagsSet" };
+
             foreach (var t in Tags)
-                obj.Tags.Add(t.Name, t.Unwrap());
+            {
+                var tag = t.Unwrap();
+
+                if((t.Sets?.Length??0) > 0)
+                    foreach (var setName in t.Sets)
+                    {
+                        if (!obj.Sets.ContainsKey(setName))
+                            obj.Sets.Add(setName, new TagsSet { Name = setName });
+
+                        tag.Sets.Add(setName, obj.Sets[setName]);
+                    }
+                else
+                {
+                    if (!obj.Sets.ContainsKey(unUsed.Name))
+                        obj.Sets.Add(unUsed.Name, unUsed);
+                    tag.Sets.Add(unUsed.Name, unUsed);
+                }
+                    
+                obj.Tags.Add(t.Name, tag);
+            }
 
             return obj;
         }
