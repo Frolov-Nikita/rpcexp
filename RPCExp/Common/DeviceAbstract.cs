@@ -21,7 +21,7 @@ namespace RPCExp.Common
 
         public long InActiveUpdatePeriod { get; set; } = 20 * 10_000_000;
 
-        public IDictionary<string, TagsSet> Sets { get; set; }
+        public IDictionary<string, TagsGroup> Groups { get; set; }
 
         public virtual IDictionary<string, TagAbstract> Tags { get; } = new Dictionary<string, TagAbstract>();
 
@@ -65,11 +65,19 @@ namespace RPCExp.Common
             return retTags;
         }
 
-        public virtual IEnumerable<string> GetSetTags(string setName)
+        public virtual IDictionary< string, IEnumerable<string>> GetTagsGroups()
+        {
+            var r = new Dictionary<string, IEnumerable<string>>(Tags.Count);
+            foreach (var t in Tags.Values)
+                r.Add(t.Name, t.Groups.Values.Select(s=>s.Name));
+            return r;
+        }
+
+        public virtual IEnumerable<object> GetGroupInfos(string groupName)
         {
             return from t in Tags.Values
-                   where t.Sets.ContainsKey(setName)
-                   select t.Name;
+                   where t.Groups.ContainsKey(groupName)
+                   select t.GetInfo();
         }
 
         /// <summary>
@@ -77,17 +85,17 @@ namespace RPCExp.Common
         /// </summary>
         /// <param name="setName"></param>
         /// <returns></returns>
-        public virtual IEnumerable<TagData> GetSetValues(string setName)
+        public virtual IEnumerable<TagData> GetGroupValues(string setName)
         {
-            if (!Sets.ContainsKey(setName))
+            if (!Groups.ContainsKey(setName))
                 return null;
 
             List<TagData> datas = new List<TagData>();
 
-            Sets[setName].Tick();
+            Groups[setName].Tick();
 
             return from t in Tags.Values
-                     where t.Sets.ContainsKey(setName)
+                     where t.Groups.ContainsKey(setName)
                      select new TagData(t);
         }
 

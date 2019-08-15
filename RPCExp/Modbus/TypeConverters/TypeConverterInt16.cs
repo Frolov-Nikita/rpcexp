@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using RPCExp.Common;
 
 namespace RPCExp.Modbus.TypeConverters
 {
@@ -10,7 +11,7 @@ namespace RPCExp.Modbus.TypeConverters
         {
         }
 
-        public override ModbusValueType ValueType => ModbusValueType.Int16;
+        public override Common.ValueType ValueType => Common.ValueType.Int16;
 
         public override void GetBytes(Span<byte> buffer, object value)
         {

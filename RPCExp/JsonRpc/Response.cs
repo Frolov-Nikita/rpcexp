@@ -61,8 +61,9 @@ namespace RPCExp.JsonRpc
         -32000 to -32099 | Server error	        |   Reserved for implementation-defined server-errors.
          */
 
-        public static Response GetErrorParse() => 
+        public static Response GetErrorParse(string id = "") => 
             new Response {
+                Id = id,
                 Error = new ResponseError {
                     Code = -32700,
                     Message = "Parse error" } };

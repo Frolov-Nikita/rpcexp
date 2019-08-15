@@ -59,15 +59,17 @@ namespace RPCExp
 
         public async Task<byte[]> Handle(byte[] buffer, int index, int bytesCount)
         {
+            string id = "";
             try
             {
                 var req = Request.FromJson(enc.GetString(buffer, index, bytesCount));
+                id = req.Id;
                 var resp = await Handle(req);
                 return enc.GetBytes(resp.ToJson());
             }
             catch
             {
-                return enc.GetBytes(Response.GetErrorParse().ToJson());
+                return enc.GetBytes(Response.GetErrorParse(id).ToJson());
             }
         }//Handle()
 

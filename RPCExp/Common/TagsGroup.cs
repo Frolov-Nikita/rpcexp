@@ -4,9 +4,9 @@ using System.Text;
 
 namespace RPCExp.Common
 {
-    public class TagsSet: Ticker, INameDescription
+    public class TagsGroup: Ticker, INameDescription
     {
-        public TagsSet(TagsSet tagsSet = null)
+        public TagsGroup(TagsGroup tagsSet = null)
         {
             if (tagsSet == null)
                 return;

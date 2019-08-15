@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RPCExp.Modbus.TypeConverters
+namespace RPCExp.Common
 {
-    public enum ModbusValueType: byte
+    public enum ValueType: byte
     {
         Bool,
         Float,

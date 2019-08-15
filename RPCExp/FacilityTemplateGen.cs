@@ -46,7 +46,7 @@ namespace RPCExp
                 Name = "Tag1",
                 Region = ModbusRegion.HoldingRegisters,
                 Begin = 0,
-                ValueType = Modbus.TypeConverters.ModbusValueType.Int16,
+                ValueType = Common.ValueType.Int16,
             });
 
             dev.Tags.Add("Tag2", new MTag
@@ -54,7 +54,7 @@ namespace RPCExp
                 Name = "Tag2",
                 Region = ModbusRegion.HoldingRegisters,
                 Begin = 1,
-                ValueType = Modbus.TypeConverters.ModbusValueType.Int16,
+                ValueType = Common.ValueType.Int16,
             });
 
             dev.Tags.Add("Tag3", new MTag
@@ -62,7 +62,7 @@ namespace RPCExp
                 Name = "Tag3",
                 Region = ModbusRegion.HoldingRegisters,
                 Begin = 2,
-                ValueType = Modbus.TypeConverters.ModbusValueType.Int16,
+                ValueType = Common.ValueType.Int16,
             });
 
             dev.Tags.Add("Tag4", new MTag
@@ -70,7 +70,7 @@ namespace RPCExp
                 Name = "Tag4",
                 Region = ModbusRegion.HoldingRegisters,
                 Begin = 3,
-                ValueType = Modbus.TypeConverters.ModbusValueType.Float,
+                ValueType = Common.ValueType.Float,
             });
 
             dev.Tags.Add("boolTag5", new MTag
@@ -78,7 +78,7 @@ namespace RPCExp
                 Name = "boolTag5",
                 Region = ModbusRegion.Coils,
                 Begin = 3,
-                ValueType = Modbus.TypeConverters.ModbusValueType.Bool,
+                ValueType = Common.ValueType.Bool,
             });
 
             return facility;

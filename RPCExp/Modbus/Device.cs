@@ -12,16 +12,16 @@ namespace RPCExp.Modbus
     {
         ModbusFactory factory = new ModbusFactory(); //TODO ПЕРЕДЕЛАТЬ!!
 
-        private Dictionary<ModbusValueType, TypeConverterAbstract> typeConverters = new Dictionary<ModbusValueType, TypeConverterAbstract>();
+        private Dictionary<Common.ValueType, TypeConverterAbstract> typeConverters = new Dictionary<Common.ValueType, TypeConverterAbstract>();
 
         private void UpdateTypeConverters() {
             typeConverters.Clear();
-            typeConverters.Add(ModbusValueType.Float, new TypeConverterFloat(ByteOrder));
-            typeConverters.Add(ModbusValueType.Int16, new TypeConverterInt16(ByteOrder));
-            typeConverters.Add(ModbusValueType.Int32, new TypeConverterInt32(ByteOrder));
+            typeConverters.Add(Common.ValueType.Float, new TypeConverterFloat(ByteOrder));
+            typeConverters.Add(Common.ValueType.Int16, new TypeConverterInt16(ByteOrder));
+            typeConverters.Add(Common.ValueType.Int32, new TypeConverterInt32(ByteOrder));
         }
 
-        private TypeConverterAbstract GetTypeConverter(ModbusValueType modbusValueType)
+        private TypeConverterAbstract GetTypeConverter(Common.ValueType modbusValueType)
         {
             if (typeConverters.ContainsKey(modbusValueType))
                 return typeConverters[modbusValueType];
@@ -95,6 +95,9 @@ namespace RPCExp.Modbus
                         {
                             var tc = GetTypeConverter(t.ValueType);
                             var val = tc.GetValue(buff.AsSpan((t.Begin - g.Begin) * 2));
+
+                            
+
                             t.SetValue(val);
                         }
                     }
@@ -219,7 +222,6 @@ namespace RPCExp.Modbus
 
         /// <summary>
         /// Записать значения тегов в устройство 
-        /// (Еще не реализовано)
         /// </summary>
         /// <param name="tagsValues"></param>
         /// <returns></returns>

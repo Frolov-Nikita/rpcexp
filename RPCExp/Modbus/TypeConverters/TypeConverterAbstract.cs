@@ -1,4 +1,5 @@
 ﻿using System;
+using RPCExp.Common;
 
 namespace RPCExp.Modbus.TypeConverters
 {
@@ -20,8 +21,8 @@ namespace RPCExp.Modbus.TypeConverters
 
         public int ByteLength => GetByteLength(ValueType);
 
-        public abstract ModbusValueType ValueType { get; }
-
+        public abstract Common.ValueType ValueType { get; }
+        
         protected byte[] ByteOrder;
 
         protected void SetOrderedBuffer(Span<byte> dest, Span<byte> src)
@@ -42,17 +43,17 @@ namespace RPCExp.Modbus.TypeConverters
 
         public abstract void GetBytes(Span<byte> buffer, object value);
 
-        public static int GetByteLength(ModbusValueType modbusValueType)
+        public static int GetByteLength(Common.ValueType modbusValueType)
         {
             switch (modbusValueType)
             {
-                case ModbusValueType.Bool:
+                case Common.ValueType.Bool:
                     return 2;
-                case ModbusValueType.Float:
+                case Common.ValueType.Float:
                     return 4;
-                case ModbusValueType.Int16:
+                case Common.ValueType.Int16:
                     return 2;
-                case ModbusValueType.Int32:
+                case Common.ValueType.Int32:
                     return 4;
                 default:
                     return 2;

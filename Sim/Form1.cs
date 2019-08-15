@@ -50,7 +50,7 @@ namespace Sim
             }
         }
 
-        public Form1()
+        public Form1(bool run = false)
         {
             InitializeComponent();
             Properties.Settings.Default.Reload();
@@ -69,6 +69,9 @@ namespace Sim
 
             listViewTags.ItemSelectionChanged += ListViewTags_ItemSelectionChanged;
             listViewTags.DoubleClick += ModifyValueEventHandler;
+
+            if (run)
+                Start();
         }
 
 
@@ -100,6 +103,46 @@ namespace Sim
             System.IO.File.WriteAllText(
                 fileName,
                 JsonConvert.SerializeObject(Tags, Formatting.Indented));
+        }
+
+        void Start()
+        {
+            cts = new CancellationTokenSource();
+
+            if (int.TryParse(toolStripTextBoxPort.Text, out int p))
+                Port = p;
+
+            toolStripTextBoxPort.Text = Port.ToString();
+            toolStripTextBoxPort.Enabled = false;
+
+            if (byte.TryParse(toolStripTextBoxSlaveId.Text, out byte sid))
+                SlaveId = sid;
+
+            toolStripTextBoxSlaveId.Text = SlaveId.ToString();
+            toolStripTextBoxSlaveId.Enabled = false;
+
+            slaveTcpListener = new TcpListener(address, Port);
+            slaveTcpListener.Start();
+            IModbusFactory factory = new ModbusFactory();
+
+            IModbusSlaveNetwork network = factory.CreateSlaveNetwork(slaveTcpListener);
+
+            slave1 = factory.CreateSlave(SlaveId, store);
+
+            network.AddSlave(slave1);
+
+            NetworkListener = network.ListenAsync(cts.Token);
+
+            toolStripStatusLabel1.Text = "run";
+        }
+
+        void Stop()
+        {
+            cts.Cancel();
+            NetworkListener.Wait(1000);
+            toolStripStatusLabel1.Text = "stop";
+            toolStripTextBoxPort.Enabled = true;
+            toolStripTextBoxSlaveId.Enabled = true;
         }
 
         private void ToolStripButtonOpen_Click(object sender, EventArgs e)
@@ -166,45 +209,9 @@ namespace Sim
             }                
         }
         
-        private void ToolStripButtonRun_Click(object sender, EventArgs e)
-        {
-            cts = new CancellationTokenSource();
+        private void ToolStripButtonRun_Click(object sender, EventArgs e) => Start();
 
-            if (int.TryParse(toolStripTextBoxPort.Text, out int p))
-                Port = p;
-            
-            toolStripTextBoxPort.Text = Port.ToString();
-            toolStripTextBoxPort.Enabled = false;
-
-            if (byte.TryParse(toolStripTextBoxSlaveId.Text, out byte sid))
-                SlaveId = sid;
-
-            toolStripTextBoxSlaveId.Text = SlaveId.ToString();
-            toolStripTextBoxSlaveId.Enabled = false;
-
-            slaveTcpListener = new TcpListener(address, Port);
-            slaveTcpListener.Start();
-            IModbusFactory factory = new ModbusFactory();
-            
-            IModbusSlaveNetwork network = factory.CreateSlaveNetwork(slaveTcpListener);
-            
-            slave1 = factory.CreateSlave(SlaveId, store);
-
-            network.AddSlave(slave1);
-
-            NetworkListener = network.ListenAsync(cts.Token);
-            
-            toolStripStatusLabel1.Text = "run";
-        }
-
-        private void ToolStripButtonStop_Click(object sender, EventArgs e)
-        {
-            cts.Cancel();
-            NetworkListener.Wait(1000);
-            toolStripStatusLabel1.Text = "stop";
-            toolStripTextBoxPort.Enabled = true;
-            toolStripTextBoxSlaveId.Enabled = true;
-        }
+        private void ToolStripButtonStop_Click(object sender, EventArgs e) => Stop();
 
         private void AddToolStripMenuItem_Click(object sender, EventArgs e)
         {

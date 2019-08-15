@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using RPCExp.Common;
 using RPCExp.Modbus.TypeConverters;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
@@ -28,15 +27,13 @@ namespace RPCExp.Modbus
         //### специфично только для modbus
         public ModbusRegion Region { get; set; }
 
-        public ModbusValueType ValueType { get; set; }
-
         public int Begin { get; set; }
 
         public int Length => TypeConverterAbstract.GetByteLength(ValueType) / 2;
 
         public int End => Begin + (Length - 1);
-        //### специфично только для modbus */
 
+        //### специфично только для modbus */
     }
 
 }
