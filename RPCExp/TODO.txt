@@ -2,3 +2,7 @@
 кэшированная запись!
 Add real async to NModbus
 messure & Refactor reflection in Router methods
+Возможно удалить интерфейсы
+
+AlarmLogger
+TagLogger
