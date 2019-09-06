@@ -58,7 +58,10 @@ namespace RPCExp
                 while (socket.State == WebSocketState.Open)
                 {
                     var req = await socket.ReceiveAsync(buffer, cancellationToken).ConfigureAwait(false);
+
                     // TODO дочитка для партальных пакетов
+                    //req.EndOfMessage
+
                     var respBytes = await router.Handle(buffer.Array, 0, req.Count);
 
                     //var resp = await router.Handle(buffer.AsSpan(0, r.Count));

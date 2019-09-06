@@ -35,7 +35,14 @@ namespace RPCExp.Common
             await OnCompleteAsync(cts.Token).ConfigureAwait(false);
         }
 
+        private async Task OnServiceTask(Task preTask) => await ServiceTaskAsync(cts.Token).ConfigureAwait(false);
+
         protected abstract Task ServiceTaskAsync(CancellationToken cancellationToken);
+
+        protected virtual async Task OnStarting(CancellationToken cancellationToken)
+        {
+            await Task.Run(() => {; });
+        }
 
         protected virtual async Task OnErrorAsync(Exception exception, CancellationToken cancellationToken)
         {
@@ -55,10 +62,12 @@ namespace RPCExp.Common
             State = ServiceState.Starting;
             cts = new CancellationTokenSource();
 
-            main = ServiceTaskAsync(cts.Token);
+            main = OnStarting(cts.Token);
 
+            main.ContinueWith(OnServiceTask, TaskContinuationOptions.OnlyOnRanToCompletion);
+            
+            //main = ServiceTaskAsync(cts.Token);
             main.ConfigureAwait(false);
-
             main.ContinueWith(OnCompleteBaseAsync, TaskContinuationOptions.OnlyOnRanToCompletion);
             main.ContinueWith(OnErrorBaseAsync, TaskContinuationOptions.OnlyOnFaulted);
 

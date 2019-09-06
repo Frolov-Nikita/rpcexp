@@ -6,7 +6,7 @@ namespace RPCExp.Modbus
 {
 
 
-    public class MTagsGroup : List<MTag>, IRange // Сделать multiset :)
+    public class MTagsGroup : List<MTag>, IRange //TODO: Сделать multiset :)
     {
         int begin;
         int end;

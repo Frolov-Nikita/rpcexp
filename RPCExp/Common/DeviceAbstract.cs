@@ -5,10 +5,16 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
+using RPCExp.AlarmLogger.Model;
+using System.Threading;
 
 namespace RPCExp.Common
 {
 
+    /// <summary>
+    /// TODO: Оставить этот класс и производные только для хранилища. Сервер опроса и обработки выделить в отдельную сущность.
+    /// </summary>
+    
     public abstract class DeviceAbstract : ServiceAbstract, IDevice
     {
         public virtual string Name { get ; set ; }
@@ -23,7 +29,9 @@ namespace RPCExp.Common
 
         public IDictionary<string, TagsGroup> Groups { get; set; }
 
-        public virtual IDictionary<string, TagAbstract> Tags { get; } = new Dictionary<string, TagAbstract>();
+        public IDictionary<string, TagAbstract> Tags { get; } = new Dictionary<string, TagAbstract>();
+
+        public List<AlarmConfig> AlarmsConfig { get; set; } = new List<AlarmConfig>();
 
         protected ICollection<TagAbstract> NeedToUpdate(out long nextTime, bool force = false)
         {
@@ -73,6 +81,58 @@ namespace RPCExp.Common
             return r;
         }
 
+        protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested) {
+                (long nextTime, bool IOUpdateOk) = await IOUpdate(cancellationToken).ConfigureAwait(false);
+                if (IOUpdateOk)
+                {
+                    await AlarmLogHandle(cancellationToken).ConfigureAwait(false);
+                    await TagLogHandle(cancellationToken).ConfigureAwait(false);
+                }
+
+                long waitTime = nextTime - DateTime.Now.Ticks;
+                waitTime = waitTime < 0 ? 0 : waitTime;
+                waitTime = waitTime > 10_000 ? waitTime : 10_000; // 10_000 = 1 миллисекунда
+                waitTime = waitTime > 50_000_000 ? waitTime / 2 : waitTime;
+                waitTime = waitTime < 50_000_000 ? waitTime : 50_000_000;// 100_000_000 = 10 сек
+                
+                await Task.Delay((int)(waitTime / 10_000)).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Обновление тегов
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>long - next time for update, bool - update was successfull</returns>
+        public abstract Task<(long, bool)> IOUpdate(CancellationToken cancellationToken);
+
+        public virtual async Task AlarmLogHandle(CancellationToken cancellationToken)
+        {
+            await Task.Delay(0);
+            foreach(var ac in AlarmsConfig)
+            {
+                var tvs = GetTagsValues(ac.ConditionRelatedTags);
+                
+                if (tvs.Count() == 0)
+                    return;
+
+                if (tvs.First().Quality != TagQuality.GOOD)
+                    return;
+
+                if (ac.IsRise())
+                {
+                    
+                }
+            }
+        }
+
+        public virtual async Task TagLogHandle(CancellationToken cancellationToken)
+        {
+            await Task.Delay(0);
+        }
+
         public virtual IEnumerable<object> GetGroupInfos(string groupName)
         {
             return from t in Tags.Values
@@ -104,7 +164,7 @@ namespace RPCExp.Common
         /// </summary>
         /// <param name="tagNames">имена тэгов</param>
         /// <returns>значения</returns>
-        public virtual ICollection<TagData> GetTagsValues(Collection<string> tagNames)
+        public virtual ICollection<TagData> GetTagsValues(IEnumerable<string> tagNames)
         {
             List<TagData> datas = new List<TagData>();
             foreach (string tagName in tagNames)

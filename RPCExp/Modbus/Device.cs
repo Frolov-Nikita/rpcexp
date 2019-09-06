@@ -12,6 +12,8 @@ namespace RPCExp.Modbus
     {
         ModbusFactory factory = new ModbusFactory(); //TODO ПЕРЕДЕЛАТЬ!!
 
+        private bool forceRead = true;
+
         private Dictionary<Common.ValueType, TypeConverterAbstract> typeConverters = new Dictionary<Common.ValueType, TypeConverterAbstract>();
 
         private void UpdateTypeConverters() {
@@ -44,36 +46,6 @@ namespace RPCExp.Modbus
         public ConnectionSource Connection { get; set; }
 
         public MasterSource MasterSource { get; set; }
-                
-        protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
-        {
-            long nextTime = 0, waitTime = 0;
-                        
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                if (Connection.IsOpen)
-                {
-                    nextTime = await Update(nextTime == 0);
-
-                    waitTime = nextTime - DateTime.Now.Ticks;
-                    waitTime = waitTime > 10_000 ? waitTime : 10_000; // 10_000 = 1 миллисекунда
-                    waitTime = waitTime > 50_000_000 ? waitTime / 2 : waitTime;
-                    waitTime = waitTime < 50_000_000 ? waitTime : 50_000_000;// 100_000_000 = 10 сек
-
-                    await Task.Delay((int)waitTime / 10_000);
-                }
-                else
-                {
-                    if (!Connection.TryOpen())
-                    {
-                        foreach (var t in Tags)
-                            t.Value.SetValue(null, TagQuality.BAD_COMM_FAILURE);
-                        await Task.Delay((int)BadCommWaitPeriod / 10_000);
-                    }
-
-                }
-            }
-        }
 
         private async Task UpdateHoldingRegisters(IModbusMaster master, MTagsGroup g)
         {
@@ -170,6 +142,7 @@ namespace RPCExp.Modbus
             }
         }
 
+        // TODO: Переделать force на 1-st cycle.
         private async Task<long> Update(bool force = false)
         {
             var tags = NeedToUpdate(out long groupNextUpdate, force);
@@ -287,5 +260,31 @@ namespace RPCExp.Modbus
             return 0;
             //throw new NotImplementedException();
         }
+
+        public override async Task<(long, bool)> IOUpdate(CancellationToken cancellationToken)
+        {
+            long nextTime = 0;
+            bool succes = false;
+            if (Connection.IsOpen)
+            {
+                nextTime = await Update(forceRead);
+                forceRead = false;
+                succes = true;
+            }
+            else
+            {
+                forceRead = true;
+
+                if (!Connection.TryOpen())
+                {
+                    nextTime = DateTime.Now.Ticks + BadCommWaitPeriod;
+
+                    foreach (var t in Tags)
+                        t.Value.SetValue(null, TagQuality.BAD_COMM_FAILURE);
+                }
+            }
+            return (nextTime, succes);
+        }
+
     }
 }

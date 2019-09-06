@@ -158,7 +158,7 @@ namespace RPCExp.Modbus
 
                         if (csParts.Length > 4)
                         {
-                            if (StopBitsTryParse(csParts[3], out RJCP.IO.Ports.StopBits s))
+                            if (StopBitsTryParse(csParts[4], out RJCP.IO.Ports.StopBits s))
                                 StopBits = s;
                         }
                     }
