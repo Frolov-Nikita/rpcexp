@@ -24,7 +24,7 @@ namespace RPCExp.Modbus
 
     public interface IPhysicConnectionString 
     {
-        IStreamResource FromString(string connString);
+        IStreamResource UpdateFromCfgString(string connString);
 
         //string cfgString { get; set; }
 
@@ -37,7 +37,7 @@ namespace RPCExp.Modbus
 
         public string Host { get; set; }
 
-        public IStreamResource FromString(string connString)
+        public IStreamResource UpdateFromCfgString(string connString)
         {
             var csParts = connString.Split(":");
             Host = csParts[0];
@@ -57,7 +57,7 @@ namespace RPCExp.Modbus
 
         public string Host { get; set; }
 
-        public IStreamResource FromString(string connString)
+        public IStreamResource UpdateFromCfgString(string connString)
         {
             var csParts = connString.Split(":");
             Host = csParts[0];
@@ -135,7 +135,7 @@ namespace RPCExp.Modbus
             }
         }
 
-        public IStreamResource FromString(string connString)
+        public IStreamResource UpdateFromCfgString(string connString)
         {
             var csParts = connString.Split(";");
 
@@ -184,7 +184,7 @@ namespace RPCExp.Modbus
 
         public ConnectionSource(string cfg = default)
         {
-            if(cfg != default)
+            if (cfg != default)
                 Cfg = cfg;
         }
 
@@ -207,7 +207,7 @@ namespace RPCExp.Modbus
             {
                 try
                 {
-                    streamResource = ConnConvs[Physic].FromString(ConnectionCfg);
+                    streamResource = ConnConvs[Physic].UpdateFromCfgString(ConnectionCfg);
                 }
                 catch
                 {
@@ -215,7 +215,7 @@ namespace RPCExp.Modbus
                     streamResource = null;
                     return false;
                 }
-                
+
             }
             return IsOpen;
         }
@@ -226,9 +226,10 @@ namespace RPCExp.Modbus
 
             return streamResource;
         }
-        
+
         // TODO: продумать по луччше 
-        public string Cfg {
+        public string Cfg
+        {
             get
             {
                 return $"{Name};{Physic};{ConnectionCfg}";

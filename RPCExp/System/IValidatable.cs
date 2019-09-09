@@ -4,7 +4,7 @@ using System.Text;
 
 namespace System
 {
-    interface IValidatable
+    public interface IValidatable
     {
         bool IsValid { get; }
     }

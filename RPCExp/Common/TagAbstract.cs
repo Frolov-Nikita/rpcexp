@@ -33,7 +33,7 @@ namespace RPCExp.Common
         public Scale Scale { get; set; }
 
         /// <summary>
-        /// Период опроса определяется как минимальный период и изгупп опроса
+        /// Период опроса определяется как минимальный период из гупп опроса
         /// </summary>
         public long Period { get {
                 if ((Groups?.Count ?? 0) == 0)

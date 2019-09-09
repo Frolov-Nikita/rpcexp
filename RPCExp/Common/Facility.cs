@@ -3,20 +3,28 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace RPCExp.Common
 {
     
     public class Facility: INameDescription
     {
-        char nameSeparator => Store.nameSeparator;
-
+        [Key]
+        [MaxLength(64)]
         public string Name { get; set; }
 
+
+        [MaxLength(512)]
         public string Description { get; set; }
-        
+
+        //TODO: переместить в store
+        [NotMapped]
         public IDictionary<string, ConnectionSource> ConnectionsSource { get; set; }
 
+
+        [NotMapped]
         public IDictionary<string, DeviceAbstract> DevicesSource { get; set; }
         
     }

@@ -4,17 +4,23 @@ using System.Threading;
 using RPCExp.Modbus.Factory;
 using RPCExp.Common;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace RPCExp
 {
+
+
 
     class Program
     {
         static CancellationTokenSource Cts = new CancellationTokenSource();
 
+        
+
         static void Main(string[] args)
         {
 
+            return;
             //var st = new Ticker();
             //string TickToSecStr(long ticks) => (ticks / 10_000_000.0).ToString("#.###");
             //while (Console.ReadKey().Key != ConsoleKey.Escape)
