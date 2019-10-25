@@ -29,7 +29,9 @@ namespace RPCExp.Common
         /// Группы через которые можно опросить тег
         /// </summary>
         public IDictionary<string, TagsGroup> Groups { get; set; }
-        
+
+        public int TemplateId { get; set; }
+
         /// <summary>
         /// Необязательное масштабирование
         /// </summary>

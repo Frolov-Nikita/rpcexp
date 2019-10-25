@@ -12,8 +12,8 @@ namespace RPCExp.Store.Entities
         public string Name { get; set; }
 
         public string Description { get; set; }
-        
-        public ICollection<DeviceCfg> Devices { get; set; }
+
+        public ICollection<DeviceCfg> Devices { get; set; } = new List<DeviceCfg>();
 
         //public override Facility Unwrap()
         //{

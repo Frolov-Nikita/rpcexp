@@ -5,23 +5,23 @@ using RPCExp.Modbus.Factory;
 using RPCExp.Common;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using RPCExp.Connections;
 
 namespace RPCExp
 {
-
-
-
     class Program
     {
         static CancellationTokenSource Cts = new CancellationTokenSource();
 
-        
-
         static void Main(string[] args)
         {
+            var storeSource = new Store.SqliteStoreSource();
+            var store = new Common.Store();
 
-            //RPCExp.Store.SqliteStoreSource();
+            var f1 = FacilityTemplateGen.GetFacility();
+            store.Facilities.Add(f1.Name, f1);
 
+            storeSource.Save(store, "cfg.sqlite3");
             return;
             //var st = new Ticker();
             //string TickToSecStr(long ticks) => (ticks / 10_000_000.0).ToString("#.###");

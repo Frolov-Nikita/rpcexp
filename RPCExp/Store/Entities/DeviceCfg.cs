@@ -9,6 +9,8 @@ namespace RPCExp.Store.Entities
 
     public class DeviceCfg : IProtocolSpecificData
     {
+        public int Id { get; set; }
+
         public string ClassName { get; set; }
 
         public string Custom { get; set; }
@@ -22,8 +24,8 @@ namespace RPCExp.Store.Entities
         public bool InActiveUpdate { get; set; }
 
         public long InActiveUpdatePeriod { get; set; }
-        
-        public ICollection<Template> Templates { get; set; }
+
+        public List<Template> Templates { get; set; } = new List<Template>();
 
     }
 }

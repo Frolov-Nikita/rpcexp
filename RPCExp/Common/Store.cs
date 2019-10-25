@@ -10,10 +10,10 @@ namespace RPCExp.Common
     public class Store 
     {
         public const char nameSeparator = '/';
-        
-        public IDictionary<string, Facility> Facilities { get; set; }
-        
-        public IDictionary<string, IConnectionSource> ConnectionsSources { get; set; }
+
+        public IDictionary<string, Facility> Facilities { get; set; } = new Dictionary<string, Facility>();
+
+        public IDictionary<string, ConnectionSource> ConnectionsSources { get; set; } = new Dictionary<string, ConnectionSource>();
 
 
     }

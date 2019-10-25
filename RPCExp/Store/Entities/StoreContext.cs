@@ -23,6 +23,12 @@ namespace RPCExp.Store.Entities
             optionsBuilder.UseSqlite("Data Source=" + dbName);
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+        }
+
         public DbSet<ConnectionSourceCfg> Connections { get; set; }
 
         public DbSet<FacilityCfg> Facilities { get; set; }

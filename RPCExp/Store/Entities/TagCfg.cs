@@ -7,6 +7,7 @@ namespace RPCExp.Store.Entities
 
     public class TagCfg : INameDescription, IProtocolSpecificData
     {
+        public int Id { get; set; }
         public string ClassName { get; set; }
 
         public string Custom { get; set; }

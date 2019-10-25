@@ -24,6 +24,8 @@ namespace RPCExp
                 //    [conn.Name] = conn,
                 //},
 
+                Name = "TestFacility",
+
                 Devices = new Dictionary<string, DeviceAbstract>
                 {
                     ["Plc1"] = new ModbusDevice
@@ -43,14 +45,16 @@ namespace RPCExp
 
             dev.Tags.Add("Tag1", new MTag
             {
+                TemplateId = 1,
                 Name = "Tag1",
                 Region = ModbusRegion.HoldingRegisters,
                 Begin = 0,
                 ValueType = Common.ValueType.Int16,
-            });
+            }) ;
 
             dev.Tags.Add("Tag2", new MTag
             {
+                TemplateId = 1,
                 Name = "Tag2",
                 Region = ModbusRegion.HoldingRegisters,
                 Begin = 1,
@@ -59,6 +63,7 @@ namespace RPCExp
 
             dev.Tags.Add("Tag3", new MTag
             {
+                TemplateId = 2,
                 Name = "Tag3",
                 Region = ModbusRegion.HoldingRegisters,
                 Begin = 2,
@@ -67,6 +72,7 @@ namespace RPCExp
 
             dev.Tags.Add("Tag4", new MTag
             {
+                TemplateId = 2,
                 Name = "Tag4",
                 Region = ModbusRegion.HoldingRegisters,
                 Begin = 3,
@@ -75,6 +81,7 @@ namespace RPCExp
 
             dev.Tags.Add("boolTag5", new MTag
             {
+                TemplateId = 1,
                 Name = "boolTag5",
                 Region = ModbusRegion.Coils,
                 Begin = 3,

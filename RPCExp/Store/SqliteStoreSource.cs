@@ -38,9 +38,30 @@ namespace RPCExp.Store
             return store;
         }
 
-        public void Save(string target)
+        public void Save( Common.Store store, string target)
         {
-            throw new NotImplementedException();
+            StoreContext context = new StoreContext();
+
+            var ProtocolSerializer = protorols["ModbusDevice"];
+
+            foreach (var f in store.Facilities.Values)
+            {
+                var fcfg = new FacilityCfg {
+                    Name = f.Name,
+                    Description = f.Description,
+                };
+
+                foreach (var d in f.Devices.Values)
+                {
+                    var dcfg = ProtocolSerializer.PackDevice(d);
+                    fcfg.Devices.Add(dcfg);
+                }
+                    
+                    
+                context.Facilities.Add(fcfg);
+            }
+
+            context.SaveChanges();
         }
     }
 }

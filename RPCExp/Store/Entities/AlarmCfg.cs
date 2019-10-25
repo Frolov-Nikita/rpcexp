@@ -2,5 +2,6 @@
 {
     public class AlarmCfg
     {
+        public int Id { get; set; }
     }
 }

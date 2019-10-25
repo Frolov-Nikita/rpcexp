@@ -2,5 +2,6 @@
 {
     public class ArchiveCfg
     {
+        public int Id { get; set; }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using RPCExp.AlarmLogger.Model;
 using RPCExp.Common;
 using System;
+using System.Linq;
 using RPCExp.Store.Entities;
+using System.Collections.Generic;
 
 namespace RPCExp.Store
 {
@@ -18,6 +20,8 @@ namespace RPCExp.Store
         }
 
         public abstract string ClassName { get; }
+
+        public Common.Store Store { get; }
 
         public DeviceAbstract UnpackDevice(DeviceCfg config)
         {
@@ -59,6 +63,7 @@ namespace RPCExp.Store
         {
             var config = new DeviceCfg
             {
+                ClassName = "ModbusDevice", //TODO: переделать
                 Name = device.Name,
                 Description = device.Description,
                 BadCommWaitPeriod = device.BadCommWaitPeriod,
@@ -67,9 +72,25 @@ namespace RPCExp.Store
             };
 
             config.Custom = PackDeviceSpecific(device);
+
+            var tags = new List<TagCfg>(device.Tags.Count);
             
-            throw new NotImplementedException();// TODO: Не совсем понятно, как теги завернуть обратно в шаблоны.
-            //return config;
+            foreach (var t in device.Tags.Values)
+            {
+                var tcfg = PackTag(t);
+                
+                tags.Add(tcfg);
+                
+                if (!config.Templates.Exists(tem =>tem.Id == t.TemplateId))
+                    config.Templates.Add(new Template { Id = t.TemplateId });
+
+                var template = config.Templates.First(tem => tem.Id == t.TemplateId);
+
+                template.Tags.Add(tcfg);
+            }
+
+            //throw new NotImplementedException();// TODO: Не совсем понятно, как теги завернуть обратно в шаблоны.
+            return config;
         }
 
         protected TagAbstract UnpackTag(TagCfg config)
@@ -105,11 +126,12 @@ namespace RPCExp.Store
                 Format = tag.Format,
                 Access = tag.Access,
                 ValueType = tag.ValueType,
-                ScaleDevMax = tag.Scale.DevMax,
-                ScaleDevMin = tag.Scale.DevMin,
-                ScaleMax = tag.Scale.Max,
-                ScaleMin = tag.Scale.Min,
+                ScaleDevMax = tag.Scale?.DevMax ?? Int16.MaxValue,
+                ScaleDevMin = tag.Scale?.DevMin ?? Int16.MinValue,
+                ScaleMax = tag.Scale?.Max ?? Int16.MaxValue,
+                ScaleMin = tag.Scale?.Min ?? Int16.MinValue,
                 Custom = PackTagSpecific(tag),
+                
             };
             return config;
         }
