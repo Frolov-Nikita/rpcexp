@@ -20,12 +20,13 @@ namespace RPCExp.Common
         public string Description { get; set; }
 
         //TODO: переместить в store
-        [NotMapped]
-        public IDictionary<string, ConnectionSource> ConnectionsSource { get; set; }
+        //[NotMapped]
+        //public IDictionary<string, ConnectionSource> ConnectionsSource { get; set; }
 
 
         [NotMapped]
-        public IDictionary<string, DeviceAbstract> DevicesSource { get; set; }
-        
+        public IDictionary<string, DeviceAbstract> Devices { get; set; }
+
+        public Dictionary<string, ConnectionSource> ConnectionsSource { get; internal set; }
     }
 }

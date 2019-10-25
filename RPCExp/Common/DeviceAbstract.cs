@@ -23,8 +23,10 @@ namespace RPCExp.Common
         
         public long BadCommWaitPeriod { get; set; } = 10 * 10_000_000;
 
+        // TODO: Rename имя подобрано плохо
         public bool InActiveUpdate { get; set; } = true;
 
+        // TODO: Rename имя подобрано плохо
         public long InActiveUpdatePeriod { get; set; } = 20 * 10_000_000;
 
         public IDictionary<string, TagsGroup> Groups { get; set; }
@@ -32,7 +34,7 @@ namespace RPCExp.Common
         public IDictionary<string, TagAbstract> Tags { get; } = new Dictionary<string, TagAbstract>();
 
         public List<AlarmConfig> AlarmsConfig { get; set; } = new List<AlarmConfig>();
-
+        
         protected ICollection<TagAbstract> NeedToUpdate(out long nextTime, bool force = false)
         {
             var nowTick = DateTime.Now.Ticks;
@@ -123,7 +125,7 @@ namespace RPCExp.Common
 
                 if (ac.IsRise())
                 {
-                    
+                    // TODO: Допилить
                 }
             }
         }

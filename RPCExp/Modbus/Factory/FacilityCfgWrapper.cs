@@ -31,7 +31,7 @@ namespace RPCExp.Modbus.Factory
                 obj.ConnectionsSource.Add(cs.Cfg, cs);
             }
 
-            obj.DevicesSource = Devices.ToDictionary(d=>d.Name, d=> {
+            obj.Devices = Devices.ToDictionary(d=>d.Name, d=> {
                 var dev = d.Unwrap();
                 if (obj.ConnectionsSource.TryGetValue(d.ConnectionCfg, out ConnectionSource cs))
                     dev.Connection = cs;
@@ -44,8 +44,6 @@ namespace RPCExp.Modbus.Factory
                 return (DeviceAbstract)dev;
             });
 
-
-
             return obj;
         }
 
@@ -53,11 +51,11 @@ namespace RPCExp.Modbus.Factory
         {
             Name = obj.Name;
             Description = obj.Description;
-            Devices = new List<DeviceCfgWrapper>(obj.DevicesSource.Count);
-            foreach (var d in obj.DevicesSource.Values)
+            Devices = new List<DeviceCfgWrapper>(obj.Devices.Count);
+            foreach (var d in obj.Devices.Values)
             {
                 var dev = new DeviceCfgWrapper();
-                dev.Wrap((Device)d);
+                dev.Wrap((ModbusDevice)d);
                 Devices.Add(dev);
             }
             Connections = obj.ConnectionsSource.Values.Select(v=>v.Cfg).ToList();

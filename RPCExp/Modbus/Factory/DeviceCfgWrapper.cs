@@ -5,9 +5,9 @@ using RPCExp.Common;
 
 namespace RPCExp.Modbus.Factory
 {
-    public class DeviceCfgWrapper : IClassWrapper<Device>
+    public class DeviceCfgWrapper : IClassWrapper<ModbusDevice>
     {
-        public string ClassName => nameof(Device);
+        public string ClassName => nameof(ModbusDevice);
 
         public string Name { get; set; }
 
@@ -31,16 +31,7 @@ namespace RPCExp.Modbus.Factory
 
         public string ConnectionCfg { get; set; }
 
-        class TagsSetComparer : IEqualityComparer<TagsGroup>
-        {
-            public bool Equals(TagsGroup x, TagsGroup y) =>  
-                x.Name == y.Name;
-            
-            public int GetHashCode(TagsGroup obj)=>
-                obj.Name.GetHashCode();
-        }
-
-        public void Wrap(Device obj)
+        public void Wrap(ModbusDevice obj)
         {
             Name = obj.Name;
             Description = obj.Description;
@@ -79,12 +70,12 @@ namespace RPCExp.Modbus.Factory
             }                
         }
 
-        public Device Unwrap()
+        public ModbusDevice Unwrap()
         {
             if (!Enum.TryParse(typeof(FrameType), FrameType, out object ft))
                 throw new Exception($"FrameType: {FrameType} is invalid");
 
-            var obj = new Device
+            var obj = new ModbusDevice
             {
                 Name = this.Name,
                 Description = this.Description,

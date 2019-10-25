@@ -3,20 +3,18 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using RPCExp.Modbus;
+using RPCExp.Connections;
 
 namespace RPCExp.Common
 {
-    public class Store : INameDescription
+    public class Store 
     {
         public const char nameSeparator = '/';
         
         public IDictionary<string, Facility> Facilities { get; set; }
         
-        public IDictionary<string, ConnectionSource> ConnectionsSource { get; set; }
+        public IDictionary<string, IConnectionSource> ConnectionsSources { get; set; }
 
-        public string Name { get; set; }
-        
-        public string Description { get; set; }
 
     }
 }

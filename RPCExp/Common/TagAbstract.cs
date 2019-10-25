@@ -4,6 +4,8 @@ using System.Linq;
 
 namespace RPCExp.Common
 {
+    public enum Access : byte { ReadOnly, ReadWrite, WriteOnly}
+
     public abstract class TagAbstract : TagData, INameDescription
     {
         static long DefaultPeriod = TimeSpan.FromSeconds(1).Ticks;
@@ -14,11 +16,12 @@ namespace RPCExp.Common
 
         public string Description { get; set; }
 
+        // TODO: -> глобальный справочник юнитов и форматов
         public string Units { get; set; }
 
         public string Format { get; set; }
 
-        public abstract bool CanWrite { get; set; }
+        public virtual Access Access { get; set; }
 
         public ValueType ValueType { get; set; }
 
@@ -61,7 +64,7 @@ namespace RPCExp.Common
             Description,
             Units,
             Format,
-            CanWrite,
+            Access,
             ValueType,
             Scale = Scale != null ? new { Scale.Min, Scale.Max } : null,
             Groups = Groups.Keys,

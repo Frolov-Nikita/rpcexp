@@ -20,6 +20,8 @@ namespace RPCExp
         static void Main(string[] args)
         {
 
+            //RPCExp.Store.SqliteStoreSource();
+
             return;
             //var st = new Ticker();
             //string TickToSecStr(long ticks) => (ticks / 10_000_000.0).ToString("#.###");
@@ -39,7 +41,7 @@ namespace RPCExp
 
             Factory.SaveFacility(facility);
 
-            var dev = facility.DevicesSource["Plc1"];
+            var dev = facility.Devices["Plc1"];
             dev.Start();
 
             Console.WriteLine("Start  tasks");
@@ -68,7 +70,7 @@ namespace RPCExp
             {
                 try
                 {
-                    Terminal.TermForms.DisplayModbusDevice((Device)dev);
+                    Terminal.TermForms.DisplayModbusDevice((ModbusDevice)dev);
                     //Console.WriteLine("Tag1: " + dev.Tags["Tag1"].GetInternalValue());
                     //Console.WriteLine("Tag2: " + dev.Tags["Tag2"].GetInternalValue());
                 }

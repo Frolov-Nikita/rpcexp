@@ -19,14 +19,14 @@ namespace RPCExp
 
             var facility = new Facility
             {
-                ConnectionsSource = new Dictionary<string, ConnectionSource>
-                {
-                    [conn.Name] = conn,
-                },
+                //ConnectionsSource = new Dictionary<string, ConnectionSource>
+                //{
+                //    [conn.Name] = conn,
+                //},
 
-                DevicesSource = new Dictionary<string, DeviceAbstract>
+                Devices = new Dictionary<string, DeviceAbstract>
                 {
-                    ["Plc1"] = new Device
+                    ["Plc1"] = new ModbusDevice
                     {
                         Name = "Plc1",
                         Connection = conn,
@@ -39,7 +39,7 @@ namespace RPCExp
                 }
             };
 
-            var dev = facility.DevicesSource["Plc1"];
+            var dev = facility.Devices["Plc1"];
 
             dev.Tags.Add("Tag1", new MTag
             {

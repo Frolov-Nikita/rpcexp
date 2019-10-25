@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RPCExp.Terminal
 {
-    // TODO сделать двухбуферный рендерер:) 
+    // TODO Удалить и использовать elw00d
     public static class TermTable
     {
         public class Column
@@ -132,7 +132,7 @@ namespace RPCExp.Terminal
     public static class TermForms
     {
 
-        public static void DisplayModbusDevice(Device device)
+        public static void DisplayModbusDevice(ModbusDevice device)
         {
             // ─│┌┐└┘├┤┬┴┼
             var origColor = Console.ForegroundColor;

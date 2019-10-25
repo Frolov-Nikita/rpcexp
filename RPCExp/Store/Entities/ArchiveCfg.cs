@@ -1,0 +1,6 @@
+﻿namespace RPCExp.Store.Entities
+{
+    public class ArchiveCfg
+    {
+    }
+}

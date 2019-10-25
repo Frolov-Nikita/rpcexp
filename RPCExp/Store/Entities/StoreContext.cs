@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using RPCExp.Common;
 
-namespace RPCExp.Store
+namespace RPCExp.Store.Entities
 {
     class StoreContext : DbContext
     {
@@ -23,6 +23,11 @@ namespace RPCExp.Store
             optionsBuilder.UseSqlite("Data Source=" + dbName);
         }
 
-        public DbSet<Facility> Facilities { get; set; }
+        public DbSet<ConnectionSourceCfg> Connections { get; set; }
+
+        public DbSet<FacilityCfg> Facilities { get; set; }
+        
+        public DbSet<Template> Templates { get; set; }
+
     }
 }

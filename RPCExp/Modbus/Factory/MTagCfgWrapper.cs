@@ -21,7 +21,7 @@ namespace RPCExp.Modbus.Factory
 
         public int Begin { get; set; }
 
-        public bool CanWrite { get; set; }
+        public Access Access { get; set; }
 
         public ModbusRegion Region { get; set; }
 
@@ -37,7 +37,7 @@ namespace RPCExp.Modbus.Factory
             Units = obj.Units;
             Format = obj.Format;
             Begin = obj.Begin;
-            CanWrite = obj.CanWrite;
+            Access = obj.Access;
             Region = obj.Region;
             ValueType = obj.ValueType;
             Groups = obj.Groups.Keys?.ToArray();
@@ -53,7 +53,7 @@ namespace RPCExp.Modbus.Factory
                 Units = this.Units,
                 Format = this.Format,
                 Begin = this.Begin,
-                CanWrite = this.CanWrite,
+                Access = this.Access,
                 Region = this.Region,
                 ValueType = this.ValueType,
                 Groups = new Dictionary<string, TagsGroup>(),

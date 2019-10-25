@@ -10,21 +10,21 @@ namespace RPCExp.Modbus
 
     public class MTag : TagAbstract, IRange
     {
-        private bool canWrite;
+        private Access access;
 
-        public override bool CanWrite
+        //### специфично только для modbus
+        public override Access Access
         {
             get
             {
                 if ((Region == ModbusRegion.Coils) || (Region == ModbusRegion.HoldingRegisters))
-                    return canWrite;
+                    return Access.ReadWrite;
                 else
-                    return false;
+                    return Access.ReadOnly;
             }
-            set => canWrite = value;
+            set => access = value;
         }
 
-        //### специфично только для modbus
         public ModbusRegion Region { get; set; }
 
         public int Begin { get; set; }

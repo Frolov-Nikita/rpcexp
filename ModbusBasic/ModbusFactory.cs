@@ -101,6 +101,11 @@ namespace ModbusBasic
             return new ModbusTcpSlaveNetwork(tcpListener, this);
         }
 
+        public IModbusSlaveNetwork CreateRtuOverTcpSlaveNetwork(TcpListener tcpListener)
+        {
+            return new ModbusRtuOverTcpSlaveNetwork(tcpListener, this);
+        }        
+
         public IModbusSlaveNetwork CreateSlaveNetwork(UdpClient client)
         {
             return new ModbusUdpSlaveNetwork(client, this);

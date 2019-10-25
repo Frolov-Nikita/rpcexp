@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace RPCExp.Modbus
 {
-    public class Device : DeviceAbstract
+    public class ModbusDevice : DeviceAbstract
     {
-        ModbusFactory factory = new ModbusFactory(); //TODO ПЕРЕДЕЛАТЬ!!
+        ModbusFactory factory = new ModbusFactory(); //TODO: ПЕРЕДЕЛАТЬ!!
 
         private bool forceRead = true;
 
