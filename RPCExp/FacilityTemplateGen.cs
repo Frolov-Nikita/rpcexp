@@ -45,15 +45,23 @@ namespace RPCExp
 
             dev.Tags.Add("Tag1", new MTag
             {
+                Groups = new Dictionary<string ,TagsGroup> { 
+                    ["currentData"] = new TagsGroup {Name = "currentData", Min = 10_000_000 },
+                },
                 TemplateId = 1,
                 Name = "Tag1",
                 Region = ModbusRegion.HoldingRegisters,
                 Begin = 0,
                 ValueType = Common.ValueType.Int16,
-            }) ;
+            });
 
             dev.Tags.Add("Tag2", new MTag
             {
+                Groups = new Dictionary<string, TagsGroup>
+                {
+                    ["currentData"] = new TagsGroup { Name = "currentData", Min = 10_000_000 },
+                    ["settings"] = new TagsGroup { Name = "settings", Min = 10_000_000 },
+                },
                 TemplateId = 1,
                 Name = "Tag2",
                 Region = ModbusRegion.HoldingRegisters,

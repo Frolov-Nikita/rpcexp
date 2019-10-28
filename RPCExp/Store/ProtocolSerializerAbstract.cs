@@ -12,18 +12,17 @@ namespace RPCExp.Store
     /// Класс преобразует сущности из БД в объекты программы и обратно.
     /// </summary>
     /// <typeparam name="T">Сласс устройства реализующего протокол</typeparam>
-    public abstract class ProtocolSerializerAbstract
+    internal abstract class ProtocolSerializerAbstract
     {
         public ProtocolSerializerAbstract()
         {
-            
         }
 
-        public abstract string ClassName { get; }
+        public abstract string ClassName { get; } 
 
         public Common.Store Store { get; }
 
-        public DeviceAbstract UnpackDevice(DeviceCfg config)
+        public DeviceAbstract UnpackDevice(DeviceCfg config, Common.Store store)
         {
             DeviceAbstract device = UnpackDeviceSpecific(config.Custom);
 
@@ -33,10 +32,11 @@ namespace RPCExp.Store
             device.InActiveUpdate = config.InActiveUpdate;
             device.InActiveUpdatePeriod = config.InActiveUpdatePeriod;
 
-            // TODO: device.StreamSource = ??
+            // TODO: device.Connection = ??
 
-            foreach (var template in config.Templates)
+            foreach (var d2t in config.Templates)
             {
+                var template = d2t.Template;
                 foreach(var tagCfg in template.Tags)
                 {
                     var tag = UnpackTag(tagCfg);
@@ -59,11 +59,12 @@ namespace RPCExp.Store
             return device;
         }
 
-        public DeviceCfg PackDevice(DeviceAbstract device)
+        public DeviceCfg PackDevice(DeviceAbstract device, StoreContext context)
         {
+
             var config = new DeviceCfg
             {
-                ClassName = "ModbusDevice", //TODO: переделать
+                ClassName = this.ClassName,
                 Name = device.Name,
                 Description = device.Description,
                 BadCommWaitPeriod = device.BadCommWaitPeriod,
@@ -77,19 +78,26 @@ namespace RPCExp.Store
             
             foreach (var t in device.Tags.Values)
             {
-                var tcfg = PackTag(t);
+                var tcfg = PackTag(t, context);
                 
                 tags.Add(tcfg);
                 
-                if (!config.Templates.Exists(tem =>tem.Id == t.TemplateId))
-                    config.Templates.Add(new Template { Id = t.TemplateId });
+                var template = config.Templates.FirstOrDefault(tem => tem.Template.Id == t.TemplateId);
 
-                var template = config.Templates.First(tem => tem.Id == t.TemplateId);
-
-                template.Tags.Add(tcfg);
+                if (template == default)
+                {
+                    template = new DeviceToTemplate
+                    {
+                        Device = config,
+                        Template = new Template
+                        {
+                            Id = t.TemplateId
+                        },
+                    };
+                    config.Templates.Add(template);
+                }
+                template.Template.Tags.Add(tcfg);
             }
-
-            //throw new NotImplementedException();// TODO: Не совсем понятно, как теги завернуть обратно в шаблоны.
             return config;
         }
 
@@ -115,10 +123,11 @@ namespace RPCExp.Store
             return t;
         }
 
-        protected TagCfg PackTag(TagAbstract tag)
+        protected TagCfg PackTag(TagAbstract tag, StoreContext context)
         {
             var config = new TagCfg
             {
+                ClassName = this.ClassName,
                 Name = tag.Name,
                 DisplayName = tag.DisplayName,
                 Description = tag.Description,
@@ -131,8 +140,16 @@ namespace RPCExp.Store
                 ScaleMax = tag.Scale?.Max ?? Int16.MaxValue,
                 ScaleMin = tag.Scale?.Min ?? Int16.MinValue,
                 Custom = PackTagSpecific(tag),
-                
+                Groups = new List<TagsGroup>(),
             };
+
+            foreach (var g in tag.Groups.Values)
+            {
+                var storedGroup = context.GetOrCreateTagsGroup(g);
+                config.Groups.Add(storedGroup);
+            }
+                
+
             return config;
         }
 

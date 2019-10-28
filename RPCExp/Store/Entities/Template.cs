@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RPCExp.Store.Entities
 {
-    public class Template: INameDescription
+    public class Template: INameDescription, ICopyFrom, IIdentity
     {
         public int Id { get; set; }
 
@@ -19,6 +19,26 @@ namespace RPCExp.Store.Entities
 
         public List<ArchiveCfg> Archives { get; set; } = new List<ArchiveCfg>();
 
-        public List<DeviceCfg> Devices { get; set; } = new List<DeviceCfg>();
+        public ICollection<DeviceToTemplate> Devices { get; set; } = new List<DeviceToTemplate>();
+
+        public void CopyFrom(object original)
+        {
+            var src = (Template)original;
+
+            Name = src.Name;
+            Description = src.Description;
+
+            foreach (var t in src.Tags)
+                Tags.Add(t);
+
+            foreach (var a in src.Alarms)
+                Alarms.Add(a);
+
+            foreach (var z in src.Archives)
+                Archives.Add(z);
+
+            foreach (var d in src.Devices)
+                Devices.Add(d);
+        }
     }
 }

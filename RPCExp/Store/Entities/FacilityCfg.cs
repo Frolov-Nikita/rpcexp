@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RPCExp.Store.Entities
 {
-    public class FacilityCfg //: ClassWrapperAbstract<Facility>
+    public class FacilityCfg : ICopyFrom, IIdentity
     {
         public int Id { get; set; }
 
@@ -14,6 +14,11 @@ namespace RPCExp.Store.Entities
         public string Description { get; set; }
 
         public ICollection<DeviceCfg> Devices { get; set; } = new List<DeviceCfg>();
+
+        public void CopyFrom(object original)
+        {
+            throw new NotImplementedException();
+        }
 
         //public override Facility Unwrap()
         //{
@@ -28,7 +33,7 @@ namespace RPCExp.Store.Entities
         //        var o = ow.Unwrap();
         //        obj.Devices.Add(o.Name, o);
         //    }
-            
+
         //    return obj;
         //}
 

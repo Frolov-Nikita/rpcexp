@@ -12,10 +12,15 @@ namespace RPCExp.Common
             Name = Guid.NewGuid().ToString();
         }
 
-        public TagsGroup(TagsGroup tagsSet)
+        /// <summary>
+        /// копирующий конструктор
+        /// </summary>
+        /// <param name="tagsGroupOriginal"></param>
+        public TagsGroup(TagsGroup tagsGroupOriginal)
         {
-            Name = tagsSet.Name;
-            Description = tagsSet.Description;
+            Name = tagsGroupOriginal.Name;
+            Description = tagsGroupOriginal.Description;
+            Min = tagsGroupOriginal.Min;
         }
 
         [Key]

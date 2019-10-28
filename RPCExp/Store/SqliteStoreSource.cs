@@ -8,10 +8,16 @@ namespace RPCExp.Store
 {
     public class SqliteStoreSource 
     {
-        Dictionary<string, ProtocolSerializerAbstract> protorols = new Dictionary<string, ProtocolSerializerAbstract>
+
+        StoreContext context = new StoreContext();
+
+        Dictionary<string, ProtocolSerializerAbstract> protorols = new Dictionary<string, ProtocolSerializerAbstract>();
+
+        public SqliteStoreSource()
         {
-            ["ModbusDevice"] = new ProtocolSerializerModbus(),
-        };
+            var ProtocolSerializerModbus = new ProtocolSerializerModbus();
+            protorols.Add(ProtocolSerializerModbus.ClassName, ProtocolSerializerModbus);
+        }
 
         public Common.Store Get(string target)
         {
@@ -23,16 +29,41 @@ namespace RPCExp.Store
             var context = new StoreContext(target);
             var store = new Common.Store();
 
-            foreach (var ow in context.Connections)
+            foreach (var cfg in context.Connections)
             {
-                //var o = ow.Unwrap();
-                //store.ConnectionsSources.Add(o.Name, o);
+                var connectionSource = new Modbus.ConnectionSource()
+                {
+                    Cfg = cfg.Cfg,
+                    Name = cfg.Name,
+                    Description = cfg.Description,
+                    //Physic
+                };
+
+                store.ConnectionsSources.Add(connectionSource.Name, connectionSource);
             }
 
-            foreach (var ow in context.Facilities)
+            foreach (var cfg in context.TagsGroups)
             {
-                //var o = ow.Unwrap();
-                //store.Facilities.Add(o.Name, o);
+                var tagsGroup = new TagsGroup(cfg);
+                store.TagsGroups.Add(tagsGroup.Name, tagsGroup);
+            }
+
+            foreach (var cfg in context.Facilities)
+            {
+                var facility = new Facility
+                {
+                    Name = cfg.Name,
+                    Description = cfg.Description,
+                };
+
+                foreach(var dcfg in cfg.Devices)
+                {
+                    var protocolSerializer = protorols[dcfg.ClassName];
+                    var dev = protocolSerializer.UnpackDevice(dcfg, store);
+                    facility.Devices.Add(dev.Name, dev);
+                }
+
+                store.Facilities.Add(facility.Name, facility);
             }
 
             return store;
@@ -40,9 +71,20 @@ namespace RPCExp.Store
 
         public void Save( Common.Store store, string target)
         {
-            StoreContext context = new StoreContext();
+            var protocolSerializer = protorols["Modbus"];
 
-            var ProtocolSerializer = protorols["ModbusDevice"];
+            // TODO: Save connections
+            foreach (var cs in store.ConnectionsSources.Values)
+            {
+                var c = new ConnectionSourceCfg
+                {
+                    Cfg = cs.Cfg,
+                    Name = cs.Name,
+                    Description = cs.Description
+                };
+
+                var stored = context.Connections.GetOrCreate(c, o=>o.Name == c.Name);
+            }
 
             foreach (var f in store.Facilities.Values)
             {
@@ -53,11 +95,11 @@ namespace RPCExp.Store
 
                 foreach (var d in f.Devices.Values)
                 {
-                    var dcfg = ProtocolSerializer.PackDevice(d);
+                    var dcfg = protocolSerializer.PackDevice(d, context);
+
                     fcfg.Devices.Add(dcfg);
                 }
-                    
-                    
+                  
                 context.Facilities.Add(fcfg);
             }
 

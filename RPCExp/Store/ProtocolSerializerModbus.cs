@@ -8,9 +8,9 @@ using Newtonsoft.Json;
 
 namespace RPCExp.Store
 {
-    class ProtocolSerializerModbus : ProtocolSerializerAbstract
+    internal class ProtocolSerializerModbus : ProtocolSerializerAbstract
     {
-        public override string ClassName => nameof(ModbusDevice);
+        public override string ClassName => "Modbus";
 
         protected override string PackDeviceSpecific(DeviceAbstract device)
         {
@@ -23,7 +23,7 @@ namespace RPCExp.Store
             {
                 mdev.SlaveId,
                 mdev.ByteOrder,
-                FrameType = mdev.MasterSource.frameType,
+                FrameType = mdev.MasterSource.frameType.ToString(),
                 ConnectionRef = mdev.Connection.Name,
             });            
         }
@@ -45,8 +45,9 @@ namespace RPCExp.Store
 
             if (jo.ContainsKey("ConnectionRef"))
             {
+                // TODO: 
                 var connectionName = (FrameType)jo["ConnectionRef"].ToObject(typeof(string));
-                //device.Connection =
+                // device.Connection =
             }
 
             return device;

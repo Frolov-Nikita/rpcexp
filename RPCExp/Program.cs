@@ -19,6 +19,7 @@ namespace RPCExp
             var store = new Common.Store();
 
             var f1 = FacilityTemplateGen.GetFacility();
+
             store.Facilities.Add(f1.Name, f1);
 
             storeSource.Save(store, "cfg.sqlite3");

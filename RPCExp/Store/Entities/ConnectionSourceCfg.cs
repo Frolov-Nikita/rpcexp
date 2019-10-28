@@ -6,8 +6,14 @@ using System.Text;
 namespace RPCExp.Store.Entities
 {
     
-    public class ConnectionSourceCfg
+    public class ConnectionSourceCfg: INameDescription, ICopyFrom, IIdentity
     {
+
+        public ConnectionSourceCfg()
+        {
+
+        }
+
         public int Id { get; set; }
 
         public string Name { get; set; }
@@ -16,5 +22,12 @@ namespace RPCExp.Store.Entities
 
         public string Cfg { get; set; }
 
+        public void CopyFrom(object original)
+        {
+            var src = (ConnectionSourceCfg) original;
+            Name = src.Name;
+            Description = src.Description;
+            Cfg = src.Cfg;
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using RPCExp.Modbus;
 using RPCExp.Connections;
+using RPCExp.AlarmLogger.Model;
 
 namespace RPCExp.Common
 {
@@ -15,6 +16,9 @@ namespace RPCExp.Common
 
         public IDictionary<string, ConnectionSource> ConnectionsSources { get; set; } = new Dictionary<string, ConnectionSource>();
 
+        public IDictionary<string, TagsGroup> TagsGroups { get; set; } = new Dictionary<string, TagsGroup>();
+
+        public IDictionary<string, AlarmCategory> AlarmCategories { get; set; } = new Dictionary<string, AlarmCategory>();
 
     }
 }
