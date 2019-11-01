@@ -19,7 +19,7 @@ namespace RPCExp.Store.Entities
 
         public List<ArchiveCfg> Archives { get; set; } = new List<ArchiveCfg>();
 
-        public ICollection<DeviceToTemplate> Devices { get; set; } = new List<DeviceToTemplate>();
+        public ICollection<DeviceToTemplate> DeviceToTemplates { get; set; } = new List<DeviceToTemplate>();
 
         public void CopyFrom(object original)
         {
@@ -37,8 +37,8 @@ namespace RPCExp.Store.Entities
             foreach (var z in src.Archives)
                 Archives.Add(z);
 
-            foreach (var d in src.Devices)
-                Devices.Add(d);
+            foreach (var d in src.DeviceToTemplates)
+                DeviceToTemplates.Add(d);
         }
     }
 }

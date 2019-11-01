@@ -1,5 +1,6 @@
 ﻿using ModbusBasic;
 using RPCExp.Common;
+using RPCExp.Connections;
 using RPCExp.Modbus.TypeConverters;
 using System;
 using System.Collections.Generic;
@@ -8,13 +9,21 @@ using System.Threading.Tasks;
 
 namespace RPCExp.Modbus
 {
+
+    public enum FrameType
+    {
+        Ip,
+        Rtu,
+        Ascii,
+    }
+    
     public class ModbusDevice : DeviceAbstract
     {
-        ModbusFactory factory = new ModbusFactory(); //TODO: ПЕРЕДЕЛАТЬ!!
+        static ModbusFactory factory = new ModbusFactory(); //TODO: ПЕРЕДЕЛАТЬ!!
 
         private bool forceRead = true;
 
-        private Dictionary<Common.ValueType, TypeConverterAbstract> typeConverters = new Dictionary<Common.ValueType, TypeConverterAbstract>();
+        private static Dictionary<Common.ValueType, TypeConverterAbstract> typeConverters = new Dictionary<Common.ValueType, TypeConverterAbstract> ();
 
         private void UpdateTypeConverters() {
             typeConverters.Clear();
@@ -33,6 +42,7 @@ namespace RPCExp.Modbus
 
         private byte[] byteOrder = new byte[] { 2, 3, 0, 1 };
 
+
         public byte SlaveId { get; set; }
         
         public byte[] ByteOrder {
@@ -42,10 +52,10 @@ namespace RPCExp.Modbus
                 UpdateTypeConverters();
             }
         }
+        
+        public FrameType FrameType { get; set; } = FrameType.Ip;
 
-        public ConnectionSource Connection { get; set; }
-
-        public MasterSource MasterSource { get; set; }
+        private MasterSource masterSource = new MasterSource();
 
         private async Task UpdateHoldingRegisters(IModbusMaster master, MTagsGroup g)
         {
@@ -175,7 +185,7 @@ namespace RPCExp.Modbus
 
             if (tags.Count > 0)
             {
-                IModbusMaster master = MasterSource.Get(factory, Connection);
+                IModbusMaster master = masterSource.Get(factory, FrameType, ConnectionSource);
 
                 foreach (var g in (coils).Slice())
                     await UpdateCoils(master, g);
@@ -226,7 +236,7 @@ namespace RPCExp.Modbus
                     }
                 }
 
-                IModbusMaster master = MasterSource.Get(factory, Connection);
+                IModbusMaster master = masterSource.Get(factory, FrameType, ConnectionSource);
 
                 foreach (var g in holdingRegisters.Slice())
                 {
@@ -265,7 +275,7 @@ namespace RPCExp.Modbus
         {
             long nextTime = 0;
             bool succes = false;
-            if (Connection.IsOpen)
+            if (ConnectionSource.IsOpen)
             {
                 nextTime = await Update(forceRead);
                 forceRead = false;
@@ -275,7 +285,7 @@ namespace RPCExp.Modbus
             {
                 forceRead = true;
 
-                if (!Connection.TryOpen())
+                if (!ConnectionSource.EnshureConnected())
                 {
                     nextTime = DateTime.Now.Ticks + BadCommWaitPeriod;
 

@@ -7,15 +7,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using RPCExp.AlarmLogger.Model;
 using System.Threading;
+using RPCExp.Connections;
 
 namespace RPCExp.Common
 {
 
-    /// <summary>
-    /// TODO: Оставить этот класс и производные только для хранилища. Сервер опроса и обработки выделить в отдельную сущность.
-    /// </summary>
-    
-    public abstract class DeviceAbstract : ServiceAbstract, IDevice
+    public abstract class DeviceAbstract : ServiceAbstract, INameDescription
     {
         public virtual string Name { get ; set ; }
 
@@ -29,12 +26,14 @@ namespace RPCExp.Common
         // TODO: Rename имя подобрано плохо
         public long InActiveUpdatePeriod { get; set; } = 20 * 10_000_000;
 
-        public IDictionary<string, TagsGroup> Groups { get; set; }
+        public IDictionary<string, TagsGroup> Groups { get; set; } = new Dictionary<string, TagsGroup>();
 
         public IDictionary<string, TagAbstract> Tags { get; } = new Dictionary<string, TagAbstract>();
 
         public List<AlarmConfig> AlarmsConfig { get; set; } = new List<AlarmConfig>();
-        
+
+        public ConnectionSourceAbstract ConnectionSource { get; set; }
+
         protected ICollection<TagAbstract> NeedToUpdate(out long nextTime, bool force = false)
         {
             var nowTick = DateTime.Now.Ticks;
@@ -117,13 +116,13 @@ namespace RPCExp.Common
             {
                 var tvs = GetTagsValues(ac.ConditionRelatedTags);
                 
-                if (tvs.Count() == 0)
+                if (tvs.Count() != ac.ConditionRelatedTags.Count())
                     return;
 
                 if (tvs.First().Quality != TagQuality.GOOD)
                     return;
 
-                if (ac.IsRise())
+                if (ac.IsRise(tvs))
                 {
                     // TODO: Допилить
                 }
@@ -145,19 +144,20 @@ namespace RPCExp.Common
         /// <summary>
         /// Получает значения набора переменных
         /// </summary>
-        /// <param name="setName"></param>
+        /// <param name="groupName"></param>
         /// <returns></returns>
-        public virtual IEnumerable<TagData> GetGroupValues(string setName)
+        public virtual IEnumerable<TagData> GetGroupValues(string groupName)
         {
-            if (!Groups.ContainsKey(setName))
+
+            if (!Groups.ContainsKey(groupName))
                 return null;
 
             List<TagData> datas = new List<TagData>();
 
-            Groups[setName].Tick();
+            Groups[groupName].Tick();
 
             return from t in Tags.Values
-                     where t.Groups.ContainsKey(setName)
+                     where t.Groups.ContainsKey(groupName)
                      select new TagData(t);
         }
 
@@ -186,6 +186,5 @@ namespace RPCExp.Common
 
         public abstract Task<int> Write(IDictionary<string, object> tagsValues);
     }
-
 
 }

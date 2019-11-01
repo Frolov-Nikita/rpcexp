@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RPCExp.Store.Entities
 {
-    class TagsGroupCfg : INameDescription, ICopyFrom, IIdentity
+    public class TagsGroupCfg : INameDescription, ICopyFrom, IIdentity
     {
         public TagsGroupCfg() { }
 
@@ -16,20 +16,26 @@ namespace RPCExp.Store.Entities
         {
             Name = original.Name;
             Description = original.Description;
+            Min = original.Min;
         }
 
         [Key]
         public int Id { get; set; }
 
+        public long Min { get; set; }
+
         public string Name { get; set; }
 
         public string Description { get; set; }
+
+        public ICollection<TagsToTagsGroups> TagsToTagsGroups { get; set; }
 
         public void CopyFrom(object original)
         {
             var src = (TagsGroupCfg)original;
             Name = src.Name;
             Description = src.Description;
+            Min = src.Min;
         }
     }
 }

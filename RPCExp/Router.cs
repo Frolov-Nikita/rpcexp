@@ -10,10 +10,9 @@ namespace RPCExp
 {
     public class Router
     {
-        Encoding enc = Encoding.UTF8;
+        Encoding encoding = Encoding.UTF8;
 
         List<RpcMethod> rpcMethods = new List<RpcMethod>();
-
 
         public IEnumerable<RpcMetodInfo> GetMethods()
         {
@@ -62,14 +61,14 @@ namespace RPCExp
             string id = "";
             try
             {
-                var req = Request.FromJson(enc.GetString(buffer, index, bytesCount));
+                var req = Request.FromJson(encoding.GetString(buffer, index, bytesCount));
                 id = req.Id;
                 var resp = await Handle(req);
-                return enc.GetBytes(resp.ToJson());
+                return encoding.GetBytes(resp.ToJson());
             }
             catch
             {
-                return enc.GetBytes(Response.GetErrorParse(id).ToJson());
+                return encoding.GetBytes(Response.GetErrorParse(id).ToJson());
             }
         }//Handle()
 

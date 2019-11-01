@@ -35,7 +35,7 @@ namespace RPCExp.Store.Entities
 
         public Common.ValueType ValueType { get; set; }
 
-        public ICollection<TagsGroup> Groups { get; set; }
+        public ICollection<TagsToTagsGroups> TagsToTagsGroups { get; set; }
 
         public void CopyFrom(object original)
         {
@@ -67,8 +67,8 @@ namespace RPCExp.Store.Entities
 
             ValueType = src.ValueType;
 
-            foreach (var g in src.Groups)
-                Groups.Add(g);
+            //foreach (var g in src.Groups)
+            //    Groups.Add(g);
 
         }
     }

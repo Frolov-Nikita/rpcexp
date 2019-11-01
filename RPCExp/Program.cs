@@ -1,7 +1,6 @@
 ﻿using System;
 using RPCExp.Modbus;
 using System.Threading;
-using RPCExp.Modbus.Factory;
 using RPCExp.Common;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,92 +14,52 @@ namespace RPCExp
 
         static void Main(string[] args)
         {
+
+            var dbfilename = "cfg.sqlite3";
             var storeSource = new Store.SqliteStoreSource();
-            var store = new Common.Store();
 
-            var f1 = FacilityTemplateGen.GetFacility();
+            //var store = StoreTemplateGen.Get();
+            //storeSource.Save(store, dbfilename);
 
-            store.Facilities.Add(f1.Name, f1);
-
-            storeSource.Save(store, "cfg.sqlite3");
-            return;
-            //var st = new Ticker();
-            //string TickToSecStr(long ticks) => (ticks / 10_000_000.0).ToString("#.###");
-            //while (Console.ReadKey().Key != ConsoleKey.Escape)
-            //{
-            //    Console.Write($"was active: {st.IsActive},\tperiod: {TickToSecStr(st.Period)}");
-            //    st.Tick();
-            //    Console.WriteLine($"\tnow active: {st.IsActive},\tperiod: {TickToSecStr(st.Period)}");
-            //}
-            //return;
-
-            Console.WriteLine("Starting");
-
-            var facility = Factory.LoadFacility("cfg.json");
-           
-            Console.WriteLine("conf - ok");
-
-            Factory.SaveFacility(facility);
-
-            var dev = facility.Devices["Plc1"];
-            dev.Start();
-
-            Console.WriteLine("Start  tasks");
-            Console.CancelKeyPress += Console_CancelKeyPress;
-
-            //Timer t1 = new Timer((x)=>dev.Tags["Tag1"].GetValue(), new AutoResetEvent(false), 0, 2000 );
-            //Timer t2 = new Timer((x) => dev.Tags["Tag2"].GetValue(), new AutoResetEvent(false), 0, 2100);
-
-            //Task.Run(() =>
-            //{
-            //    Task.Delay(10_000).Wait();
-            //    dev.Write(new Dictionary<string, object> { ["Tag3"] = 33.21 });
-            //});
+            var store = storeSource.Load(dbfilename);
 
             // ==== WebSocket ====
-            Console.WriteLine("Start Socket");
             Router router = new Router();
-            router.RegisterMethods(dev, nameof(dev));
 
-            WebSocketServer wss = new WebSocketServer(router, new string[] { "http://localhost:8888/"/*, "http://*:8888/"*/});
-            
+            router.RegisterMethods(store, nameof(store));
+            foreach (var facility in store.Facilities.Values)
+                foreach (var device in facility.Devices.Values)
+                {
+                    var fullAccesName = facility.AccessName + Common.Store.nameSeparator + device.Name;
+                    Console.WriteLine($"Start {fullAccesName}");
+                    device.Start();
+                    router.RegisterMethods(device, fullAccesName);
+                }
+                    
+            WebSocketServer wss = new WebSocketServer(router, new string[] { "http://localhost:8888/"}); //any Ip -  "http://*:8888/"
+
+            Console.WriteLine("Start webSocket");
             wss.Start();
-            
-            Console.Clear();
+            Console.WriteLine("Press \"Escape\" to quit");
+
             while (!Cts.Token.IsCancellationRequested)
             {
-                try
-                {
-                    Terminal.TermForms.DisplayModbusDevice((ModbusDevice)dev);
-                    //Console.WriteLine("Tag1: " + dev.Tags["Tag1"].GetInternalValue());
-                    //Console.WriteLine("Tag2: " + dev.Tags["Tag2"].GetInternalValue());
-                }
-                catch (Exception ex)
-                {
-                    Console.BackgroundColor = ConsoleColor.Black;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(ex.ToString());
-                    Console.ResetColor();
-                    break;
-                }
-                
+                if (Console.KeyAvailable)
+                    if (Console.ReadKey().Key == ConsoleKey.Escape)
+                        break;
                 Thread.Sleep(1000);
             }
 
             wss.Stop();
 
-            Console.ReadKey();
             Console.Clear();
             return;
 
             //Console.WriteLine("Started");            
             //wss.Stop();
             //client.Dispose();
+            //*/
         }
 
-        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
-        {
-            Cts.Cancel();
-        }
     }
 }

@@ -78,7 +78,7 @@ namespace RPCExp.AlarmLogger.Model
                 Type = typeof(decimal),
                 Predicate = (a, b) => ((decimal)a) < ((decimal)b) } } ,
 
-            {":", new Operator{Name = "!:",
+            {":", new Operator{Name = ":",
                 Type = typeof(Int32),
                 Predicate = (a, b) => (((Int32)a) & (1 << ((Int32)b))) > 0 } } ,
             {"!:", new Operator{Name = "!:",

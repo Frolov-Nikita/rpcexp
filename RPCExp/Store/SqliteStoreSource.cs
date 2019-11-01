@@ -1,22 +1,37 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using RPCExp.Common;
+using RPCExp.Connections;
 using RPCExp.Store.Entities;
+using RPCExp.Store.Serializers;
+using Microsoft.EntityFrameworkCore;
 
 namespace RPCExp.Store
 {
+    /// <summary>
+    /// Класс сохранения конфигурации в БД и восстановления конфигурации из БД
+    /// </summary>
     public class SqliteStoreSource 
     {
+        
 
-        StoreContext context = new StoreContext();
-
-        Dictionary<string, ProtocolSerializerAbstract> protorols = new Dictionary<string, ProtocolSerializerAbstract>();
+        Dictionary<string, ProtocolSerializerAbstract> protorolSerializers = new Dictionary<string, ProtocolSerializerAbstract>();
+        Dictionary<string, IConnectionSourceSerializer> connectionSerializers = new Dictionary<string, IConnectionSourceSerializer>();
 
         public SqliteStoreSource()
         {
-            var ProtocolSerializerModbus = new ProtocolSerializerModbus();
-            protorols.Add(ProtocolSerializerModbus.ClassName, ProtocolSerializerModbus);
+            var protocolSerializerModbus = new ProtocolSerializerModbus();
+            protorolSerializers.Add(protocolSerializerModbus.ClassName, protocolSerializerModbus);
+
+            var tcpConnectionSourceSerializer = new TcpConnectionSourceSerializer();
+            var udpConnectionSourceSerializer = new UdpConnectionSourceSerializer();
+            var serialConnectionSourceSerializer = new SerialConnectionSourceSerializer();
+
+            connectionSerializers.Add(tcpConnectionSourceSerializer.ClassName, tcpConnectionSourceSerializer);
+            connectionSerializers.Add(udpConnectionSourceSerializer.ClassName, udpConnectionSourceSerializer);
+            connectionSerializers.Add(serialConnectionSourceSerializer.ClassName, serialConnectionSourceSerializer);
         }
 
         public Common.Store Get(string target)
@@ -31,36 +46,84 @@ namespace RPCExp.Store
 
             foreach (var cfg in context.Connections)
             {
-                var connectionSource = new Modbus.ConnectionSource()
-                {
-                    Cfg = cfg.Cfg,
-                    Name = cfg.Name,
-                    Description = cfg.Description,
-                    //Physic
-                };
-
-                store.ConnectionsSources.Add(connectionSource.Name, connectionSource);
+                var connectionSource = connectionSerializers[cfg.ClassName].Unpack(cfg);                
+                store.ConnectionsSources.Add(cfg.Name, connectionSource);
             }
 
-            foreach (var cfg in context.TagsGroups)
-            {
-                var tagsGroup = new TagsGroup(cfg);
-                store.TagsGroups.Add(tagsGroup.Name, tagsGroup);
-            }
+            var storedDeviceToTemplates = context.DeviceToTemplates
+                .Include(dtt => dtt.Device)
+                .Include(dtt => dtt.Template)
+                    .ThenInclude(t => t.Tags)
+                .Include(o => o.Template)
+                    .ThenInclude(t => t.Alarms)
+                .Include(o => o.Template)
+                    .ThenInclude(t => t.Archives);
 
-            foreach (var cfg in context.Facilities)
+            var storedTagsToTagsGroup = context.TagsToTagsGroups
+                .Include(ttg => ttg.TagCfg)
+                .Include(ttg => ttg.TagsGroupCfg);
+
+
+            foreach (var facilityCfg in context.Facilities.Include(f => f.Devices))
             {
                 var facility = new Facility
                 {
-                    Name = cfg.Name,
-                    Description = cfg.Description,
+                    AccessName = facilityCfg.AccessName,
+                    Name = facilityCfg.Name,
+                    Description = facilityCfg.Description,
+                    Id = facilityCfg.Id,
                 };
 
-                foreach(var dcfg in cfg.Devices)
+                foreach(var deviceCfg in facilityCfg.Devices)
                 {
-                    var protocolSerializer = protorols[dcfg.ClassName];
-                    var dev = protocolSerializer.UnpackDevice(dcfg, store);
-                    facility.Devices.Add(dev.Name, dev);
+                    //foreach (var dtt in storedDeviceToTemplates.Where(e => e.DeviceId == deviceCfg.Id))
+                    //    if(!deviceCfg.DeviceToTemplates.Contains(dtt))
+                    //        deviceCfg.DeviceToTemplates.Add(dtt);
+
+                    var protocolSerializer = protorolSerializers[deviceCfg.ClassName];
+                    var device = protocolSerializer.UnpackDevice(deviceCfg, store);
+
+                    // Обрвботка шаблона
+                    foreach (var deviceToTemplate in storedDeviceToTemplates.Where(e => e.DeviceId == deviceCfg.Id))
+                    {
+                        var template = deviceToTemplate.Template;
+                        // Распакуем тэги
+                        foreach (var tagCfg in template.Tags)
+                        {
+                            var tag = protocolSerializer.UnpackTag(tagCfg);
+
+                            foreach(var tagToTagsGroupCfg in storedTagsToTagsGroup.Where(e => e.TagId == tagCfg.Id))
+                            {
+                                var tagGroupCfg = tagToTagsGroupCfg.TagsGroupCfg;
+                                TagsGroup tagGroup;
+                                if (device.Groups.ContainsKey(tagGroupCfg.Name))
+                                    tagGroup = device.Groups[tagGroupCfg.Name];
+                                else
+                                {
+                                    tagGroup = new TagsGroup
+                                    {
+                                        Name = tagGroupCfg.Name,
+                                        Description = tagGroupCfg.Description,
+                                        Min = tagGroupCfg.Min,
+                                    };
+                                    device.Groups.AddByName(tagGroup);
+                                }
+                                tag.Groups.AddByName(tagGroup);
+                            }
+
+                            device.Tags.AddByName(tag);
+                        }
+
+                        // Распакуем алармы
+                        foreach (var alarmCfg in template.Alarms)
+                            ;
+
+                        // Распакуем архивы
+                        foreach (var archiveCfg in template.Archives)
+                            ;
+                    }
+
+                    facility.Devices.Add(device.Name, device);
                 }
 
                 store.Facilities.Add(facility.Name, facility);
@@ -71,36 +134,37 @@ namespace RPCExp.Store
 
         public void Save( Common.Store store, string target)
         {
-            var protocolSerializer = protorols["Modbus"];
+            var context = new StoreContext(target);
 
-            // TODO: Save connections
+            var protocolSerializer = protorolSerializers["Modbus"];
+
             foreach (var cs in store.ConnectionsSources.Values)
             {
-                var c = new ConnectionSourceCfg
-                {
-                    Cfg = cs.Cfg,
-                    Name = cs.Name,
-                    Description = cs.Description
-                };
-
-                var stored = context.Connections.GetOrCreate(c, o=>o.Name == c.Name);
+                var csConfig = connectionSerializers[cs.ClassName].Pack(cs);
+                var stored = context.Connections.GetOrCreate( o=>o.Name == csConfig.Name);
+                stored.CopyFrom(csConfig);
             }
 
-            foreach (var f in store.Facilities.Values)
+            foreach (var facility in store.Facilities.Values)
             {
-                var fcfg = new FacilityCfg {
-                    Name = f.Name,
-                    Description = f.Description,
+                var facilityCfg = new FacilityCfg {
+                    Name = facility.Name,
+                    AccessName = facility.AccessName,
+                    Description = facility.Description,
+                    Id = facility.Id,
                 };
 
-                foreach (var d in f.Devices.Values)
+                var storedFacility = context.Facilities.GetOrCreate( f => f.Name == facilityCfg.Name);
+                storedFacility.CopyFrom(facilityCfg);
+                
+                foreach (var device in facility.Devices.Values)
                 {
-                    var dcfg = protocolSerializer.PackDevice(d, context);
+                    var deviceCfg = protocolSerializer.PackDevice(device, context);
+                    var storedDevice = context.Devices.GetOrCreate(d => d.Name == device.Name);
+                    storedDevice.CopyFrom(deviceCfg);
 
-                    fcfg.Devices.Add(dcfg);
+                    storedFacility.Devices.Add(storedDevice);
                 }
-                  
-                context.Facilities.Add(fcfg);
             }
 
             context.SaveChanges();

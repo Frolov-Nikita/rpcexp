@@ -32,14 +32,26 @@ namespace RPCExp.Store.Entities
 
             modelBuilder.Entity<DeviceToTemplate>()
                 .HasOne(d => d.Device)
-                .WithMany(d => d.Templates)
+                .WithMany(d => d.DeviceToTemplates)
                 .HasForeignKey(d => d.DeviceId);
 
             modelBuilder.Entity<DeviceToTemplate>()
                 .HasOne(d => d.Template)
-                .WithMany(d => d.Devices)
+                .WithMany(d => d.DeviceToTemplates)
                 .HasForeignKey(d => d.TemplateId);
 
+            modelBuilder.Entity<TagsToTagsGroups>()
+                .HasKey(e => new {e.TagId, e.TagsGroupId });
+
+            modelBuilder.Entity<TagsToTagsGroups>()
+                .HasOne(e => e.TagCfg)
+                .WithMany(e => e.TagsToTagsGroups)
+                .HasForeignKey(e => e.TagId);
+
+            modelBuilder.Entity<TagsToTagsGroups>()
+                .HasOne(e => e.TagsGroupCfg)
+                .WithMany(e => e.TagsToTagsGroups)
+                .HasForeignKey(e => e.TagsGroupId);
         }
 
         public DbSet<ConnectionSourceCfg> Connections { get; set; }
@@ -50,35 +62,29 @@ namespace RPCExp.Store.Entities
 
         public DbSet<Template> Templates { get; set; }
 
-        public DbSet<TagsGroup> TagsGroups { get; set; }
+        public DbSet<TagsGroupCfg> TagsGroups { get; set; }
 
-        public TagsGroup GetOrCreateTagsGroup(TagsGroup group)
-        {
-            var storedGroup = TagsGroups.Local.FirstOrDefault(storedG => storedG.Name == group.Name);
+        public DbSet<TagCfg> Tags{ get; set; }
 
-            if (storedGroup == default)
-                storedGroup = TagsGroups.FirstOrDefault(storedG => storedG.Name == group.Name);
+        public DbSet<AlarmCfg> Alarms { get; set; }
 
-            if (storedGroup == default)
-            {
-                storedGroup = new TagsGroup (group);
-                TagsGroups.Add(storedGroup);
-            }
-            return storedGroup;
-        }
+        public DbSet<ArchiveCfg> Archives { get; set; }
+        
+        
+        // Связи many2many:
 
-        /// <summary>
-        /// Связь many2many
-        /// </summary>
+
         public DbSet<DeviceToTemplate> DeviceToTemplates { get; set; }
+
+        public DbSet<TagsToTagsGroups> TagsToTagsGroups { get; set; }
 
 
     }
 
     internal static class DbSetExtentions
     {
-        public static T GetOrCreate<T>(this DbSet<T> dbSet, T entity, Func<T,bool> predicate)
-            where T: class, ICopyFrom, new()
+        public static T GetOrCreate<T>(this DbSet<T> dbSet, Func<T,bool> predicate)
+            where T: class, new()
         {
             var stored = dbSet.Local.FirstOrDefault(predicate);
 
@@ -89,7 +95,6 @@ namespace RPCExp.Store.Entities
             {
                 stored = new T();                
                 dbSet.Add(stored);
-                stored.CopyFrom(entity);
             }
 
             return stored;

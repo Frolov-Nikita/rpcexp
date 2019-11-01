@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RPCExp.Common
+namespace RPCExp.Connections
 {
     /// <summary>
     /// An adapter for the SerialPortStream class. Useful for getting serial port access on non-Windows devices.

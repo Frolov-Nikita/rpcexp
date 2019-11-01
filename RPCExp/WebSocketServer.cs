@@ -22,7 +22,6 @@ namespace RPCExp
             this.hosts = hosts?? new string[] { "http://localhost:8888/" };
         }
 
-
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             httpListener = new HttpListener();

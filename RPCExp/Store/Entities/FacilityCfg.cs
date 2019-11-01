@@ -1,23 +1,33 @@
 ﻿using RPCExp.Common;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace RPCExp.Store.Entities
 {
     public class FacilityCfg : ICopyFrom, IIdentity
     {
+        [Key]
         public int Id { get; set; }
 
+        [MaxLength(512)]
+        public string AccessName { get; set; }
+
+        [MaxLength(64)]
         public string Name { get; set; }
 
+        [MaxLength(512)]
         public string Description { get; set; }
 
         public ICollection<DeviceCfg> Devices { get; set; } = new List<DeviceCfg>();
 
         public void CopyFrom(object original)
         {
-            throw new NotImplementedException();
+            var src = (FacilityCfg)original;
+            AccessName = src.AccessName;
+            Name = src.Name;
+            Description = src.Description;
         }
 
         //public override Facility Unwrap()

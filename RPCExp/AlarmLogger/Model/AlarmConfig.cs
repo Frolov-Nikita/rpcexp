@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Text;
 
 namespace RPCExp.AlarmLogger.Model
 {
@@ -11,7 +9,7 @@ namespace RPCExp.AlarmLogger.Model
 
         bool lastValue = false;
 
-        public int Id { get; set; }
+        //public int Id { get; set; }
         
         public string Condition { 
             get => condition?.ToString() ?? "";
@@ -22,18 +20,18 @@ namespace RPCExp.AlarmLogger.Model
 
         public AlarmCategory Category { get; set; }
 
-        public string Template { get; set; } = "";
+        public string TxtTemplate { get; set; } = "";
 
-        public string CustomTag1 { get; set; }
+        public string CustomTag1 { get; set; } = "";
 
-        public string CustomTag2 { get; set; }
+        public string CustomTag2 { get; set; } = "";
 
-        public string CustomTag3 { get; set; }
+        public string CustomTag3 { get; set; } = "";
 
-        public string CustomTag4 { get; set; }
+        public string CustomTag4 { get; set; } = "";
 
         public bool IsValid => 
-            (Template.Length > 0) &&
+            (TxtTemplate.Length > 0) &&
             (condition?.IsValid ?? false);
 
         public bool IsRise(params object[] args)
@@ -52,7 +50,7 @@ namespace RPCExp.AlarmLogger.Model
             if (alarm == null)
                 return "";
 
-            var result = Template;
+            var result = TxtTemplate;
             result = alarm.Custom1 != default ? "{Custom1}" : result;
             result = alarm.Custom2 != default ? "{Custom2}" : result;
             result = alarm.Custom3 != default ? "{Custom3}" : result;

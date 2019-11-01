@@ -2,11 +2,12 @@
 using RPCExp.Modbus;
 using RPCExp.Store.Entities;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace RPCExp.Store
+namespace RPCExp.Store.Serializers
 {
     internal class ProtocolSerializerModbus : ProtocolSerializerAbstract
     {
@@ -23,8 +24,7 @@ namespace RPCExp.Store
             {
                 mdev.SlaveId,
                 mdev.ByteOrder,
-                FrameType = mdev.MasterSource.frameType.ToString(),
-                ConnectionRef = mdev.Connection.Name,
+                FrameType = mdev.FrameType.ToString(),
             });            
         }
 
@@ -41,7 +41,7 @@ namespace RPCExp.Store
                 device.ByteOrder = (byte[])jo[nameof(device.ByteOrder)].ToObject(typeof(byte[]));
 
             if (jo.ContainsKey("FrameType"))
-                device.MasterSource.frameType = (FrameType)jo["FrameType"].ToObject(typeof(FrameType));
+                device.FrameType = (FrameType)jo["FrameType"].ToObject(typeof(FrameType));
 
             if (jo.ContainsKey("ConnectionRef"))
             {
@@ -64,7 +64,6 @@ namespace RPCExp.Store
                 mtag.Begin,
             });
         }
-
 
         protected override TagAbstract UnpackTagSpecific(string custom)
         {

@@ -15,7 +15,7 @@ namespace RPCExp.Common
         Starting,
     }
 
-    public abstract class ServiceAbstract : IServiceAbstract
+    public abstract class ServiceAbstract
     {
         private Task main;
 

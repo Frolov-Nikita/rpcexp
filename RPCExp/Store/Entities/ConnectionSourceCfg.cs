@@ -9,12 +9,9 @@ namespace RPCExp.Store.Entities
     public class ConnectionSourceCfg: INameDescription, ICopyFrom, IIdentity
     {
 
-        public ConnectionSourceCfg()
-        {
-
-        }
-
         public int Id { get; set; }
+
+        public string ClassName { get; set; }
 
         public string Name { get; set; }
 
@@ -25,6 +22,7 @@ namespace RPCExp.Store.Entities
         public void CopyFrom(object original)
         {
             var src = (ConnectionSourceCfg) original;
+            ClassName = src.ClassName;
             Name = src.Name;
             Description = src.Description;
             Cfg = src.Cfg;

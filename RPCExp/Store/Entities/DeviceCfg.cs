@@ -2,6 +2,7 @@
 using RPCExp.Modbus;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +27,9 @@ namespace RPCExp.Store.Entities
 
         public long InActiveUpdatePeriod { get; set; }
 
-        public ICollection<DeviceToTemplate> Templates { get; set; } = new List<DeviceToTemplate>();
+        public ICollection<DeviceToTemplate> DeviceToTemplates { get; set; } = new List<DeviceToTemplate>();
+
+        public ConnectionSourceCfg ConnectionSourceCfg { get; set; }
 
         public void CopyFrom(object original)
         {
@@ -38,9 +41,10 @@ namespace RPCExp.Store.Entities
             BadCommWaitPeriod = src.BadCommWaitPeriod;
             InActiveUpdate = src.InActiveUpdate;
             InActiveUpdatePeriod = src.InActiveUpdatePeriod;
+            ConnectionSourceCfg = src.ConnectionSourceCfg;
 
-            foreach (var dtt in Templates)
-                Templates.Add(dtt);
+            //foreach (var dtt in DeviceToTemplates)
+            //    DeviceToTemplates.Add(dtt);
         }
     }
 }

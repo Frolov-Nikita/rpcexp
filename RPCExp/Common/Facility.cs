@@ -1,32 +1,23 @@
-﻿using RPCExp.Modbus;
+﻿
 using System;
-using System.Linq;
+
 using System.Collections.Generic;
-using System.Text;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+
 
 namespace RPCExp.Common
 {
     
     public class Facility: INameDescription
     {
-        [Key]
-        [MaxLength(64)]
+        public int Id { get; set; }
+
+        public string AccessName { get; set; }
+
         public string Name { get; set; }
 
-
-        [MaxLength(512)]
         public string Description { get; set; }
 
-        //TODO: переместить в store
-        //[NotMapped]
-        //public IDictionary<string, ConnectionSource> ConnectionsSource { get; set; }
+        public IDictionary<string, DeviceAbstract> Devices { get; set; } = new Dictionary<string, DeviceAbstract>();
 
-
-        [NotMapped]
-        public IDictionary<string, DeviceAbstract> Devices { get; set; }
-
-        public Dictionary<string, ConnectionSource> ConnectionsSource { get; internal set; }
     }
 }
