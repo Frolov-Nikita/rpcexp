@@ -12,6 +12,8 @@ namespace RPCExp.Store.Entities
 
         public TagCfg Tag { get; set; }
 
+        public int TagCfgId { get; set; }
+
         public int PeriodMaxSec { get; set; }
 
         public int PeriodMinSec { get; set; }

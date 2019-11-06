@@ -20,11 +20,9 @@ namespace RPCExp.Common
         
         public long BadCommWaitPeriod { get; set; } = 10 * 10_000_000;
 
-        // TODO: Rename имя подобрано плохо
-        public bool InActiveUpdate { get; set; } = true;
+        public bool UpdateInActiveTags { get; set; } = true;
 
-        // TODO: Rename имя подобрано плохо
-        public long InActiveUpdatePeriod { get; set; } = 20 * 10_000_000;
+        public long UpdateInActiveTagsPeriod { get; set; } = 20 * 10_000_000;
 
         public IDictionary<string, TagsGroup> Groups { get; set; } = new Dictionary<string, TagsGroup>();
 
@@ -43,15 +41,15 @@ namespace RPCExp.Common
             
             foreach (var tag in Tags.Values)
             {
-                if ((!tag.IsActive) && (!InActiveUpdate) && (!force))
+                if ((!tag.IsActive) && (!UpdateInActiveTags) && (!force))
                     continue;
 
                 long period = (tag.Quality == TagQuality.GOOD) ?
                     tag.Period :
                     BadCommWaitPeriod;
 
-                if ((!tag.IsActive) && InActiveUpdate)
-                    period = InActiveUpdatePeriod;
+                if ((!tag.IsActive) && UpdateInActiveTags)
+                    period = UpdateInActiveTagsPeriod;
 
                 long tagNextTick = tag.Last + period;
 
@@ -86,11 +84,11 @@ namespace RPCExp.Common
         {
             while (!cancellationToken.IsCancellationRequested) {
                 (long nextTime, bool IOUpdateOk) = await IOUpdate(cancellationToken).ConfigureAwait(false);
-                if (IOUpdateOk)
-                {
-                    await AlarmLogHandle(cancellationToken).ConfigureAwait(false);
-                    await TagLogHandle(cancellationToken).ConfigureAwait(false);
-                }
+                //if (IOUpdateOk)
+                //{
+                //    await AlarmLogHandle(cancellationToken).ConfigureAwait(false);
+                //    await TagLogHandle(cancellationToken).ConfigureAwait(false);
+                //}
 
                 long waitTime = nextTime - DateTime.Now.Ticks;
                 waitTime = waitTime < 0 ? 0 : waitTime;
@@ -109,30 +107,30 @@ namespace RPCExp.Common
         /// <returns>long - next time for update, bool - update was successfull</returns>
         public abstract Task<(long, bool)> IOUpdate(CancellationToken cancellationToken);
 
-        public virtual async Task AlarmLogHandle(CancellationToken cancellationToken)
-        {
-            await Task.Delay(0);
-            foreach(var ac in AlarmsConfig)
-            {
-                var tvs = GetTagsValues(ac.ConditionRelatedTags);
+        //public virtual async Task AlarmLogHandle(CancellationToken cancellationToken)
+        //{
+        //    await Task.Delay(0);
+        //    foreach(var ac in AlarmsConfig)
+        //    {
+        //        var tvs = GetTagsValues(ac.ConditionRelatedTags);
                 
-                if (tvs.Count() != ac.ConditionRelatedTags.Count())
-                    return;
+        //        if (tvs.Count() != ac.ConditionRelatedTags.Count())
+        //            return;
 
-                if (tvs.First().Quality != TagQuality.GOOD)
-                    return;
+        //        if (tvs.First().Quality != TagQuality.GOOD)
+        //            return;
 
-                if (ac.IsRise(tvs))
-                {
-                    // TODO: Допилить
-                }
-            }
-        }
+        //        if (ac.IsRise(tvs))
+        //        {
+        //            // TODO: Допилить
+        //        }
+        //    }
+        //}
 
-        public virtual async Task TagLogHandle(CancellationToken cancellationToken)
-        {
-            await Task.Delay(0);
-        }
+        //public virtual async Task TagLogHandle(CancellationToken cancellationToken)
+        //{
+        //    await Task.Delay(0);
+        //}
 
         public virtual IEnumerable<object> GetGroupInfos(string groupName)
         {

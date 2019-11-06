@@ -15,8 +15,6 @@ namespace RPCExp.Store
     /// </summary>
     public class SqliteStoreSource 
     {
-        
-
         Dictionary<string, ProtocolSerializerAbstract> protorolSerializers = new Dictionary<string, ProtocolSerializerAbstract>();
         Dictionary<string, IConnectionSourceSerializer> connectionSerializers = new Dictionary<string, IConnectionSourceSerializer>();
 
@@ -62,8 +60,7 @@ namespace RPCExp.Store
             var storedTagsToTagsGroup = context.TagsToTagsGroups
                 .Include(ttg => ttg.TagCfg)
                 .Include(ttg => ttg.TagsGroupCfg);
-
-
+            
             foreach (var facilityCfg in context.Facilities.Include(f => f.Devices))
             {
                 var facility = new Facility
@@ -76,9 +73,6 @@ namespace RPCExp.Store
 
                 foreach(var deviceCfg in facilityCfg.Devices)
                 {
-                    //foreach (var dtt in storedDeviceToTemplates.Where(e => e.DeviceId == deviceCfg.Id))
-                    //    if(!deviceCfg.DeviceToTemplates.Contains(dtt))
-                    //        deviceCfg.DeviceToTemplates.Add(dtt);
 
                     var protocolSerializer = protorolSerializers[deviceCfg.ClassName];
                     var device = protocolSerializer.UnpackDevice(deviceCfg, store);
@@ -92,6 +86,7 @@ namespace RPCExp.Store
                         {
                             var tag = protocolSerializer.UnpackTag(tagCfg);
 
+                            // добавим/восстановим/создадим группы тэгов
                             foreach(var tagToTagsGroupCfg in storedTagsToTagsGroup.Where(e => e.TagId == tagCfg.Id))
                             {
                                 var tagGroupCfg = tagToTagsGroupCfg.TagsGroupCfg;
@@ -110,17 +105,34 @@ namespace RPCExp.Store
                                 }
                                 tag.Groups.AddByName(tagGroup);
                             }
+                            
+                            // добавим тэг в сервис архива
+                            if(tagCfg.ArchiveCfg != default)
+                            {
+                                var tlc = new TagLogger.TagLogConfig(tag)
+                                {
+                                    HystProc = tagCfg.ArchiveCfg.HystProc,
+                                    PeriodMaxSec = tagCfg.ArchiveCfg.PeriodMaxSec,
+                                    PeriodMinSec = tagCfg.ArchiveCfg.PeriodMinSec,
+                                    TagLogInfo = new TagLogger.Entities.TagLogInfo { 
+                                        DeviceName = deviceCfg.Name,
+                                        FacilityAccessName = facilityCfg.Name,
+                                        TagName = tagCfg.Name,
+                                    }
+                                };
+
+                                store.TagLogManager.Configs.Add(tlc);
+                            }
 
                             device.Tags.AddByName(tag);
                         }
 
                         // Распакуем алармы
                         foreach (var alarmCfg in template.Alarms)
-                            ;
+                        {
+                            alarmCfg.
+                        }
 
-                        // Распакуем архивы
-                        foreach (var archiveCfg in template.Archives)
-                            ;
                     }
 
                     facility.Devices.Add(device.Name, device);

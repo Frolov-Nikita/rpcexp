@@ -30,6 +30,8 @@ namespace RPCExp
 
             store.Facilities.AddByName(facility);
 
+
+
             var device = new ModbusDevice
             {
                 Name = "Plc1",
@@ -44,9 +46,11 @@ namespace RPCExp
             var tagGroup1 = new TagsGroup { Name = "currentData", Min = 10_000_000 };
             var tagGroup2 = new TagsGroup { Name = "settings", Min = 10_000_000 };
 
-            device.Tags.Add("Tag1", new MTag
+
+            var tag1 = new MTag
             {
-                Groups = new Dictionary<string ,TagsGroup> { 
+                Groups = new Dictionary<string, TagsGroup>
+                {
                     [tagGroup1.Name] = tagGroup1,
                 },
                 TemplateId = 1,
@@ -54,7 +58,10 @@ namespace RPCExp
                 Region = ModbusRegion.HoldingRegisters,
                 Begin = 0,
                 ValueType = Common.ValueType.Int16,
-            });
+
+            };
+
+            device.Tags.Add("Tag1", tag1);
 
             device.Tags.Add("Tag2", new MTag
             {
@@ -108,6 +115,20 @@ namespace RPCExp
                 Begin = 3,
                 ValueType = Common.ValueType.Bool,
             });
+
+            store.TagLogManager.Configs.Add(new TagLogger.TagLogConfig(tag1)
+            {
+                HystProc = 1,
+                PeriodMaxSec = 600,
+                PeriodMinSec = 1,
+                TagLogInfo = new TagLogger.Entities.TagLogInfo
+                {
+                    DeviceName = device.Name,
+                    FacilityAccessName = facility.AccessName,
+                    TagName = tag1.Name,
+                }
+            });
+
 
             return store;
         }

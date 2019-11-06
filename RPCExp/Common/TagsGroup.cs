@@ -6,7 +6,7 @@ using System.Text;
 namespace RPCExp.Common
 {
     // TODO: Это, возможно, не правильно, так как переменные должны обновляться еще для архиватора и алармлоггера! 
-
+    // TODO: Извлечь интерфейс и добавить разные типы групп (для архивирования и аларминга)
     public class TagsGroup: Ticker, INameDescription
     {
         public TagsGroup()

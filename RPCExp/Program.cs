@@ -20,9 +20,13 @@ namespace RPCExp
 
             //var store = StoreTemplateGen.Get();
             //storeSource.Save(store, dbfilename);
+            //return;
 
             var store = storeSource.Load(dbfilename);
 
+
+            store.TagLogManager.Start();
+            
             // ==== WebSocket ====
             Router router = new Router();
 
@@ -35,7 +39,7 @@ namespace RPCExp
                     device.Start();
                     router.RegisterMethods(device, fullAccesName);
                 }
-                    
+
             WebSocketServer wss = new WebSocketServer(router, new string[] { "http://localhost:8888/"}); //any Ip -  "http://*:8888/"
 
             Console.WriteLine("Start webSocket");

@@ -54,14 +54,14 @@ namespace RPCExp.TagLogger
         {
             get
             {
-                if ((Tag == default) || (maxDelta == 0))
+                if ((Tag == default) || (maxDelta == 0) || Tag.Quality < TagQuality.GOOD)
                     return null;
 
                 var now = DateTime.Now.Ticks;
                 if(lastTime + PeriodMinSec * 10_000_000 >= now)
                     return null;
 
-                var val = (decimal)Tag.Value;
+                var val = (decimal)Convert.ChangeType(Tag?.Value ?? 0, typeof(decimal));
 
                 if (((lastTime + PeriodMaxSec * 10_000_000) <= now) || 
                     (Math.Abs(lastVal - val) >= maxDelta))

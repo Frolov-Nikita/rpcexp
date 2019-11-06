@@ -29,8 +29,8 @@ namespace RPCExp.Store.Serializers
             device.Name = config.Name;
             device.Description = config.Description;
             device.BadCommWaitPeriod = config.BadCommWaitPeriod;
-            device.InActiveUpdate = config.InActiveUpdate;
-            device.InActiveUpdatePeriod = config.InActiveUpdatePeriod;
+            device.UpdateInActiveTags = config.InActiveUpdate;
+            device.UpdateInActiveTagsPeriod = config.InActiveUpdatePeriod;
 
             device.ConnectionSource = store.ConnectionsSources.Values.FirstOrDefault(c => c.Name == config.ConnectionSourceCfg.Name);
 
@@ -67,8 +67,8 @@ namespace RPCExp.Store.Serializers
             config.Name = device.Name;
             config.Description = device.Description;
             config.BadCommWaitPeriod = device.BadCommWaitPeriod;
-            config.InActiveUpdate = device.InActiveUpdate;
-            config.InActiveUpdatePeriod = device.InActiveUpdatePeriod;
+            config.InActiveUpdate = device.UpdateInActiveTags;
+            config.InActiveUpdatePeriod = device.UpdateInActiveTagsPeriod;
 
             config.ConnectionSourceCfg = context.Connections.GetOrCreate(c => c.Name == device.ConnectionSource.Name);
             

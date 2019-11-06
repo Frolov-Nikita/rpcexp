@@ -1,4 +1,5 @@
-﻿using RPCExp.AlarmLogger.Model;
+﻿using RPCExp.AlarmLogger;
+using RPCExp.AlarmLogger.Entities;
 using System;
 
 namespace RPCExp.Store.Entities
@@ -17,13 +18,13 @@ namespace RPCExp.Store.Entities
 
         public string TxtTemplate { get; set; } = "";
 
-        public string CustomTag1 { get; set; } = "";
+        public string Custom1 { get; set; } = "";
 
-        public string CustomTag2 { get; set; } = "";
+        public string Custom2 { get; set; } = "";
 
-        public string CustomTag3 { get; set; } = "";
+        public string Custom3 { get; set; } = "";
 
-        public string CustomTag4 { get; set; } = "";
+        public string Custom4 { get; set; } = "";
 
         public void CopyFrom(object original)
         {
@@ -34,10 +35,10 @@ namespace RPCExp.Store.Entities
             Condition = src.Condition;
             Category = src.Category;
             TxtTemplate = src.TxtTemplate;
-            CustomTag1 = src.CustomTag1;
-            CustomTag2 = src.CustomTag2;
-            CustomTag3 = src.CustomTag3;
-            CustomTag4 = src.CustomTag4;
+            Custom1 = src.Custom1;
+            Custom2 = src.Custom2;
+            Custom3 = src.Custom3;
+            Custom4 = src.Custom4;
         }
     }
 }

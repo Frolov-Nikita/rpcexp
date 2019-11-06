@@ -16,7 +16,6 @@ namespace RPCExp.Common
 
         public string Description { get; set; }
 
-        // TODO: -> глобальный справочник юнитов и форматов
         public string Units { get; set; }
 
         public string Format { get; set; }
@@ -35,7 +34,7 @@ namespace RPCExp.Common
         /// <summary>
         /// Необязательное масштабирование
         /// </summary>
-        public Scale Scale { get; set; }
+        public Scale Scale { get; set; } = new Scale();
 
         /// <summary>
         /// Период опроса определяется как минимальный период из гупп опроса

@@ -52,6 +52,10 @@ namespace RPCExp.Store.Entities
                 .HasOne(e => e.TagsGroupCfg)
                 .WithMany(e => e.TagsToTagsGroups)
                 .HasForeignKey(e => e.TagsGroupId);
+
+            modelBuilder.Entity<ArchiveCfg>()
+                .HasOne(e => e.Tag)
+                .WithOne(e => e.ArchiveCfg);
         }
 
         public DbSet<ConnectionSourceCfg> Connections { get; set; }

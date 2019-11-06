@@ -17,6 +17,8 @@ namespace RPCExp.Common
         
         public IDictionary<string, AlarmCategory> AlarmCategories { get; set; } = new Dictionary<string, AlarmCategory>();
 
+        public TagLogger.TagLogService TagLogManager = new TagLogger.TagLogService();
+
         public object GetNames()
         {
             return null;

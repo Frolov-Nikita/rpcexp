@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RPCExp.AlarmLogger.Model
+﻿namespace RPCExp.AlarmLogger
 {
     public class AlarmCategory
     {
@@ -11,6 +7,5 @@ namespace RPCExp.AlarmLogger.Model
         public string Name { get; set; }
 
         public string Style { get; set; }
-
     }
 }

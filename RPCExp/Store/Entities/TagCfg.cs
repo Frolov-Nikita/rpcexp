@@ -37,6 +37,8 @@ namespace RPCExp.Store.Entities
 
         public ICollection<TagsToTagsGroups> TagsToTagsGroups { get; set; }
 
+        public ArchiveCfg ArchiveCfg { get; set; }
+
         public void CopyFrom(object original)
         {
             var src = (TagCfg)original;

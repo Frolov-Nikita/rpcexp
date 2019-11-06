@@ -3,13 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RPCExp.TagLogger.Entities
+namespace RPCExp.AlarmLogger.Entities
 {
-    internal class TagLogContext : DbContext
+    internal class AlarmContext : DbContext
     {
         string dbName;
 
-        public TagLogContext(string dbName = "tagLog.sqlite3")
+        public AlarmContext(string dbName = "alarmLog.sqlite3")
         {
             this.dbName = dbName;
             Database.EnsureCreated();
@@ -23,12 +23,15 @@ namespace RPCExp.TagLogger.Entities
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<TagLogData>()
-                .HasKey(t => new {t.TimeStamp, t.TagLogInfoId });
+            modelBuilder.Entity<Alarm>()
+                .HasKey(e => new {e.TimeStamp, e.AlarmInfoId });
+
         }
 
-        public DbSet<TagLogData> TagLogData { get; set; }
+        public DbSet<Alarm> Alarms { get; set; }
 
-        public DbSet<TagLogInfo> TagLogInfo { get; set; }
-    }//TagLogContext
+        public DbSet<AlarmInfo> AlarmsInfo { get; set; }
+
+        public DbSet<AlarmCategory> AlarmCategories { get; set; }
+    }
 }
