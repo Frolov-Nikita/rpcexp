@@ -54,6 +54,7 @@ namespace RPCExp.Store
                     .ThenInclude(t => t.Tags)
                 .Include(o => o.Template)
                     .ThenInclude(t => t.Alarms)
+                    .ThenInclude((AlarmCfg a)=> a.Category)
                 .Include(o => o.Template)
                     .ThenInclude(t => t.Archives);
 
@@ -77,7 +78,7 @@ namespace RPCExp.Store
                     var protocolSerializer = protorolSerializers[deviceCfg.ClassName];
                     var device = protocolSerializer.UnpackDevice(deviceCfg, store);
 
-                    // Обрвботка шаблона
+                    // Обрвботка шаблона (переделать этот код когда в EF Core будет реализован релейшн many2many)
                     foreach (var deviceToTemplate in storedDeviceToTemplates.Where(e => e.DeviceId == deviceCfg.Id))
                     {
                         var template = deviceToTemplate.Template;
@@ -85,7 +86,7 @@ namespace RPCExp.Store
                         foreach (var tagCfg in template.Tags)
                         {
                             var tag = protocolSerializer.UnpackTag(tagCfg);
-
+                            tag.TemplateId = template.Id;
                             // добавим/восстановим/создадим группы тэгов
                             foreach(var tagToTagsGroupCfg in storedTagsToTagsGroup.Where(e => e.TagId == tagCfg.Id))
                             {
@@ -109,7 +110,7 @@ namespace RPCExp.Store
                             // добавим тэг в сервис архива
                             if(tagCfg.ArchiveCfg != default)
                             {
-                                var tlc = new TagLogger.TagLogConfig(tag)
+                                var tagLogConfig = new TagLogger.TagLogConfig(tag)
                                 {
                                     HystProc = tagCfg.ArchiveCfg.HystProc,
                                     PeriodMaxSec = tagCfg.ArchiveCfg.PeriodMaxSec,
@@ -121,7 +122,7 @@ namespace RPCExp.Store
                                     }
                                 };
 
-                                store.TagLogManager.Configs.Add(tlc);
+                                store.TagLogService.Configs.Add(tagLogConfig);
                             }
 
                             device.Tags.AddByName(tag);
@@ -130,9 +131,19 @@ namespace RPCExp.Store
                         // Распакуем алармы
                         foreach (var alarmCfg in template.Alarms)
                         {
-                            alarmCfg.
+                            var alarmInfo = new AlarmLogger.Entities.AlarmInfo 
+                            {
+                                Category = alarmCfg.Category,
+                                Name = alarmCfg.Name,
+                                Condition = alarmCfg.Condition,
+                                Description = alarmCfg.Description,
+                                DeviceName = device.Name,
+                                FacilityAccessName = facility.AccessName,
+                                TemplateTxt = alarmCfg.TemplateTxt,
+                            };
+                            var alarmConfig = AlarmLogger.AlarmConfig.From(alarmCfg, device.Tags.Values, alarmInfo);
+                            store.AlarmService.Configs.Add(alarmConfig);
                         }
-
                     }
 
                     facility.Devices.Add(device.Name, device);

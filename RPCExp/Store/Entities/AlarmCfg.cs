@@ -16,7 +16,7 @@ namespace RPCExp.Store.Entities
 
         public AlarmCategory Category { get; set; }
 
-        public string TxtTemplate { get; set; } = "";
+        public string TemplateTxt { get; set; } = "";
 
         public string Custom1 { get; set; } = "";
 
@@ -34,7 +34,7 @@ namespace RPCExp.Store.Entities
             Description = src.Description;
             Condition = src.Condition;
             Category = src.Category;
-            TxtTemplate = src.TxtTemplate;
+            TemplateTxt = src.TemplateTxt;
             Custom1 = src.Custom1;
             Custom2 = src.Custom2;
             Custom3 = src.Custom3;

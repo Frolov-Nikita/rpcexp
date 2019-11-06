@@ -25,8 +25,10 @@ namespace RPCExp
             var store = storeSource.Load(dbfilename);
 
 
-            store.TagLogManager.Start();
-            
+            store.TagLogService.Start();
+
+            store.AlarmService.Start();
+
             // ==== WebSocket ====
             Router router = new Router();
 

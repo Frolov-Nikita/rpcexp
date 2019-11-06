@@ -5,7 +5,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
-using RPCExp.AlarmLogger.Model;
 using System.Threading;
 using RPCExp.Connections;
 
@@ -27,9 +26,7 @@ namespace RPCExp.Common
         public IDictionary<string, TagsGroup> Groups { get; set; } = new Dictionary<string, TagsGroup>();
 
         public IDictionary<string, TagAbstract> Tags { get; } = new Dictionary<string, TagAbstract>();
-
-        public List<AlarmConfig> AlarmsConfig { get; set; } = new List<AlarmConfig>();
-
+        
         public ConnectionSourceAbstract ConnectionSource { get; set; }
 
         protected ICollection<TagAbstract> NeedToUpdate(out long nextTime, bool force = false)

@@ -13,7 +13,7 @@ namespace RPCExp.AlarmLogger
 
         AlarmContext context;
 
-        public List<AlarmConfig> Configs { get; set; }
+        public List<AlarmConfig> Configs { get; set; } = new List<AlarmConfig>();
 
         ~AlarmService()
         {
@@ -80,6 +80,7 @@ namespace RPCExp.AlarmLogger
                     Context.AlarmsInfo.Add(storedAlarmInfo);                    
                     needToSave = true;
                 }
+                cfg.AlarmInfo = storedAlarmInfo;
             }
 
             if (needToSave)
@@ -94,29 +95,44 @@ namespace RPCExp.AlarmLogger
                 
                 foreach(var cfg in Configs)
                 {
-                    //try
-                    //{
-                    if (cfg.IsRized())
+                    if (!cfg.IsOk)
+                        continue;
+
+                    try
                     {
-                        var alarm = new Alarm();
-                        alarm.TimeStamp = DateTime.Now.Ticks;
-                            
-                        alarm.CustomTag1 = cfg.CustomTag1?.GetValue().ToString();
-                        alarm.CustomTag2 = cfg.CustomTag2?.GetValue().ToString();
-                        alarm.CustomTag3 = cfg.CustomTag3?.GetValue().ToString();
-                        alarm.CustomTag4 = cfg.CustomTag4?.GetValue().ToString();
+                        if (cfg.IsRized())
+                        {
+                            var alarm = new Alarm();
+                            alarm.TimeStamp = DateTime.Now.Ticks;
+                            alarm.AlarmInfo = cfg.AlarmInfo;
+                            alarm.AlarmInfoId = cfg.AlarmInfo.Id;
+                            alarm.Custom1 = cfg.Custom1?.GetValue().ToString();
+                            alarm.Custom2 = cfg.Custom2?.GetValue().ToString();
+                            alarm.Custom3 = cfg.Custom3?.GetValue().ToString();
+                            alarm.Custom4 = cfg.Custom4?.GetValue().ToString();
 
-                        Context.Alarms.Add(alarm);
-                        needToSave = true;
+                            Context.Alarms.Add(alarm);
+                            needToSave = true;
+                        }
                     }
-                    //}
+                    catch(Exception ex)
+                    {
+
+                    }
                 }
 
-                if (needToSave)
+                try
                 {
-                    await Context.SaveChangesAsync(cancellationToken);
-                    needToSave = false;
+                    if (needToSave)
+                    {
+                        await Context.SaveChangesAsync(cancellationToken);
+                        needToSave = false;
+                    }
+                }catch(Exception ex)
+                {
+
                 }
+                
 
                 await Task.Delay(100);
             }

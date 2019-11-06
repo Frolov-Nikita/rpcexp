@@ -1,5 +1,4 @@
-﻿using RPCExp.AlarmLogger.Model;
-using RPCExp.Common;
+﻿using RPCExp.Common;
 using System;
 using System.Linq;
 using RPCExp.Store.Entities;
@@ -172,15 +171,15 @@ namespace RPCExp.Store.Serializers
             return config;
         }
 
-        protected virtual AlarmConfig UnpackAlarm(AlarmCfg config)
-        {
-            throw new NotImplementedException();
-        }
+        //protected virtual AlarmConfig UnpackAlarm(AlarmCfg config)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        protected virtual AlarmCfg PackAlarm(AlarmConfig alarm)
-        {
-            throw new NotImplementedException();
-        }
+        //protected virtual AlarmCfg PackAlarm(AlarmConfig alarm)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         protected abstract string PackDeviceSpecific(DeviceAbstract device);
 

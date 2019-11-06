@@ -3,7 +3,8 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using RPCExp.Connections;
-using RPCExp.AlarmLogger.Model;
+using RPCExp.AlarmLogger;
+using RPCExp.TagLogger;
 
 namespace RPCExp.Common
 {
@@ -17,12 +18,9 @@ namespace RPCExp.Common
         
         public IDictionary<string, AlarmCategory> AlarmCategories { get; set; } = new Dictionary<string, AlarmCategory>();
 
-        public TagLogger.TagLogService TagLogManager = new TagLogger.TagLogService();
+        public TagLogService TagLogService = new TagLogService();
 
-        public object GetNames()
-        {
-            return null;
-        }
+        public AlarmService AlarmService = new AlarmService();
 
     }
 }

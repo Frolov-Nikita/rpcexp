@@ -12,13 +12,13 @@ namespace RPCExp.AlarmLogger.Entities
 
         public long TimeStamp { get; set; }
 
-        public string CustomTag1 { get; set; } = "";
+        public string Custom1 { get; set; } = "";
 
-        public string CustomTag2 { get; set; } = "";
+        public string Custom2 { get; set; } = "";
 
-        public string CustomTag3 { get; set; } = "";
+        public string Custom3 { get; set; } = "";
 
-        public string CustomTag4 { get; set; } = "";
+        public string Custom4 { get; set; } = "";
 
     }
 }

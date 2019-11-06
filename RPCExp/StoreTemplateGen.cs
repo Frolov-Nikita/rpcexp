@@ -116,7 +116,7 @@ namespace RPCExp
                 ValueType = Common.ValueType.Bool,
             });
 
-            store.TagLogManager.Configs.Add(new TagLogger.TagLogConfig(tag1)
+            store.TagLogService.Configs.Add(new TagLogger.TagLogConfig(tag1)
             {
                 HystProc = 1,
                 PeriodMaxSec = 600,
