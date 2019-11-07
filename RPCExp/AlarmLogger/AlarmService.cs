@@ -10,8 +10,6 @@ namespace RPCExp.AlarmLogger
 {
     public class AlarmService : ServiceAbstract
     {
-        
-
         AlarmContext context;
 
         public List<AlarmConfig> Configs { get; set; } = new List<AlarmConfig>();
@@ -138,5 +136,85 @@ namespace RPCExp.AlarmLogger
             // Завершение
             await Context.SaveChangesAsync(cancellationToken);
         }
+
+        /// <summary>
+        /// Получение списка сконфигурировных сообщений
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<AlarmInfo> GetInfos()
+        {
+            return from cfg in Configs
+                   select cfg.AlarmInfo;
+        }
+
+        /// <summary>
+        /// получение списка использующихся категорий
+        /// </summary>
+        /// <returns></returns>
+        public IQueryable<AlarmCategory> GetCategories()
+        {
+            return from c in Context.AlarmCategories
+                   select c;
+        }
+
+        /// <summary>
+        /// Доступ к архиву сообщений
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        public IQueryable<Alarm> GetAlarms(AlarmFilter filter = default)
+        {
+            var result =  from a in Context.Alarms
+                   select a;
+
+            if(filter != default)
+            {
+                if (filter.TBegin != long.MinValue)
+                    result = result.Where(a => a.TimeStamp >= filter.TBegin);
+
+                if (filter.TEnd != long.MaxValue)
+                    result = result.Where(a => a.TimeStamp <= filter.TEnd);
+
+                if (filter.DeviceName != default)
+                    result = result.Where(a => a.AlarmInfo.DeviceName == filter.DeviceName);
+
+                if (filter.AlarmInfoId != default)
+                    result = result.Where(a => a.AlarmInfo.Id == filter.AlarmInfoId);
+
+                if (filter.AlarmCategoriesIds?.Count() > 0)
+                    result = result.Where(a => filter.AlarmCategoriesIds.Contains( a.AlarmInfo.Category.Id ));
+
+                if (filter.FacilityAccessName != default)
+                    result = result.Where(a => a.AlarmInfo.FacilityAccessName.Contains(filter.FacilityAccessName));
+
+                if (filter.Count != 0)
+                    result = result.Skip(filter.Offset).Take(filter.Count);                
+            }
+
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// Фильтр для сообщений
+    /// </summary>
+    public class AlarmFilter
+    {
+        public long TBegin { get; set; } = long.MinValue;
+
+        public long TEnd { get; set; } = long.MaxValue;
+
+        public IEnumerable<int> AlarmCategoriesIds { get; set; }
+
+        public string FacilityAccessName { get; set; }
+
+        public string DeviceName { get; set; }
+
+        public int AlarmInfoId { get; set; }
+
+        public int Offset { get; set; } = 0;
+
+        public int Count { get; set; } = 0;
+
     }
 }
