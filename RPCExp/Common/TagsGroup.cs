@@ -5,12 +5,19 @@ using System.Text;
 
 namespace RPCExp.Common
 {
-    // TODO: Это, возможно, не правильно, так как переменные должны обновляться еще для архиватора и алармлоггера! 
-    // TODO: Извлечь интерфейс и добавить разные типы групп (для архивирования и аларминга)
-    public class TagsGroup: Ticker, INameDescription
+
+    public class TagsGroup : IPeriodSource, INameDescription
     {
+        IPeriodSource periodSource = new TickPeriodSource();
+
         public TagsGroup()
         {
+            Name = Guid.NewGuid().ToString();
+        }
+
+        public TagsGroup(IPeriodSource periodSource)
+        {
+            this.periodSource = periodSource;
             Name = Guid.NewGuid().ToString();
         }
 
@@ -29,5 +36,15 @@ namespace RPCExp.Common
         public string Name { get; set; }
 
         public string Description { get; set; }
+
+        public bool IsActive => periodSource.IsActive;
+
+        public long Last => periodSource.Last;
+
+        public long Min { get => periodSource.Min; set { periodSource.Min = value; } }
+
+        public long Period => periodSource.Period;
+
+        public void Tick() => periodSource.Tick();
     }
 }

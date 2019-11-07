@@ -42,7 +42,7 @@ namespace RPCExp.Common
         public long Period { get {
                 if ((Groups?.Count ?? 0) == 0)
                     return DefaultPeriod;
-                return Groups.Values.Min(s=>s.Period);
+                return Groups.Values.Min( group => group.Period);
             }
         }
 

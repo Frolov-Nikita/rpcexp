@@ -10,6 +10,7 @@ namespace RPCExp.AlarmLogger
 {
     public class AlarmService : ServiceAbstract
     {
+        
 
         AlarmContext context;
 
@@ -33,7 +34,6 @@ namespace RPCExp.AlarmLogger
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             // Старт (Инициализация контекста БД алармов)
-            // TODO: !! Добавить тегам группу опроса!
             bool needToSave = false;
             foreach (var cfg in Configs)
             {
@@ -92,12 +92,10 @@ namespace RPCExp.AlarmLogger
             // Главный цикл (проверка алармов и запись)
             while (!cancellationToken.IsCancellationRequested) 
             {
-                
                 foreach(var cfg in Configs)
                 {
                     if (!cfg.IsOk)
                         continue;
-
                     try
                     {
                         if (cfg.IsRized())

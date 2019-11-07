@@ -97,6 +97,8 @@ namespace RPCExp.Common
             }
         }
 
+        // TODO: Вынести сюда общую логику определения необходимости. Абстрактным должен быть метод получающий данные для коллекции тегов.
+
         /// <summary>
         /// Обновление тегов
         /// </summary>
@@ -104,30 +106,6 @@ namespace RPCExp.Common
         /// <returns>long - next time for update, bool - update was successfull</returns>
         public abstract Task<(long, bool)> IOUpdate(CancellationToken cancellationToken);
 
-        //public virtual async Task AlarmLogHandle(CancellationToken cancellationToken)
-        //{
-        //    await Task.Delay(0);
-        //    foreach(var ac in AlarmsConfig)
-        //    {
-        //        var tvs = GetTagsValues(ac.ConditionRelatedTags);
-                
-        //        if (tvs.Count() != ac.ConditionRelatedTags.Count())
-        //            return;
-
-        //        if (tvs.First().Quality != TagQuality.GOOD)
-        //            return;
-
-        //        if (ac.IsRise(tvs))
-        //        {
-        //            // TODO: Допилить
-        //        }
-        //    }
-        //}
-
-        //public virtual async Task TagLogHandle(CancellationToken cancellationToken)
-        //{
-        //    await Task.Delay(0);
-        //}
 
         public virtual IEnumerable<object> GetGroupInfos(string groupName)
         {

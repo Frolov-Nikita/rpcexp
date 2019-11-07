@@ -24,7 +24,6 @@ namespace RPCExp
 
             var store = storeSource.Load(dbfilename);
 
-
             store.TagLogService.Start();
 
             store.AlarmService.Start();
@@ -33,6 +32,8 @@ namespace RPCExp
             Router router = new Router();
 
             router.RegisterMethods(store, nameof(store));
+            router.RegisterMethods(store.AlarmService, "Alarms");
+            router.RegisterMethods(store.TagLogService, "TagLog");
             foreach (var facility in store.Facilities.Values)
                 foreach (var device in facility.Devices.Values)
                 {

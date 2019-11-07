@@ -43,13 +43,6 @@ namespace RPCExp.Store.Serializers
             if (jo.ContainsKey("FrameType"))
                 device.FrameType = (FrameType)jo["FrameType"].ToObject(typeof(FrameType));
 
-            if (jo.ContainsKey("ConnectionRef"))
-            {
-                // TODO: 
-                var connectionName = (FrameType)jo["ConnectionRef"].ToObject(typeof(string));
-                // device.Connection =
-            }
-
             return device;
         }
 

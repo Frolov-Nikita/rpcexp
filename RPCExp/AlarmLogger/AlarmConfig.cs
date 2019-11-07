@@ -6,6 +6,8 @@ using System.Linq;
 
 namespace RPCExp.AlarmLogger
 {
+    //TODO: throw заменить на более дешевую диагностику.
+
     public class AlarmConfig
     {
         public Condition Condition { get; set; }
@@ -243,6 +245,11 @@ namespace RPCExp.AlarmLogger
         static readonly System.Text.RegularExpressions.Regex regNumber = new System.Text.RegularExpressions.Regex(@"^[\+\-]?[0-9\,\.]+$");
         static readonly System.Text.RegularExpressions.Regex regString = new System.Text.RegularExpressions.Regex("^\\\".*\\\"$");
         static readonly System.Text.RegularExpressions.Regex regTagName = new System.Text.RegularExpressions.Regex("^[_a-zA-Zа-яА-Я]+[_a-zA-Zа-яА-Я0-9]*$");
+        static TagsGroup AlarmsTagGroup = new TagsGroup(new BasicPeriodSource()) {
+            Name = "AlarmsTagGroup", 
+            Description = "Tags group to periodicly check alarms",
+            Min = 2 * 10_000_000,
+        };
 
         public static Argument From(string str, IEnumerable<TagAbstract> tags)
         {
@@ -254,6 +261,9 @@ namespace RPCExp.AlarmLogger
                 var tag = tags.FirstOrDefault(t => t.Name == str);
                 if (tag == default)
                     throw new ArgumentException($"Argument tag \'{str}\' doesn`t found.");
+
+                if (!tag.Groups.ContainsKey(AlarmsTagGroup.Name))
+                    tag.Groups.AddByName(AlarmsTagGroup);
 
                 return new Argument(tag);
             }

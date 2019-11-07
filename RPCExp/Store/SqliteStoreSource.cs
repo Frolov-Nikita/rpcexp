@@ -58,6 +58,7 @@ namespace RPCExp.Store
                 .Include(o => o.Template)
                     .ThenInclude(t => t.Archives);
 
+            // TODO: Это лишнее надо ThenInclude применить к запросу выше
             var storedTagsToTagsGroup = context.TagsToTagsGroups
                 .Include(ttg => ttg.TagCfg)
                 .Include(ttg => ttg.TagsGroupCfg);
@@ -117,7 +118,7 @@ namespace RPCExp.Store
                                     PeriodMinSec = tagCfg.ArchiveCfg.PeriodMinSec,
                                     TagLogInfo = new TagLogger.Entities.TagLogInfo { 
                                         DeviceName = deviceCfg.Name,
-                                        FacilityAccessName = facilityCfg.Name,
+                                        FacilityAccessName = facilityCfg.AccessName,
                                         TagName = tagCfg.Name,
                                     }
                                 };

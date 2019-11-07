@@ -33,28 +33,6 @@ namespace RPCExp.Store.Serializers
 
             device.ConnectionSource = store.ConnectionsSources.Values.FirstOrDefault(c => c.Name == config.ConnectionSourceCfg.Name);
 
-            //foreach (var d2t in config.DeviceToTemplates)
-            //{
-            //    var template = d2t.Template;
-            //    foreach(var tagCfg in template.Tags)
-            //    {
-            //        var tag = UnpackTag(tagCfg);
-            //        device.Tags.Add(tag.Name, tag);
-            //    }
-
-            //    foreach (var alarmCfg in template.Alarms)
-            //    {
-            //        var alarm = UnpackAlarm(alarmCfg);
-            //        device.AlarmsConfig.Add(alarm);
-            //    }
-
-            //    foreach (var archCfg in template.Archives)
-            //    {
-            //        // TODO: распаковка архивных тегов
-            //    }
-
-            //}
-
             return device;
         }
 
@@ -91,19 +69,6 @@ namespace RPCExp.Store.Serializers
                 }
 
                 dev2Templ.Template.Tags.Add(tagCfg);
-
-                //var storedDeviceToTemplate = context.DeviceToTemplates.GetOrCreate(d2t => d2t.TemplateId == tag.TemplateId && d2t.DeviceId == config.Id);
-
-                //storedDeviceToTemplate.Template = storedTemplate;
-                //storedDeviceToTemplate.TemplateId = storedTemplate.Id;
-                //storedDeviceToTemplate.Device = config;
-                //storedDeviceToTemplate.DeviceId = config.Id;
-
-                //if (!storedTemplate.Tags.Contains(tagCfg))
-                //    storedTemplate.Tags.Add(tagCfg);
-
-                //if (!config.DeviceToTemplates.Contains(storedDeviceToTemplate))
-                //    config.DeviceToTemplates.Add(storedDeviceToTemplate);
 
             }
             return config;
@@ -170,16 +135,6 @@ namespace RPCExp.Store.Serializers
 
             return config;
         }
-
-        //protected virtual AlarmConfig UnpackAlarm(AlarmCfg config)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //protected virtual AlarmCfg PackAlarm(AlarmConfig alarm)
-        //{
-        //    throw new NotImplementedException();
-        //}
 
         protected abstract string PackDeviceSpecific(DeviceAbstract device);
 

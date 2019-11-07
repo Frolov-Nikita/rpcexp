@@ -36,7 +36,6 @@ namespace RPCExp.TagLogger
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             // Старт (Инициализация контекста БД алармов)
-            // TODO: !! Добавить тегам группу опроса!
             int itemsToSaveCount = 0;
             foreach (var cfg in Configs)
             {
@@ -101,6 +100,33 @@ namespace RPCExp.TagLogger
 
             // Завершение
             await Context.SaveChangesAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Получение информации о хранящихся в архиве переменных.
+        /// Id этих параметров используются в запросе архивных данных.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<TagLogInfo> GetInfos()
+        {
+            return from cfg in Configs 
+                   select cfg.TagLogInfo;
+        }
+
+        /// <summary>
+        /// Получить архивные данные.
+        /// </summary>
+        /// <param name="ids">Идентификаторы параметров</param>
+        /// <param name="tBegin">Время начала для выборки</param>
+        /// <param name="tEnd">время окончания выборки</param>
+        /// <returns></returns>
+        public IEnumerable<TagLogData> GetData(IEnumerable<int> ids, long tBegin = long.MinValue, long tEnd = long.MaxValue)
+        {
+            return from d in Context.TagLogData
+                    where ids.Contains(d.TagLogInfoId) &&
+                    d.TimeStamp >= tBegin &&
+                    d.TimeStamp <= tEnd
+                    select d;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace RPCExp.Modbus
     
     public class ModbusDevice : DeviceAbstract
     {
-        static ModbusFactory factory = new ModbusFactory(); //TODO: ПЕРЕДЕЛАТЬ!!
+        static ModbusFactory factory = new ModbusFactory();
 
         private bool forceRead = true;
 
@@ -41,7 +41,6 @@ namespace RPCExp.Modbus
         }
 
         private byte[] byteOrder = new byte[] { 2, 3, 0, 1 };
-
 
         public byte SlaveId { get; set; }
         

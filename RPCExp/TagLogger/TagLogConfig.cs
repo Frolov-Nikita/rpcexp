@@ -43,11 +43,20 @@ namespace RPCExp.TagLogger
         /// </summary>
         public int PeriodMinSec { get; set; } = 1;
 
+        static TagsGroup TagsLogTagGroup = new TagsGroup(new BasicPeriodSource())
+        {
+            Name = "TagsLogTagGroup",
+            Description = "Tags group to periodicly check alarms",
+            Min = 20 * 10_000_000,
+        };
+
         public TagLogConfig(TagAbstract tag)
         {
             Tag = tag;
             hystProc = 1.0M;
             //maxDelta = (Tag.Scale.Max - Tag.Scale.Min) * hystProc / 100;
+            if (tag.Groups.ContainsKey(TagsLogTagGroup.Name))
+                tag.Groups.AddByName(TagsLogTagGroup);
         }
 
         public TagLogData NeedToArcive
