@@ -23,6 +23,7 @@ namespace RPCExp.AlarmLogger
         {
             get
             {
+                // TODO теоретически утечка памяти.
                 if (context == default)
                     context = new AlarmContext();
                 return context;
@@ -100,7 +101,7 @@ namespace RPCExp.AlarmLogger
                         {
                             var alarm = new Alarm();
                             alarm.TimeStamp = DateTime.Now.Ticks;
-                            alarm.AlarmInfo = cfg.AlarmInfo;
+                            //alarm.AlarmInfo = cfg.AlarmInfo;
                             alarm.AlarmInfoId = cfg.AlarmInfo.Id;
                             alarm.Custom1 = cfg.Custom1?.GetValue().ToString();
                             alarm.Custom2 = cfg.Custom2?.GetValue().ToString();
@@ -122,6 +123,8 @@ namespace RPCExp.AlarmLogger
                     if (needToSave)
                     {
                         await Context.SaveChangesAsync(cancellationToken);
+                        context?.Dispose();
+                        context = null;
                         needToSave = false;
                     }
                 }catch(Exception ex)

@@ -1,4 +1,4 @@
-﻿namespace RPCExp.AlarmLogger
+﻿namespace RPCExp.AlarmLogger.Entities
 {
     public class AlarmCategory
     {

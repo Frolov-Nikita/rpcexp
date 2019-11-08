@@ -76,7 +76,8 @@ namespace RPCExp.TagLogger
                         {
                             await Context.TagLogData.AddAsync(new TagLogData
                             {
-                                TagLogInfo = cfg.TagLogInfo,
+                                //TagLogInfo = cfg.TagLogInfo,
+                                TagLogInfoId = cfg.TagLogInfo.Id,
                                 TimeStamp = archiveData.TimeStamp,
                                 Value = archiveData.Value,
                             });
@@ -88,6 +89,8 @@ namespace RPCExp.TagLogger
                     {
                         await Context.SaveChangesAsync(cancellationToken);
                         itemsToSaveCount = 0;
+                        context?.Dispose();
+                        context = null;
                     }
 
                     await Task.Delay(100);

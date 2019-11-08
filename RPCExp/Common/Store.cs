@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using RPCExp.Connections;
 using RPCExp.AlarmLogger;
 using RPCExp.TagLogger;
+using RPCExp.AlarmLogger.Entities;
 
 namespace RPCExp.Common
 {

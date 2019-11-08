@@ -5,6 +5,8 @@ using RPCExp.Common;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using RPCExp.Connections;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using System.Runtime.InteropServices;
 
 namespace RPCExp
 {
