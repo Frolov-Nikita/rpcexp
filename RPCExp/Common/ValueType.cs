@@ -4,7 +4,8 @@ using System.Text;
 
 namespace RPCExp.Common
 {
-    public enum ValueType: byte
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1720:Идентификатор содержит имя типа", Justification = "<Ожидание>")]
+    public enum ValueType 
     {
         Bool,
         Float,

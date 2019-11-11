@@ -152,7 +152,7 @@ namespace RPCExp.Store
 
                 store.Facilities.Add(facility.Name, facility);
             }
-
+            context.Dispose();
             return store;
         }
 
@@ -192,6 +192,7 @@ namespace RPCExp.Store
             }
 
             context.SaveChanges();
+            context.Dispose();
         }
     }
 }

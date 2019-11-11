@@ -16,7 +16,6 @@ namespace RPCExp
 
         static void Main(string[] args)
         {
-
             var dbfilename = "cfg.sqlite3";
             var storeSource = new Store.SqliteStoreSource();
 

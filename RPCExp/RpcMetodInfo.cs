@@ -12,7 +12,7 @@ namespace RPCExp
 
         public RpcMetodInfo(RpcMethod r)
         {
-            ObjName = r.ObjName;
+            ObjName = r.TargetName;
             MethodName = r.MethodName;
             Description = r.Description;
             IsAsync = r.IsAsync;

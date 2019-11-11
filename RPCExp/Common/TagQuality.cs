@@ -4,6 +4,7 @@ using System.Text;
 
 namespace RPCExp.Common
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1707:Идентификаторы не должны содержать символы подчеркивания", Justification = "<Ожидание>")]
     public enum TagQuality : byte
     {
         /// <summary>

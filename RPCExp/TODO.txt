@@ -1,8 +1,13 @@
-﻿TypeConverterAbstract byte[] to ushort[]
+﻿debug interface
+
+Статический анализ
+
+TUI
+
+global constants in cfg.json
 
 Add real async to NModbus
 
 messure & Refactor reflection in Router methods
 
-AlarmLogger
-TagLogger
+refactor websockets-rpc

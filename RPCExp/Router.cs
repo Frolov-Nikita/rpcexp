@@ -25,29 +25,31 @@ namespace RPCExp
         public Router()
         {
             var rm = new RpcMethod();
-            rm.ObjName = "rpc";
-            rm.Obj = this;
+            rm.TargetName = "rpc";
+            rm.Target = this;
             rm.MethodName = "GetMethods";
             rm.Parameters = null;
             rm.Description = "Описание всех доступных методов";
             rpcMethods.Add(rm);
         }
 
-        private string GetDesc(MethodInfo methodInfo)
+        private static string GetDesc(MethodInfo methodInfo)
         {
             return methodInfo.GetDocumentation()?.InnerXml;
         }
 
-        public void RegisterMethods(object obj, string objName = default)
+        public void RegisterMethods(object target, string targetName = default)
         {
-            var methods = obj.GetType().GetMethods();
+            if (target == default) 
+                return;
+            var methods = target.GetType().GetMethods();
             Type asyncAttrType = typeof(System.Runtime.CompilerServices.AsyncStateMachineAttribute);
             foreach (var m in methods)
             {
                 if (!m.IsPublic || m.IsSpecialName || (m.DeclaringType == typeof(Object))) continue;
                 var rm = new RpcMethod();
-                rm.Obj = obj;
-                rm.ObjName = objName;
+                rm.Target = target;
+                rm.TargetName = targetName;
                 rm.MethodName = m.Name;
                 rm.Description = GetDesc(m);
                 rm.IsAsync = m.GetCustomAttributes(asyncAttrType, false).Length > 0;
@@ -63,7 +65,7 @@ namespace RPCExp
             {
                 var req = Request.FromJson(encoding.GetString(buffer, index, bytesCount));
                 id = req.Id;
-                var resp = await Handle(req);
+                var resp = await Handle(req).ConfigureAwait(false);
                 return encoding.GetBytes(resp.ToJson());
             }
             catch
@@ -88,7 +90,7 @@ namespace RPCExp
 
             var methods = rpcMethods.FindAll(
                 m => m.MethodName == methodName &&
-                m.ObjName == objName);
+                m.TargetName == objName);
 
             var method = methods.Find(m => (m.Parameters?.Length ?? 0) == parameters.Count);
             
