@@ -13,15 +13,14 @@ namespace RPCExp.Common
     {
         public const string nameSeparator = "$";
 
-        public IDictionary<string, Facility> Facilities { get; set; } = new Dictionary<string, Facility>();
+        public Dictionary<string, Facility> Facilities { get; } = new Dictionary<string, Facility>();
 
-        public IDictionary<string, ConnectionSourceAbstract> ConnectionsSources { get; set; } = new Dictionary<string, ConnectionSourceAbstract>();
+        public IDictionary<string, ConnectionSourceAbstract> ConnectionsSources { get; } = new Dictionary<string, ConnectionSourceAbstract>();
         
-        public IDictionary<string, AlarmCategory> AlarmCategories { get; set; } = new Dictionary<string, AlarmCategory>();
+        public IDictionary<string, AlarmCategory> AlarmCategories { get; } = new Dictionary<string, AlarmCategory>();
 
-        public TagLogService TagLogService = new TagLogService();
+        public TagLogService TagLogService { get; } = new TagLogService();
 
-        public AlarmService AlarmService = new AlarmService();
-
+        public AlarmService AlarmService { get; } = new AlarmService();
     }
 }

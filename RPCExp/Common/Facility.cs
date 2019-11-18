@@ -6,7 +6,6 @@ using System.Collections.Generic;
 
 namespace RPCExp.Common
 {
-    
     public class Facility: INameDescription
     {
         public int Id { get; set; }
@@ -17,7 +16,7 @@ namespace RPCExp.Common
 
         public string Description { get; set; }
 
-        public IDictionary<string, DeviceAbstract> Devices { get; set; } = new Dictionary<string, DeviceAbstract>();
+        public IDictionary<string, DeviceAbstract> Devices { get; } = new Dictionary<string, DeviceAbstract>();
 
     }
 }

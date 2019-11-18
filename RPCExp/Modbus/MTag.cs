@@ -17,6 +17,7 @@ namespace RPCExp.Modbus
         {
             get
             {
+                // TODO: обработать access
                 if ((Region == ModbusRegion.Coils) || (Region == ModbusRegion.HoldingRegisters))
                     return Access.ReadWrite;
                 else

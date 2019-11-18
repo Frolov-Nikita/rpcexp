@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RPCExp.Store.Entities
+namespace RPCExp.DbStore.Entities
 {
     public class Template: INameDescription, ICopyFrom, IIdentity
     {
@@ -12,16 +12,19 @@ namespace RPCExp.Store.Entities
 
         public string Description { get; set; } = "";
 
-        public List<TagCfg> Tags { get; set; } = new List<TagCfg>();
+        public List<TagCfg> Tags { get; } = new List<TagCfg>();
 
-        public List<AlarmCfg> Alarms { get; set; } = new List<AlarmCfg>();
+        public List<AlarmCfg> Alarms { get; } = new List<AlarmCfg>();
 
-        public List<ArchiveCfg> Archives { get; set; } = new List<ArchiveCfg>();
+        public List<ArchiveCfg> Archives { get; } = new List<ArchiveCfg>();
 
-        public ICollection<DeviceToTemplate> DeviceToTemplates { get; set; } = new List<DeviceToTemplate>();
+        public ICollection<DeviceToTemplate> DeviceToTemplates { get; } = new List<DeviceToTemplate>();
 
         public void CopyFrom(object original)
         {
+            if (original is null)
+                throw new ArgumentNullException(nameof(original));
+
             var src = (Template)original;
 
             Name = src.Name;

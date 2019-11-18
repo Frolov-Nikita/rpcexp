@@ -2,7 +2,7 @@
 using RPCExp.AlarmLogger.Entities;
 using System;
 
-namespace RPCExp.Store.Entities
+namespace RPCExp.DbStore.Entities
 {
     public class AlarmCfg: INameDescription, ICopyFrom, IIdentity
     {
@@ -28,7 +28,8 @@ namespace RPCExp.Store.Entities
 
         public void CopyFrom(object original)
         {
-            var src = (AlarmCfg)original;
+            
+            var src = (AlarmCfg)original ?? throw new ArgumentNullException(nameof(original)); 
 
             Name = src.Name;
             Description = src.Description;

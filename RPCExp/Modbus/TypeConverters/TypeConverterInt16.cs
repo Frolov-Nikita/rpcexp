@@ -15,7 +15,9 @@ namespace RPCExp.Modbus.TypeConverters
 
         public override void GetBytes(Span<byte> buffer, object value)
         {
-            var buff = BitConverter.GetBytes((Int16)Convert.ChangeType(value, typeof(Int16)));
+#pragma warning disable CA1305 // Укажите IFormatProvider
+            var buff = BitConverter.GetBytes((int)Convert.ChangeType(value, typeof(int)));
+#pragma warning restore CA1305 // Укажите IFormatProvider
             SetOrderedBuffer(buffer, buff);
         }
 

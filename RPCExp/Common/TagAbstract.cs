@@ -4,11 +4,11 @@ using System.Linq;
 
 namespace RPCExp.Common
 {
-    public enum Access : byte { ReadOnly, ReadWrite, WriteOnly}
+    public enum Access { ReadOnly, ReadWrite, WriteOnly}
 
     public abstract class TagAbstract : TagData, INameDescription
     {
-        static long DefaultPeriod = TimeSpan.FromSeconds(1).Ticks;
+        static readonly long DefaultPeriod = TimeSpan.FromSeconds(1).Ticks;
 
         public string Name { get; set; }
 
@@ -70,7 +70,7 @@ namespace RPCExp.Common
             Scale = Scale != null ? new { Scale.Min, Scale.Max } : null,
             Groups = Groups.Keys,
             
-            Value,
+            Value = GetValue(),
             Quality,
             LastGood,
             Last,

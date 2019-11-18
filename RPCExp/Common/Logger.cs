@@ -22,7 +22,7 @@ namespace RPCExp.Common
             if (!Enabled)
                 return;
 
-            var dt = DateTime.Now.ToString();
+            var dt = DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss.f");
 
             Console.WriteLine($"{dt};{source};{category};{message}");
         }

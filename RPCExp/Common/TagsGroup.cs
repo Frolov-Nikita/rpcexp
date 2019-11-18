@@ -8,7 +8,7 @@ namespace RPCExp.Common
 
     public class TagsGroup : IPeriodSource, INameDescription
     {
-        IPeriodSource periodSource = new TickPeriodSource();
+        readonly IPeriodSource periodSource = new TickPeriodSource();
 
         public TagsGroup()
         {
@@ -27,6 +27,9 @@ namespace RPCExp.Common
         /// <param name="tagsGroupOriginal"></param>
         public TagsGroup(TagsGroup tagsGroupOriginal)
         {
+            if (tagsGroupOriginal is null)
+                return;
+
             Name = tagsGroupOriginal.Name;
             Description = tagsGroupOriginal.Description;
             Min = tagsGroupOriginal.Min;

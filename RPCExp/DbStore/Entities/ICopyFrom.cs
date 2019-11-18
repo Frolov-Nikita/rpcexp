@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RPCExp.Store.Entities
+namespace RPCExp.DbStore.Entities
 {
     /// <summary>
     /// Копирует все, кроме ID

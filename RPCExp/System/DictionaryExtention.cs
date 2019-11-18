@@ -5,6 +5,8 @@ namespace System
 {
     public static class DictionaryExtention
     {
+
+#pragma warning disable CA1062 // Проверить аргументы или открытые методы
         public static void AddByName<T>(this IDictionary<string, T> dictionary, T item)
             where T: INameDescription
         {
@@ -13,5 +15,6 @@ namespace System
             else
                 dictionary.Add(item.Name, item);
         }
+#pragma warning restore CA1062 // Проверить аргументы или открытые методы
     }
 }

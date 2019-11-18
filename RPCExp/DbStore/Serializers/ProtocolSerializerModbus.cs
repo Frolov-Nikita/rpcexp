@@ -1,13 +1,13 @@
 ﻿using RPCExp.Common;
 using RPCExp.Modbus;
-using RPCExp.Store.Entities;
+using RPCExp.DbStore.Entities;
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace RPCExp.Store.Serializers
+namespace RPCExp.DbStore.Serializers
 {
     internal class ProtocolSerializerModbus : ProtocolSerializerAbstract
     {

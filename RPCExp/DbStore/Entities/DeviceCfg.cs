@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RPCExp.Store.Entities
+namespace RPCExp.DbStore.Entities
 {
 
     public class DeviceCfg : INameDescription, IProtocolSpecificData, ICopyFrom, IIdentity
@@ -27,12 +27,15 @@ namespace RPCExp.Store.Entities
 
         public long InActiveUpdatePeriod { get; set; }
 
-        public ICollection<DeviceToTemplate> DeviceToTemplates { get; set; } = new List<DeviceToTemplate>();
+        public ICollection<DeviceToTemplate> DeviceToTemplates { get; } = new List<DeviceToTemplate>();
 
         public ConnectionSourceCfg ConnectionSourceCfg { get; set; }
 
         public void CopyFrom(object original)
         {
+            if (original is null)
+                throw new ArgumentNullException(nameof(original));
+
             var src = (DeviceCfg)original;
             ClassName = src.ClassName;
             Custom = src.Custom;

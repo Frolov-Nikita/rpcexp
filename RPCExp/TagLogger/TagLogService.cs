@@ -31,7 +31,7 @@ namespace RPCExp.TagLogger
             }
         }
 
-        public List<TagLogConfig> Configs { get; set; } = new List<TagLogConfig>();
+        public List<TagLogConfig> Configs { get; } = new List<TagLogConfig>();
 
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
@@ -60,7 +60,7 @@ namespace RPCExp.TagLogger
 
             if (itemsToSaveCount >= ItemsToSaveLimit)
             {
-                await Context.SaveChangesAsync(cancellationToken);
+                await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                 itemsToSaveCount = 0;
             }
 
@@ -80,29 +80,31 @@ namespace RPCExp.TagLogger
                                 TagLogInfoId = cfg.TagLogInfo.Id,
                                 TimeStamp = archiveData.TimeStamp,
                                 Value = archiveData.Value,
-                            });
+                            }).ConfigureAwait(false);
                             itemsToSaveCount++;
                         }                            
                     }
 
                     if (itemsToSaveCount >= ItemsToSaveLimit)
                     {
-                        await Context.SaveChangesAsync(cancellationToken);
+                        await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                         itemsToSaveCount = 0;
                         context?.Dispose();
                         context = null;
                     }
 
-                    await Task.Delay(100);
+                    await Task.Delay(100).ConfigureAwait(false);
                 }
                 catch//(Exception ex)
                 {
-                    await Task.Delay(1_000);
+                    await Task.Delay(1_000).ConfigureAwait(false);
                 }
             }
 
             // Завершение
-            await Context.SaveChangesAsync(cancellationToken);
+            await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            context.Dispose();
+            context = null;
         }
 
         /// <summary>

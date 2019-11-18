@@ -10,9 +10,8 @@ namespace RPCExp
 {
     public class Router
     {
-        Encoding encoding = Encoding.UTF8;
-
-        List<RpcMethod> rpcMethods = new List<RpcMethod>();
+        static readonly Encoding encoding = Encoding.UTF8;
+        readonly List<RpcMethod> rpcMethods = new List<RpcMethod>();
 
         public IEnumerable<RpcMetodInfo> GetMethods()
         {
@@ -24,12 +23,14 @@ namespace RPCExp
 
         public Router()
         {
-            var rm = new RpcMethod();
-            rm.TargetName = "rpc";
-            rm.Target = this;
-            rm.MethodName = "GetMethods";
-            rm.Parameters = null;
-            rm.Description = "Описание всех доступных методов";
+            var rm = new RpcMethod
+            {
+                TargetName = "rpc",
+                Target = this,
+                MethodName = "GetMethods",
+                Parameters = null,
+                Description = "Описание всех доступных методов"
+            };
             rpcMethods.Add(rm);
         }
 
@@ -47,13 +48,15 @@ namespace RPCExp
             foreach (var m in methods)
             {
                 if (!m.IsPublic || m.IsSpecialName || (m.DeclaringType == typeof(Object))) continue;
-                var rm = new RpcMethod();
-                rm.Target = target;
-                rm.TargetName = targetName;
-                rm.MethodName = m.Name;
-                rm.Description = GetDesc(m);
-                rm.IsAsync = m.GetCustomAttributes(asyncAttrType, false).Length > 0;
-                rm.Parameters = m.GetParameters();
+                var rm = new RpcMethod
+                {
+                    Target = target,
+                    TargetName = targetName,
+                    MethodName = m.Name,
+                    Description = GetDesc(m),
+                    IsAsync = m.GetCustomAttributes(asyncAttrType, false).Length > 0,
+                    Parameters = m.GetParameters()
+                };
                 rpcMethods.Add(rm);
             }
         }
@@ -100,7 +103,7 @@ namespace RPCExp
             var res = new Response() { Id = request.Id };
             try
             {
-                res.Result = await method.Invoke(request.Parameters);
+                res.Result = await method.InvokeAsync(request.Parameters).ConfigureAwait(false);
                 return res;
             }
             catch (ArgumentException)

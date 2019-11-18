@@ -10,16 +10,19 @@ namespace RPCExp
             return info.ParameterType.GetDocFullName() + " " + info.Name;
         }
 
-        public RpcMetodInfo(RpcMethod r)
+        public RpcMetodInfo(RpcMethod rpcMethod)
         {
-            ObjName = r.TargetName;
-            MethodName = r.MethodName;
-            Description = r.Description;
-            IsAsync = r.IsAsync;
-            if(r.ParametersLength > 0)
+            if (rpcMethod is null)
+                throw new System.ArgumentNullException(nameof(rpcMethod));
+
+            ObjName = rpcMethod.TargetName;
+            MethodName = rpcMethod.MethodName;
+            Description = rpcMethod.Description;
+            IsAsync = rpcMethod.IsAsync;
+            if(rpcMethod.ParametersLength > 0)
             {
-                Parameters = new List<string>(r.ParametersLength);
-                foreach (var p in r.Parameters)
+                Parameters = new List<string>(rpcMethod.ParametersLength);
+                foreach (var p in rpcMethod.Parameters)
                     Parameters.Add(GetParamInfo(p));
             }
         }

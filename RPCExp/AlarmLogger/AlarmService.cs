@@ -12,11 +12,13 @@ namespace RPCExp.AlarmLogger
     {
         AlarmContext context;
 
-        public List<AlarmConfig> Configs { get; set; } = new List<AlarmConfig>();
+        public List<AlarmConfig> Configs { get; } = new List<AlarmConfig>();
 
         ~AlarmService()
         {
             context?.SaveChanges();
+            context?.Dispose();
+            context = null;
         }
 
         private AlarmContext Context
@@ -84,7 +86,7 @@ namespace RPCExp.AlarmLogger
 
             if (needToSave)
             { 
-                await Context.SaveChangesAsync(cancellationToken);
+                await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                 needToSave = false;
             }
 
@@ -99,22 +101,26 @@ namespace RPCExp.AlarmLogger
                     {
                         if (cfg.IsRized())
                         {
-                            var alarm = new Alarm();
-                            alarm.TimeStamp = DateTime.Now.Ticks;
-                            //alarm.AlarmInfo = cfg.AlarmInfo;
-                            alarm.AlarmInfoId = cfg.AlarmInfo.Id;
-                            alarm.Custom1 = cfg.Custom1?.GetValue().ToString();
-                            alarm.Custom2 = cfg.Custom2?.GetValue().ToString();
-                            alarm.Custom3 = cfg.Custom3?.GetValue().ToString();
-                            alarm.Custom4 = cfg.Custom4?.GetValue().ToString();
+                            var alarm = new Alarm
+                            {
+                                TimeStamp = DateTime.Now.Ticks,
+                                //alarm.AlarmInfo = cfg.AlarmInfo;
+                                AlarmInfoId = cfg.AlarmInfo.Id,
+#pragma warning disable CA1305 // Укажите IFormatProvider
+                                Custom1 = cfg.Custom1?.GetValue().ToString(),
+                                Custom2 = cfg.Custom2?.GetValue().ToString(),
+                                Custom3 = cfg.Custom3?.GetValue().ToString(),
+                                Custom4 = cfg.Custom4?.GetValue().ToString()
+#pragma warning restore CA1305 // Укажите IFormatProvider
+                            };
 
                             Context.Alarms.Add(alarm);
                             needToSave = true;
                         }
                     }
-                    catch(Exception ex)
+                    catch//(Exception ex)
                     {
-                        
+                        // TODO: log this exception
                     }
                 }
 
@@ -122,22 +128,22 @@ namespace RPCExp.AlarmLogger
                 {
                     if (needToSave)
                     {
-                        await Context.SaveChangesAsync(cancellationToken);
+                        await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                         context?.Dispose();
                         context = null;
                         needToSave = false;
                     }
-                }catch(Exception ex)
+                }catch//(Exception ex)
                 {
-
+                    //TODO: log this exception
                 }
                 
 
-                await Task.Delay(100);
+                await Task.Delay(100).ConfigureAwait(false);
             }
 
             // Завершение
-            await Context.SaveChangesAsync(cancellationToken);
+            await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -188,7 +194,7 @@ namespace RPCExp.AlarmLogger
                     result = result.Where(a => filter.AlarmCategoriesIds.Contains( a.AlarmInfo.Category.Id ));
 
                 if (filter.FacilityAccessName != default)
-                    result = result.Where(a => a.AlarmInfo.FacilityAccessName.Contains(filter.FacilityAccessName));
+                    result = result.Where(a => a.AlarmInfo.FacilityAccessName.Contains(filter.FacilityAccessName, StringComparison.OrdinalIgnoreCase));
 
                 if (filter.Count != 0)
                     result = result.Skip(filter.Offset).Take(filter.Count);                

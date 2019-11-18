@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Text;
 using RPCExp.Common;
 using RPCExp.Connections;
-using RPCExp.Store.Entities;
-using RPCExp.Store.Serializers;
+using RPCExp.DbStore.Entities;
+using RPCExp.DbStore.Serializers;
 using Microsoft.EntityFrameworkCore;
 
-namespace RPCExp.Store
+namespace RPCExp.DbStore
 {
     /// <summary>
     /// Класс сохранения конфигурации в БД и восстановления конфигурации из БД
@@ -32,15 +32,15 @@ namespace RPCExp.Store
             connectionSerializers.Add(serialConnectionSourceSerializer.ClassName, serialConnectionSourceSerializer);
         }
 
-        public Common.Store Get(string target)
+        public Store Get(string target)
         {
             return Load(target);
         }
 
-        public Common.Store Load(string target)
+        public Store Load(string target)
         {
             var context = new StoreContext(target);
-            var store = new Common.Store();
+            var store = new Store();
 
             foreach (var cfg in context.Connections)
             {
@@ -150,14 +150,18 @@ namespace RPCExp.Store
                     facility.Devices.Add(device.Name, device);
                 }
 
-                store.Facilities.Add(facility.Name, facility);
+                store.Facilities.Add(facility.AccessName, facility);
             }
             context.Dispose();
+            context = null;
             return store;
         }
 
-        public void Save( Common.Store store, string target)
+        public void Save(Store store, string target)
         {
+            if (store is null)
+                throw new ArgumentNullException(nameof(store));
+
             var context = new StoreContext(target);
 
             var protocolSerializer = protorolSerializers["Modbus"];

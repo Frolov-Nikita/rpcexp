@@ -1,11 +1,11 @@
 ﻿using RPCExp.Connections;
-using RPCExp.Store.Entities;
+using RPCExp.DbStore.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace RPCExp.Store.Serializers
+namespace RPCExp.DbStore.Serializers
 {
     class UdpConnectionSourceSerializer : IConnectionSourceSerializer
     {

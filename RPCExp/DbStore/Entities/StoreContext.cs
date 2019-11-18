@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using RPCExp.Common;
 
-namespace RPCExp.Store.Entities
+namespace RPCExp.DbStore.Entities
 {
     internal class StoreContext : DbContext
     {

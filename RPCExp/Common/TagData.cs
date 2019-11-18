@@ -18,7 +18,7 @@ namespace RPCExp.Common
             LastGood = tagData.LastGood;
         }
 
-        protected object val;
+        private object val;
 
         public TagQuality Quality { get; protected set; } = TagQuality.BAD;
 
@@ -26,7 +26,7 @@ namespace RPCExp.Common
 
         public long LastGood { get; protected set; } = DateTime.Now.Ticks;
 
-        public object Value => GetValue();
+        //public object Value => GetValue();
 
         public virtual object GetValue() => val;
 
@@ -40,14 +40,6 @@ namespace RPCExp.Common
                 LastGood = Last;
             }
         }
-
-        //public static int Hash(string val)
-        //{
-        //    int h = 0;
-        //    for (var i = 0; i < val.Length; i++)
-        //        h += (h << 8) ^ val[i];
-        //    return h;
-        //}
 
         public string ToJson()
         {

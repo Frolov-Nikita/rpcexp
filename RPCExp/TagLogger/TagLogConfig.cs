@@ -52,7 +52,7 @@ namespace RPCExp.TagLogger
 
         public TagLogConfig(TagAbstract tag)
         {
-            Tag = tag;
+            Tag = tag ?? throw new ArgumentNullException(nameof(tag));
             hystProc = 1.0M;
             //maxDelta = (Tag.Scale.Max - Tag.Scale.Min) * hystProc / 100;
             if (tag.Groups.ContainsKey(TagsLogTagGroup.Name))
@@ -70,7 +70,9 @@ namespace RPCExp.TagLogger
                 if(lastTime + PeriodMinSec * 10_000_000 >= now)
                     return null;
 
-                var val = (decimal)Convert.ChangeType(Tag?.Value ?? 0, typeof(decimal));
+#pragma warning disable CA1305 // Укажите IFormatProvider
+                var val = (decimal)Convert.ChangeType(Tag?.GetValue() ?? 0, typeof(decimal));
+#pragma warning restore CA1305 // Укажите IFormatProvider
 
                 if (((lastTime + PeriodMaxSec * 10_000_000) <= now) || 
                     (Math.Abs(lastVal - val) >= maxDelta))

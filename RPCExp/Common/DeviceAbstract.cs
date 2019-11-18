@@ -23,7 +23,7 @@ namespace RPCExp.Common
 
         public long UpdateInActiveTagsPeriod { get; set; } = 20 * 10_000_000;
 
-        public IDictionary<string, TagsGroup> Groups { get; set; } = new Dictionary<string, TagsGroup>();
+        public IDictionary<string, TagsGroup> Groups { get; } = new Dictionary<string, TagsGroup>();
 
         public IDictionary<string, TagAbstract> Tags { get; } = new Dictionary<string, TagAbstract>();
         
@@ -119,6 +119,9 @@ namespace RPCExp.Common
         /// </summary>
         /// <param name="groupName"></param>
         /// <returns></returns>
+        /// <example>
+        /// { "jsonrpc": "2.0", "method": "f1$Plc1.GetGroupValues", "params": ["usts2"], "id": "159"}
+        /// </example>
         public virtual IEnumerable<TagData> GetGroupValues(string groupName)
         {
 
@@ -139,9 +142,16 @@ namespace RPCExp.Common
         /// </summary>
         /// <param name="tagNames">имена тэгов</param>
         /// <returns>значения</returns>
+        /// <example>
+        /// { "jsonrpc": "2.0", "method": "f1$Plc1.GetTagsValues", "params": [["DATA_95"]], "id": "159"}
+        /// </example>
         public virtual ICollection<TagData> GetTagsValues(IEnumerable<string> tagNames)
         {
             List<TagData> datas = new List<TagData>();
+
+            if (tagNames is null)
+                return datas;
+
             foreach (string tagName in tagNames)
             {
                 TagData td = null;
@@ -157,6 +167,14 @@ namespace RPCExp.Common
             return datas;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tagsValues"></param>
+        /// <returns></returns>
+        /// <example>
+        /// { "jsonrpc": "2.0", "method": "f1$Plc1.Write", "params": [{"UST_112":"-5"}], "id": "159"}
+        /// </example>
         public abstract Task<int> Write(IDictionary<string, object> tagsValues);
     }
 

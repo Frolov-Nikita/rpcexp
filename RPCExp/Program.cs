@@ -12,18 +12,21 @@ namespace RPCExp
 {
     class Program
     {
-        static CancellationTokenSource Cts = new CancellationTokenSource();
+        static readonly CancellationTokenSource Cts = new CancellationTokenSource();
 
-        static void Main(string[] args)
+        static void Main(/*string[] args*/)
         {
+
             var dbfilename = "cfg.sqlite3";
-            var storeSource = new Store.SqliteStoreSource();
+            var storeSource = new DbStore.SqliteStoreSource();
 
             //var store = StoreTemplateGen.Get();
             //storeSource.Save(store, dbfilename);
             //return;
 
             var store = storeSource.Load(dbfilename);
+
+            
 
             store.TagLogService.Start();
 
@@ -44,7 +47,7 @@ namespace RPCExp
                     router.RegisterMethods(device, fullAccesName);
                 }
 
-            WebSocketServer wss = new WebSocketServer(router, new string[] { "http://localhost:8888/"}); //any Ip -  "http://*:8888/"
+            WebSocketServer wss = new WebSocketServer(router, new string[] {  "http://localhost:8888/" }); //any Ip - "http://*:8888/"; "http://localhost:8888/"
 
             Console.WriteLine("Start webSocket");
             wss.Start();

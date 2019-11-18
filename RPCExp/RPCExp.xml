@@ -4,12 +4,91 @@
         <name>RPCExp</name>
     </assembly>
     <members>
-        <member name="M:RPCExp.Common.DeviceAbstract.GetTagsValues(System.Collections.ObjectModel.Collection{System.String})">
+        <member name="T:RPCExp.AlarmLogger.Argument">
+            <summary>
+            Источник значения. Может быть константой или тегом.
+            </summary>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.AlarmService.GetInfos">
+            <summary>
+            Получение списка сконфигурировных сообщений
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.AlarmService.GetCategories">
+            <summary>
+            получение списка использующихся категорий
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.AlarmService.GetAlarms(RPCExp.AlarmLogger.AlarmFilter)">
+            <summary>
+            Доступ к архиву сообщений
+            </summary>
+            <param name="filter"></param>
+            <returns></returns>
+        </member>
+        <member name="T:RPCExp.AlarmLogger.AlarmFilter">
+            <summary>
+            Фильтр для сообщений
+            </summary>
+        </member>
+        <member name="M:RPCExp.Common.DeviceAbstract.IOUpdate(System.Threading.CancellationToken)">
+            <summary>
+            Обновление тегов
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns>long - next time for update, bool - update was successfull</returns>
+        </member>
+        <member name="M:RPCExp.Common.DeviceAbstract.GetGroupValues(System.String)">
+            <summary>
+            Получает значения набора переменных
+            </summary>
+            <param name="groupName"></param>
+            <returns></returns>
+            <example>
+            { "jsonrpc": "2.0", "method": "f1$Plc1.GetGroupValues", "params": ["usts2"], "id": "159"}
+            </example>
+        </member>
+        <member name="M:RPCExp.Common.DeviceAbstract.GetTagsValues(System.Collections.Generic.IEnumerable{System.String})">
             <summary>
             Получить значения нескольких тэгов
             </summary>
             <param name="tagNames">имена тэгов</param>
             <returns>значения</returns>
+            <example>
+            { "jsonrpc": "2.0", "method": "f1$Plc1.GetTagsValues", "params": [["DATA_95"]], "id": "159"}
+            </example>
+        </member>
+        <member name="M:RPCExp.Common.DeviceAbstract.Write(System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            
+            </summary>
+            <param name="tagsValues"></param>
+            <returns></returns>
+            <example>
+            { "jsonrpc": "2.0", "method": "f1$Plc1.Write", "params": [{"UST_112":"-5"}], "id": "159"}
+            </example>
+        </member>
+        <member name="P:RPCExp.Common.TagAbstract.Groups">
+            <summary>
+            Группы через которые можно опросить тег
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagAbstract.Scale">
+            <summary>
+            Необязательное масштабирование
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagAbstract.Period">
+            <summary>
+            Период опроса определяется как минимальный период из гупп опроса
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagAbstract.IsActive">
+            <summary>
+            Тег активен, если активна хоть одна и групп опроса тэга
+            </summary>
         </member>
         <member name="F:RPCExp.Common.TagQuality.BAD">
             <summary>
@@ -64,6 +143,17 @@
         <member name="F:RPCExp.Common.TagQuality.GOOD_LOCAL_OVERRIDE">
             <summary>
             подмененное
+            </summary>
+        </member>
+        <member name="M:RPCExp.Common.TagsGroup.#ctor(RPCExp.Common.TagsGroup)">
+            <summary>
+            копирующий конструктор
+            </summary>
+            <param name="tagsGroupOriginal"></param>
+        </member>
+        <member name="T:RPCExp.Connections.SerialPortStreamAdapter">
+            <summary>
+            An adapter for the SerialPortStream class. Useful for getting serial port access on non-Windows devices.
             </summary>
         </member>
         <member name="T:RPCExp.DocumenationExtensions">
@@ -149,12 +239,68 @@
             <param name="assembly">The assembly to find the XML document for</param>
             <returns>The XML document</returns>
         </member>
-        <member name="M:RPCExp.Modbus.Device.Write(System.Collections.Generic.IDictionary{System.String,System.Object})">
+        <member name="M:RPCExp.Modbus.ModbusDevice.Write(System.Collections.Generic.IDictionary{System.String,System.Object})">
             <summary>
             Записать значения тегов в устройство 
-            (Еще не реализовано)
             </summary>
             <param name="tagsValues"></param>
+            <returns></returns>
+        </member>
+        <member name="T:RPCExp.Store.Entities.DeviceToTemplate">
+            <summary>
+            Класс для связи many2many
+            </summary>
+        </member>
+        <member name="T:RPCExp.Store.Entities.ICopyFrom">
+            <summary>
+            Копирует все, кроме ID
+            </summary>
+        </member>
+        <member name="T:RPCExp.Store.Entities.TagsToTagsGroups">
+            <summary>
+            Many2Many relartion
+            </summary>
+        </member>
+        <member name="T:RPCExp.Store.Serializers.ProtocolSerializerAbstract">
+            <summary>
+            Класс преобразует сущности из БД в объекты программы и обратно.
+            </summary>
+            <typeparam name="T">Сласс устройства реализующего протокол</typeparam>
+        </member>
+        <member name="T:RPCExp.Store.SqliteStoreSource">
+            <summary>
+            Класс сохранения конфигурации в БД и восстановления конфигурации из БД
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogConfig.HystProc">
+            <summary>
+            Макс процент от шкалы
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogConfig.PeriodMaxSec">
+            <summary>
+            Максимальный период в секундах
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogConfig.PeriodMinSec">
+            <summary>
+            Минимальный период в секундах
+            </summary>
+        </member>
+        <member name="M:RPCExp.TagLogger.TagLogService.GetInfos">
+            <summary>
+            Получение информации о хранящихся в архиве переменных.
+            Id этих параметров используются в запросе архивных данных.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.TagLogger.TagLogService.GetData(System.Collections.Generic.IEnumerable{System.Int32},System.Int64,System.Int64)">
+            <summary>
+            Получить архивные данные.
+            </summary>
+            <param name="ids">Идентификаторы параметров</param>
+            <param name="tBegin">Время начала для выборки</param>
+            <param name="tEnd">время окончания выборки</param>
             <returns></returns>
         </member>
         <member name="M:RPCExp.WebSocketServer.SocketHandlerAsync(System.Net.WebSockets.WebSocket,System.Threading.CancellationToken)">

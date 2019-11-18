@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RPCExp.Modbus
 {
-    public enum ModbusRegion: byte
+    public enum ModbusRegion
     {
         Coils = 1,
         DiscreteInputs = 2,

@@ -46,13 +46,17 @@ namespace RPCExp.AlarmLogger
             return retval;
         }
 
-        public static AlarmConfig From(Store.Entities.AlarmCfg alarmCfg, IEnumerable<TagAbstract> tags, AlarmInfo alarmInfo)
+        public static AlarmConfig From(DbStore.Entities.AlarmCfg alarmCfg, IEnumerable<TagAbstract> tags, AlarmInfo alarmInfo)
         {
-            var config = new AlarmConfig();
+            if (alarmCfg is null)
+                throw new ArgumentNullException(nameof(alarmCfg));
 
-            config.Condition = Condition.From(alarmCfg.Condition, tags);            
+            var config = new AlarmConfig
+            {
+                Condition = Condition.From(alarmCfg.Condition, tags)
+            };
 
-            if(alarmCfg.Custom1 != default)
+            if (alarmCfg.Custom1 != default)
                 config.Custom1 = Argument.From(alarmCfg.Custom1, tags);
 
             if (alarmCfg.Custom2 != default)
@@ -92,8 +96,10 @@ namespace RPCExp.AlarmLogger
 
             public Type Type { get; set; }
 
+#pragma warning disable CA1305 // Укажите IFormatProvider
             object ArgCasting(object value) =>
                 Convert.ChangeType(value, Type);
+#pragma warning restore CA1305 // Укажите IFormatProvider
 
             public bool Check(object arg1, object arg2)
             {
@@ -103,7 +109,7 @@ namespace RPCExp.AlarmLogger
             }
         }
 
-        static Dictionary<string, Operator> Operators = new Dictionary<string, Operator>()
+        static readonly Dictionary<string, Operator> Operators = new Dictionary<string, Operator>()
         {
             {">=", new Operator{Name = ">=",
                 Type = typeof(decimal),
@@ -147,7 +153,7 @@ namespace RPCExp.AlarmLogger
         {
             string operatorName = default;
             foreach (var o in Operators.Keys)
-                if (conditionString.Contains(o))
+                if (conditionString.Contains(o, StringComparison.OrdinalIgnoreCase))
                 {
                     operatorName = o;
                     break;
@@ -173,8 +179,8 @@ namespace RPCExp.AlarmLogger
     /// </summary>
     public class Argument
     {
-        private TagAbstract tag;
-        private decimal constValue;
+        private readonly TagAbstract tag;
+        private readonly decimal constValue;
 
         public Argument(TagAbstract tag)
         {
@@ -239,13 +245,15 @@ namespace RPCExp.AlarmLogger
             if (IsConst)
                 return constValue;
 
+#pragma warning disable CA1305 // Укажите IFormatProvider
             return (decimal)Convert.ChangeType(tag?.GetValue() ?? 0, typeof(decimal));
+#pragma warning restore CA1305 // Укажите IFormatProvider
         }
 
         static readonly System.Text.RegularExpressions.Regex regNumber = new System.Text.RegularExpressions.Regex(@"^[\+\-]?[0-9\,\.]+$");
-        static readonly System.Text.RegularExpressions.Regex regString = new System.Text.RegularExpressions.Regex("^\\\".*\\\"$");
+        //static readonly System.Text.RegularExpressions.Regex regString = new System.Text.RegularExpressions.Regex("^\\\".*\\\"$");
         static readonly System.Text.RegularExpressions.Regex regTagName = new System.Text.RegularExpressions.Regex("^[_a-zA-Zа-яА-Я]+[_a-zA-Zа-яА-Я0-9]*$");
-        static TagsGroup AlarmsTagGroup = new TagsGroup(new BasicPeriodSource()) {
+        static readonly TagsGroup AlarmsTagGroup = new TagsGroup(new BasicPeriodSource()) {
             Name = "AlarmsTagGroup", 
             Description = "Tags group to periodicly check alarms",
             Min = 2 * 10_000_000,
@@ -254,7 +262,9 @@ namespace RPCExp.AlarmLogger
         public static Argument From(string str, IEnumerable<TagAbstract> tags)
         {
             if (regNumber.IsMatch(str))
+#pragma warning disable CA1305 // Укажите IFormatProvider
                 return new Argument(decimal.Parse(str));
+#pragma warning restore CA1305 // Укажите IFormatProvider
 
             if (regTagName.IsMatch(str))
             {

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace RPCExp.Store.Entities
+namespace RPCExp.DbStore.Entities
 {
     public class TagsGroupCfg : INameDescription, ICopyFrom, IIdentity
     {
@@ -14,6 +14,8 @@ namespace RPCExp.Store.Entities
 
         public TagsGroupCfg(TagsGroup original) 
         {
+            if (original is null)
+                return;
             Name = original.Name;
             Description = original.Description;
             Min = original.Min;
@@ -28,10 +30,13 @@ namespace RPCExp.Store.Entities
 
         public string Description { get; set; }
 
-        public ICollection<TagsToTagsGroups> TagsToTagsGroups { get; set; }
+        public ICollection<TagsToTagsGroups> TagsToTagsGroups { get; }
 
         public void CopyFrom(object original)
         {
+            if (original is null)
+                throw new ArgumentNullException(nameof(original));
+
             var src = (TagsGroupCfg)original;
             Name = src.Name;
             Description = src.Description;

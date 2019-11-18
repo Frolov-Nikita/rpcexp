@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RPCExp.Store.Entities
+namespace RPCExp.DbStore.Entities
 {
     public class ArchiveCfg: INameDescription, ICopyFrom, IIdentity
     {
@@ -22,7 +22,10 @@ namespace RPCExp.Store.Entities
 
         public void CopyFrom(object original)
         {
-            var src = (ArchiveCfg)original;
+            if (original is null)
+                throw new ArgumentNullException(nameof(original));
+
+            ArchiveCfg src = (ArchiveCfg)original;
 
             Name = src.Name;
             Description = src.Description;

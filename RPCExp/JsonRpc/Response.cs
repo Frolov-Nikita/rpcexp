@@ -5,6 +5,26 @@ using Newtonsoft.Json;
 
 namespace RPCExp.JsonRpc
 {
+    public class ResponseError
+    {
+        [JsonProperty("code")]
+        public int Code { get; set; }
+        [JsonProperty("message")]
+        public string Message { get; set; }
+        [JsonProperty("data")]
+        public object Data { get; set; }
+
+        public static Response FromJson(string json) =>
+            JsonConvert.DeserializeObject<Response>(json);
+
+        public string ToJson()
+        {
+            var jsonData = Data == null ? "" : ",\"data\"" + JsonConvert.SerializeObject(Data, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            return $"{{\"code\":{Code}, \"message\":{JsonConvert.SerializeObject(Message)}{jsonData}}}";
+        }
+    }//class ResponseError
+
+
     public class Response
     {
         [JsonProperty("id")]
@@ -18,25 +38,6 @@ namespace RPCExp.JsonRpc
 
         [JsonProperty("error")]
         public ResponseError Error { get; set; } = null;
-
-        public class ResponseError
-        {
-            [JsonProperty("code")]
-            public int Code { get; set; }
-            [JsonProperty("message")]
-            public string Message { get; set; }
-            [JsonProperty("data")]
-            public object Data { get; set; }
-
-            public static Response FromJson(string json) =>
-                JsonConvert.DeserializeObject<Response>(json);
-
-            public string ToJson()
-            {
-                var jsonData = Data == null ? "" : ",\"data\"" + JsonConvert.SerializeObject(Data, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-                return $"{{\"code\":{Code}, \"message\":{JsonConvert.SerializeObject(Message)}{jsonData}}}";
-            }
-        }//class ResponseError
 
         public static Response FromJson(string json) => 
             JsonConvert.DeserializeObject<Response>(json);
@@ -66,15 +67,19 @@ namespace RPCExp.JsonRpc
                 Id = id,
                 Error = new ResponseError {
                     Code = -32700,
-                    Message = "Parse error" } };
+                    Message = "Parse error"
+                }
+            };
 
-        public static Response GetErrorInvalidRequest() => new Response  {
-            Error = new ResponseError
+        public static Response GetErrorInvalidRequest()=> new Response
             {
-                Code = -32600,
-                Message = "Invalid Reques",
-            }
+                Error = new ResponseError
+                {
+                    Code = -32600,
+                    Message = "Invalid Request"
+                }
         };
+        
 
         public static Response GetErrorMethodNotFound(string id, string methodName) => new Response
         {

@@ -19,11 +19,11 @@ namespace RPCExp.Modbus
     
     public class ModbusDevice : DeviceAbstract
     {
-        static ModbusFactory factory = new ModbusFactory();
+        static readonly ModbusFactory factory = new ModbusFactory();
 
         private bool forceRead = true;
 
-        private static Dictionary<Common.ValueType, TypeConverterAbstract> typeConverters = new Dictionary<Common.ValueType, TypeConverterAbstract> ();
+        private static readonly Dictionary<Common.ValueType, TypeConverterAbstract> typeConverters = new Dictionary<Common.ValueType, TypeConverterAbstract> ();
 
         private void UpdateTypeConverters() {
             typeConverters.Clear();
@@ -40,23 +40,25 @@ namespace RPCExp.Modbus
             return typeConverters[modbusValueType];
         }
 
-        private byte[] byteOrder = new byte[] { 2, 3, 0, 1 };
+        private byte[] byteOrder = new byte[] {  0, 1, 2, 3 };
 
         public byte SlaveId { get; set; }
-        
+
+#pragma warning disable CA1819 // Свойства не должны возвращать массивы
         public byte[] ByteOrder {
             get => byteOrder;
             set {
                 byteOrder = value;
                 UpdateTypeConverters();
             }
-        }
-        
+        }        
+#pragma warning restore CA1819 // Свойства не должны возвращать массивы
+
         public FrameType FrameType { get; set; } = FrameType.Ip;
 
-        private MasterSource masterSource = new MasterSource();
+        private readonly MasterSource masterSource = new MasterSource();
 
-        private async Task UpdateHoldingRegisters(IModbusMaster master, MTagsGroup g)
+        private async Task UpdateHoldingRegisters(IModbusMaster master, MTagsCollection g)
         {
             await master.ReadHoldingRegistersAsync(SlaveId, (ushort)g.Begin, (ushort)g.Length)
                 .ContinueWith(
@@ -77,8 +79,6 @@ namespace RPCExp.Modbus
                             var tc = GetTypeConverter(t.ValueType);
                             var val = tc.GetValue(buff.AsSpan((t.Begin - g.Begin) * 2));
 
-                            
-
                             t.SetValue(val);
                         }
                     }
@@ -90,7 +90,7 @@ namespace RPCExp.Modbus
                 }).ConfigureAwait(false);
         }
 
-        private async Task UpdateInputRegisters(IModbusMaster master, MTagsGroup g)
+        private async Task UpdateInputRegisters(IModbusMaster master, MTagsCollection g)
         {
             try
             {
@@ -116,7 +116,7 @@ namespace RPCExp.Modbus
             }
         }
 
-        private async Task UpdateCoils(IModbusMaster master, MTagsGroup g)
+        private async Task UpdateCoils(IModbusMaster master, MTagsCollection g)
         {
             await master.ReadCoilsAsync(SlaveId, (ushort)g.Begin, (ushort)g.Length)
                 .ContinueWith(
@@ -136,7 +136,7 @@ namespace RPCExp.Modbus
                 }).ConfigureAwait(false);
         }
 
-        private async Task UpdateDiscreteInputs(IModbusMaster master, MTagsGroup g)
+        private async Task UpdateDiscreteInputs(IModbusMaster master, MTagsCollection g)
         {
             try
             {
@@ -156,10 +156,10 @@ namespace RPCExp.Modbus
         {
             var tags = NeedToUpdate(out long groupNextUpdate, force);
 
-            var holdingRegisters = new MTagsGroup();
-            var inputRegisters = new MTagsGroup();
-            var coils = new MTagsGroup();
-            var discreteInputs = new MTagsGroup();
+            var holdingRegisters = new MTagsCollection();
+            var inputRegisters = new MTagsCollection();
+            var coils = new MTagsCollection();
+            var discreteInputs = new MTagsCollection();
 
             foreach (MTag tag in tags)
             {
@@ -187,16 +187,16 @@ namespace RPCExp.Modbus
                 IModbusMaster master = masterSource.Get(factory, FrameType, ConnectionSource);
 
                 foreach (var g in (coils).Slice())
-                    await UpdateCoils(master, g);
+                    await UpdateCoils(master, g).ConfigureAwait(false);
 
                 foreach (var g in (discreteInputs).Slice())
-                    await UpdateDiscreteInputs(master, g);
+                    await UpdateDiscreteInputs(master, g).ConfigureAwait(false);
 
                 foreach (var g in (inputRegisters).Slice())
-                    await UpdateInputRegisters(master, g);
+                    await UpdateInputRegisters(master, g).ConfigureAwait(false);
 
                 foreach (var g in (holdingRegisters).Slice())
-                    await UpdateHoldingRegisters(master, g);
+                    await UpdateHoldingRegisters(master, g).ConfigureAwait(false);
             }
 
             return groupNextUpdate;
@@ -209,7 +209,9 @@ namespace RPCExp.Modbus
         /// <returns></returns>
         public override async Task<int> Write(IDictionary<string, object> tagsValues)
         {
-            
+            if (tagsValues is null)
+                return 0;
+
             List<MTag> tags = new List<MTag>();
             foreach (var tv in tagsValues)
                 if (Tags.ContainsKey(tv.Key))
@@ -217,8 +219,8 @@ namespace RPCExp.Modbus
 
             if(tags.Count > 0)
             {
-                var holdingRegisters = new MTagsGroup();
-                var coils = new MTagsGroup();
+                var holdingRegisters = new MTagsCollection();
+                var coils = new MTagsCollection();
 
                 foreach (MTag tag in tags)
                 {
@@ -253,7 +255,7 @@ namespace RPCExp.Modbus
                             values[b + i] = BitConverter.ToUInt16(buff, i * 2);
                     }
 
-                    await master.WriteMultipleRegistersAsync(SlaveId, (ushort)g.Begin, values);
+                    await master.WriteMultipleRegistersAsync(SlaveId, (ushort)g.Begin, values).ConfigureAwait(false);
                 }
 
                 foreach (var g in coils.Slice())
@@ -262,7 +264,7 @@ namespace RPCExp.Modbus
                     int i = 0;
                     foreach (var t in g)
                         values[i++] = (bool)tagsValues[t.Name];
-                    await master.WriteMultipleCoilsAsync(SlaveId, (ushort)g.Begin, values);
+                    await master.WriteMultipleCoilsAsync(SlaveId, (ushort)g.Begin, values).ConfigureAwait(false);
                 }
             }
 
@@ -276,7 +278,7 @@ namespace RPCExp.Modbus
             bool succes = false;
             if (ConnectionSource.IsOpen)
             {
-                nextTime = await Update(forceRead);
+                nextTime = await Update(forceRead).ConfigureAwait(false);
                 forceRead = false;
                 succes = true;
             }

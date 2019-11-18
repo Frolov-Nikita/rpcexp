@@ -19,6 +19,9 @@ namespace RPCExp
         /// <returns></returns>
         public static string GetDocFullName(this Type type)
         {
+            if (type is null)
+                throw new ArgumentNullException(nameof(type));
+
             var n = type.Namespace + "." + type.Name.Split('`')[0];
             var gtaLen = type.GenericTypeArguments.Length;
             if (gtaLen > 0)
@@ -39,6 +42,9 @@ namespace RPCExp
         /// <returns>The XML fragment describing the method</returns>
         public static XmlElement GetDocumentation(this MethodInfo methodInfo)
         {
+            if (methodInfo is null)
+                return null;
+            
             // Calculate the parameter string as this is in the member name in the XML
             var parametersString = "";
             foreach (var parameterInfo in methodInfo.GetParameters())
@@ -65,6 +71,8 @@ namespace RPCExp
         /// <returns>The XML fragment describing the member</returns>
         public static XmlElement GetDocumentation(this MemberInfo memberInfo)
         {
+            if (memberInfo is null)
+                return null;
             // First character [0] of member type is prefix character in the name in the XML
             return XmlFromName(memberInfo.DeclaringType, memberInfo.MemberType.ToString()[0], memberInfo.Name);
         }
@@ -118,11 +126,11 @@ namespace RPCExp
             string fullName;
 
             if (string.IsNullOrEmpty(name))
-                fullName = prefix + ":" + type.FullName;
+                fullName = prefix + ":" + type?.FullName;
             else
-                fullName = prefix + ":" + type.FullName + "." + name;
+                fullName = prefix + ":" + type?.FullName + "." + name;
 
-            var xmlDocument = XmlFromAssembly(type.Assembly);
+            var xmlDocument = XmlFromAssembly(type?.Assembly);
 
             if (xmlDocument == null) return null;
 
@@ -141,6 +149,7 @@ namespace RPCExp
         /// </summary>
         private static readonly Dictionary<Assembly, Exception> FailCache = new Dictionary<Assembly, Exception>();
 
+
         /// <summary>
         /// Obtains the documentation file for the specified assembly
         /// </summary>
@@ -148,6 +157,7 @@ namespace RPCExp
         /// <returns>The XML document</returns>
         /// <remarks>This version uses a cache to preserve the assemblies, so that 
         /// the XML file is not loaded and parsed on every single lookup</remarks>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1062:Проверить аргументы или открытые методы", Justification = "<Ожидание>")]// its extention method arg can't be null
         public static XmlDocument XmlFromAssembly(this Assembly assembly)
         {
             if (FailCache.ContainsKey(assembly))
@@ -186,7 +196,7 @@ namespace RPCExp
 
             const string prefix = "file:///";
 
-            if (assemblyFilename.StartsWith(prefix))
+            if (assemblyFilename.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             {
                 StreamReader streamReader;
 

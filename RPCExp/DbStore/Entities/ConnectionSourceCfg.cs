@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RPCExp.Store.Entities
+namespace RPCExp.DbStore.Entities
 {
     
     public class ConnectionSourceCfg: INameDescription, ICopyFrom, IIdentity
@@ -21,6 +21,9 @@ namespace RPCExp.Store.Entities
 
         public void CopyFrom(object original)
         {
+            if (original is null)
+                throw new ArgumentNullException(nameof(original));
+
             var src = (ConnectionSourceCfg) original;
             ClassName = src.ClassName;
             Name = src.Name;

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace RPCExp.Store.Entities
+namespace RPCExp.DbStore.Entities
 {
 
     public class TagCfg : INameDescription, IProtocolSpecificData, ICopyFrom, IIdentity
@@ -41,6 +41,9 @@ namespace RPCExp.Store.Entities
 
         public void CopyFrom(object original)
         {
+            if (original is null)
+                throw new ArgumentNullException(nameof(original));
+
             var src = (TagCfg)original;
 
             ClassName = src.ClassName;

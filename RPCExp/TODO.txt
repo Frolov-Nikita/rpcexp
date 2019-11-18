@@ -1,13 +1,23 @@
-﻿debug interface
+﻿global constants in cfg.json
+	конфигурируемые тайминги
+
+TagsGroup track period for each client
+
+debug interface
+
+views in db
 
 Статический анализ
 
 TUI
 
-global constants in cfg.json
+Функции "синхронного чтения", "записи и последующего чтения" по модбас
 
 Add real async to NModbus
 
 messure & Refactor reflection in Router methods
+	refactor websockets-rpc
 
-refactor websockets-rpc
+Функция rpc обновления конфигурации facility и connections
+
+

@@ -7,11 +7,11 @@ using System.Text;
 
 namespace RPCExp
 {
-    public class StoreTemplateGen
+    public static class StoreTemplateGen
     {
-        public static Common.Store Get()
+        public static Store Get()
         {
-            var store = new Common.Store();
+            var store = new Store();
 
             var connectionSource = new TcpConnectionSource
             {

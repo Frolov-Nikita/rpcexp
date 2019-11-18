@@ -7,6 +7,9 @@ namespace RPCExp.Modbus.TypeConverters
     {
         public TypeConverterAbstract(byte[] byteOrder)
         {
+            if (byteOrder is null)
+                throw new ArgumentNullException(nameof(byteOrder));
+
             ByteOrder = new byte[ByteLength];
             byte min = 0xFF;
             for (var i = 0; i < ByteLength; i++)
@@ -22,8 +25,10 @@ namespace RPCExp.Modbus.TypeConverters
         public int ByteLength => GetByteLength(ValueType);
 
         public abstract Common.ValueType ValueType { get; }
-        
-        protected byte[] ByteOrder;
+
+#pragma warning disable CA1819 // Свойства не должны возвращать массивы
+        protected byte[] ByteOrder { get; set; }
+#pragma warning restore CA1819 // Свойства не должны возвращать массивы
 
         protected void SetOrderedBuffer(Span<byte> dest, Span<byte> src)
         {

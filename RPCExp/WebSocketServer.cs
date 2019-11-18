@@ -11,20 +11,21 @@ namespace RPCExp
 {
     public class WebSocketServer:ServiceAbstract
     {
-        private HttpListener httpListener;        
-        private List<Task> socketsHandlers = new List<Task>(4);
-        private Router router;
-        private string[] hosts;
+        //private HttpListener httpListener;
+        private readonly List<Task> socketsHandlers = new List<Task>(4);
+        private readonly Router router;
+        private readonly string[] hosts;
         
         public WebSocketServer(Router router, string[] hosts = null)
         {
             this.router = router;
-            this.hosts = hosts?? new string[] { "http://localhost:8888/" };
+            this.hosts = hosts ?? new string[] { "http://localhost:8888/", }; 
         }
 
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
-            httpListener = new HttpListener();
+            HttpListener httpListener = new HttpListener();
+
             foreach(var host in hosts)
                 httpListener.Prefixes.Add(host);
 
@@ -40,6 +41,10 @@ namespace RPCExp
                     socketsHandlers.RemoveAll(t => t.Status != TaskStatus.Running);
                 }
             }
+            httpListener.Stop();
+            httpListener.Close();
+
+            //httpListener.Dispose(true);
         }
 
 
@@ -62,7 +67,7 @@ namespace RPCExp
                     while (!req.EndOfMessage)
                         await socket.ReceiveAsync(buffer, cancellationToken).ConfigureAwait(false);
                     
-                    var respBytes = await router.Handle(buffer.Array, 0, req.Count);
+                    var respBytes = await router.Handle(buffer.Array, 0, req.Count).ConfigureAwait(false);
 
                     //var resp = await router.Handle(buffer.AsSpan(0, r.Count));
                     await socket.SendAsync(respBytes, WebSocketMessageType.Text, true, cancellationToken).ConfigureAwait(false);

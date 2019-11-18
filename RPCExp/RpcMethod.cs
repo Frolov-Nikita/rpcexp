@@ -8,22 +8,28 @@ namespace RPCExp
 {
     public class RpcMethod
     {
-
         public string TargetName { get; set; }
+     
         public string MethodName { get; set; }
+        
         public string Description { get; set; }
+        
         public string FullMethodName =>
             (TargetName != default) ? TargetName + "." + MethodName : MethodName;
+        
         public object Target { get; set; }
+        
         public bool IsAsync { get; set; }
 
+#pragma warning disable CA1819 // Свойства не должны возвращать массивы
         public System.Reflection.ParameterInfo[] Parameters { get; set; }
+#pragma warning restore CA1819 // Свойства не должны возвращать массивы
 
         public Type ReturnType { get; set; }
 
         public int ParametersLength => Parameters?.Length ?? 0;
 
-        public async Task<object> Invoke(object parametrs)
+        public async Task<object> InvokeAsync(object parametrs)
         {
             object[] args = null;
 
@@ -64,15 +70,12 @@ namespace RPCExp
 
             if (IsAsync)
             {
-                //return = await Convert.ChangeType(ret, ret.GetType());
-                //return await ((Task<ret.GetType().GenericTypeArguments[0]>) ret);
                 var tsk = (Task)ret;
-                await tsk;
+                await tsk.ConfigureAwait(false);
                 return tsk.GetType().GetProperty("Result").GetValue(tsk);
             }
             else
                 return ret;
-            //return IsAsync ? await (Task<object>)ret : ret;
         }
 
     }

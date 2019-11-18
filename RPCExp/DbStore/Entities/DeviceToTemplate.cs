@@ -1,4 +1,4 @@
-﻿namespace RPCExp.Store.Entities
+﻿namespace RPCExp.DbStore.Entities
 {
     /// <summary>
     /// Класс для связи many2many

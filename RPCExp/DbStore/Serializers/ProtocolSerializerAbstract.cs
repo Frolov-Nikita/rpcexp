@@ -1,10 +1,10 @@
 ﻿using RPCExp.Common;
 using System;
 using System.Linq;
-using RPCExp.Store.Entities;
+using RPCExp.DbStore.Entities;
 using System.Collections.Generic;
 
-namespace RPCExp.Store.Serializers
+namespace RPCExp.DbStore.Serializers
 {
 
     /// <summary>
