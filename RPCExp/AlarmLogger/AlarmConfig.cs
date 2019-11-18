@@ -246,7 +246,7 @@ namespace RPCExp.AlarmLogger
                 return constValue;
 
 #pragma warning disable CA1305 // Укажите IFormatProvider
-            return (decimal)Convert.ChangeType(tag?.GetValue() ?? 0, typeof(decimal));
+            return (decimal)Convert.ChangeType(tag?.Value ?? 0, typeof(decimal));
 #pragma warning restore CA1305 // Укажите IFormatProvider
         }
 

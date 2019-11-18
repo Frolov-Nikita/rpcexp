@@ -13,12 +13,10 @@ namespace RPCExp.Common
         {
             if (tagData == null) return;
             Quality = tagData.Quality;
-            val = tagData.GetValue();
+            Value = tagData.Value;
             Last = tagData.Last;
             LastGood = tagData.LastGood;
         }
-
-        private object val;
 
         public TagQuality Quality { get; protected set; } = TagQuality.BAD;
 
@@ -26,9 +24,9 @@ namespace RPCExp.Common
 
         public long LastGood { get; protected set; } = DateTime.Now.Ticks;
 
-        //public object Value => GetValue();
+        public object Value { get; private set; }
 
-        public virtual object GetValue() => val;
+        //public virtual object GetValue() => val;
 
         internal void SetValue(object value, TagQuality qty = TagQuality.GOOD)
         {
@@ -36,7 +34,7 @@ namespace RPCExp.Common
             Last = DateTime.Now.Ticks;
             if (qty == TagQuality.GOOD)
             {
-                val = value;
+                Value = value;
                 LastGood = Last;
             }
         }
@@ -44,7 +42,7 @@ namespace RPCExp.Common
         public string ToJson()
         {
             long tsLast = (Last - ZeroTick) / 10_000; // миллисекунды с начала времен (1970)
-            var result = $"[\"{val.ToString()}\",\"{ Quality}\",{tsLast}";
+            var result = $"[\"{Value.ToString()}\",\"{ Quality}\",{tsLast}";
             
             if (Quality < TagQuality.GOOD)
             {

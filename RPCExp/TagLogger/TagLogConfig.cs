@@ -71,7 +71,7 @@ namespace RPCExp.TagLogger
                     return null;
 
 #pragma warning disable CA1305 // Укажите IFormatProvider
-                var val = (decimal)Convert.ChangeType(Tag?.GetValue() ?? 0, typeof(decimal));
+                var val = (decimal)Convert.ChangeType(Tag?.Value ?? 0, typeof(decimal));
 #pragma warning restore CA1305 // Укажите IFormatProvider
 
                 if (((lastTime + PeriodMaxSec * 10_000_000) <= now) || 

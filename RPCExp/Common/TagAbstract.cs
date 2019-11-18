@@ -70,7 +70,7 @@ namespace RPCExp.Common
             Scale = Scale != null ? new { Scale.Min, Scale.Max } : null,
             Groups = Groups.Keys,
             
-            Value = GetValue(),
+            Value,
             Quality,
             LastGood,
             Last,
