@@ -41,13 +41,13 @@ namespace RPCExp.DbStore
         {
             var context = new StoreContext(target);
             var store = new Store();
-
+            
             foreach (var cfg in context.Connections)
             {
                 var connectionSource = connectionSerializers[cfg.ClassName].Unpack(cfg);                
                 store.ConnectionsSources.Add(cfg.Name, connectionSource);
             }
-
+            
             var storedDeviceToTemplates = context.DeviceToTemplates
                 .Include(e => e.Device)
                 .Include(e => e.Template)
@@ -58,14 +58,11 @@ namespace RPCExp.DbStore
                     .ThenInclude(e => e.Alarms)
                     .ThenInclude((AlarmCfg e)=> e.Category)
                 .Include(e => e.Template)
-                    .ThenInclude(e => e.Archives);
-
-            // TODO: Это лишнее надо ThenInclude применить к запросу выше
-            var storedTagsToTagsGroup = context.TagsToTagsGroups
-                .Include(ttg => ttg.TagCfg)
-                .Include(ttg => ttg.TagsGroupCfg);
-            
-            foreach (var facilityCfg in context.Facilities.Include(f => f.Devices))
+                    .ThenInclude(e => e.Archives)
+                .ToList();
+                
+            var facilityConfigs = context.Facilities.Include(e => e.Devices).ToList();
+            foreach (var facilityCfg in facilityConfigs)
             {
                 var facility = new Facility
                 {
@@ -75,9 +72,9 @@ namespace RPCExp.DbStore
                     Id = facilityCfg.Id,
                 };
 
+                
                 foreach(var deviceCfg in facilityCfg.Devices)
                 {
-
                     var protocolSerializer = protorolSerializers[deviceCfg.ClassName];
                     var device = protocolSerializer.UnpackDevice(deviceCfg, store);
 
@@ -91,9 +88,10 @@ namespace RPCExp.DbStore
                             var tag = protocolSerializer.UnpackTag(tagCfg);
                             tag.TemplateId = template.Id;
                             // добавим/восстановим/создадим группы тэгов
-                            foreach(var tagToTagsGroupCfg in storedTagsToTagsGroup.Where(e => e.TagId == tagCfg.Id))
+
+                            foreach(var tttg in tagCfg.TagsToTagsGroups)
                             {
-                                var tagGroupCfg = tagToTagsGroupCfg.TagsGroupCfg;
+                                var tagGroupCfg = tttg.TagsGroupCfg;
                                 TagsGroup tagGroup;
                                 if (device.Groups.ContainsKey(tagGroupCfg.Name))
                                     tagGroup = device.Groups[tagGroupCfg.Name];
@@ -109,9 +107,9 @@ namespace RPCExp.DbStore
                                 }
                                 tag.Groups.AddByName(tagGroup);
                             }
-                            
+
                             // добавим тэг в сервис архива
-                            if(tagCfg.ArchiveCfg != default)
+                            if (tagCfg.ArchiveCfg != default)
                             {
                                 var tagLogConfig = new TagLogger.TagLogConfig(tag)
                                 {
@@ -149,15 +147,15 @@ namespace RPCExp.DbStore
                         }
                     }
 
-                    facility.Devices.Add(device.Name, device);
+                    facility.Devices.AddByName(device);
                 }
-
+                
                 store.Facilities.Add(facility.AccessName, facility);
             }
             context.Dispose();
             context = null;
             return store;
-        }
+        } // Load();
 
         public void Save(Store store, string target)
         {

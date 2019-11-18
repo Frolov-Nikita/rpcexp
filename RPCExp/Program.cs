@@ -24,10 +24,10 @@ namespace RPCExp
             //storeSource.Save(store, dbfilename);
             //return;
 
-            var store = storeSource.Load(dbfilename);
-
+            var tbegin = DateTime.Now;
+            var store = storeSource.Get(dbfilename);
+            Console.WriteLine($"Store loaded {(DateTime.Now - tbegin).TotalMilliseconds}мсек");
             
-
             store.TagLogService.Start();
 
             store.AlarmService.Start();
