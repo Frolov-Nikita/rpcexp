@@ -49,14 +49,16 @@ namespace RPCExp.DbStore
             }
 
             var storedDeviceToTemplates = context.DeviceToTemplates
-                .Include(dtt => dtt.Device)
-                .Include(dtt => dtt.Template)
-                    .ThenInclude(t => t.Tags)
-                .Include(o => o.Template)
-                    .ThenInclude(t => t.Alarms)
-                    .ThenInclude((AlarmCfg a)=> a.Category)
-                .Include(o => o.Template)
-                    .ThenInclude(t => t.Archives);
+                .Include(e => e.Device)
+                .Include(e => e.Template)
+                    .ThenInclude(e => e.Tags)
+                    .ThenInclude((TagCfg e) => e.TagsToTagsGroups)
+                    .ThenInclude((TagsToTagsGroups e) => e.TagsGroupCfg)
+                .Include(e => e.Template)
+                    .ThenInclude(e => e.Alarms)
+                    .ThenInclude((AlarmCfg e)=> e.Category)
+                .Include(e => e.Template)
+                    .ThenInclude(e => e.Archives);
 
             // TODO: Это лишнее надо ThenInclude применить к запросу выше
             var storedTagsToTagsGroup = context.TagsToTagsGroups

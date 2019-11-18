@@ -20,7 +20,7 @@ namespace RPCExp.Common
 
         public long Last { get; private set; } = 0;
 
-        public long Min { get; set; } = 2 * 10_000_000; // 1 сек
+        public long Min { get; set; } = 2 * 10_000_000; // 2 сек
 
         public long Period => Min;
 

@@ -21,6 +21,10 @@ namespace RPCExp.AlarmLogger
             context = null;
         }
 
+        public TimeSpan CheckPeriod { get; set; }
+
+        public TimeSpan SavePeriod { get; set; }
+
         private AlarmContext Context
         {
             get

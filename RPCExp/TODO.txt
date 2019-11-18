@@ -1,5 +1,18 @@
 ﻿global constants in cfg.json
-	конфигурируемые тайминги
+	конфигурируемые тайминги=
+	{
+		TimeSpan AlarmServiceCheckPeriod { get; set; }
+		TimeSpan AlarmServiceSavePeriod { get; set; }
+		TimeSpan AlarmServiceOnErrorWait { get; set; }
+		int AlarmServiceStoreItems { get; set; }
+
+		TimeSpan TagLogServiceCheckPeriod { get; set; }
+		TimeSpan TagLogServiceSavePeriod { get; set; }
+		TimeSpan TagLogServiceOnErrorWait { get; set; }
+		int TagLogServiceStoreItems { get; set; }
+
+	}
+DbStore Load
 
 TagsGroup track period for each client
 
