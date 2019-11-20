@@ -6,40 +6,41 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using Microsoft.EntityFrameworkCore;
 
 namespace RPCExp.TagLogger
 {
     public class TagLogService : ServiceAbstract
     {
-        TagLogContext context;
+        const int baseCapacityOfTmpList = 32; // Начальная емкость промежуточного хранилища
 
-        public TagLogService()
-        {
+        const int minWaitTimeMs = 50; // Минимальное время ожидания, мсек
 
-        }
+        public TimeSpan MinMaintainPeriod { get; set; } = TimeSpan.FromSeconds(10);
 
-        ~TagLogService() =>
-            context?.SaveChanges();
+        DateTime nextMaintain = DateTime.Now;
 
-        public int ItemsToSaveLimit { get; set; } = 1;
+        public TimeSpan CheckPeriod { get; set; } = TimeSpan.FromMilliseconds(500);
 
-        private TagLogContext Context {
-            get {
-                if (context == default)
-                    context = new TagLogContext();
-                return context;
-            }
-        }
+        public TimeSpan SavePeriod { get; set; } = TimeSpan.FromSeconds(10);
 
+        public long StoreItemsCount { get; set; } = 10_000_000;
+        
+        long DeltaRecordsCount => 1 + StoreItemsCount * 5 / 100;
+
+        public string FileName { get; set; } = "alarmLog.sqlite3";
+        
         public List<TagLogConfig> Configs { get; } = new List<TagLogConfig>();
 
-        protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
+        private async Task InnitDB(CancellationToken cancellationToken)
         {
-            // Старт (Инициализация контекста БД алармов)
-            int itemsToSaveCount = 0;
+            var context = new TagLogContext(FileName);
+
+            var storedInfo = await context.TagLogInfo.ToListAsync(cancellationToken).ConfigureAwait(false);
+
             foreach (var cfg in Configs)
             {
-                var storedTagLogInfo = Context.TagLogInfo.FirstOrDefault(e =>
+                var storedTagLogInfo = context.TagLogInfo.FirstOrDefault(e =>
                     e.FacilityAccessName == cfg.TagLogInfo.FacilityAccessName &&
                     e.DeviceName == cfg.TagLogInfo.DeviceName &&
                     e.TagName == cfg.TagLogInfo.TagName);
@@ -52,59 +53,115 @@ namespace RPCExp.TagLogger
                         DeviceName = cfg.TagLogInfo.DeviceName,
                         TagName = cfg.TagLogInfo.TagName,
                     };
-                    Context.TagLogInfo.Add(storedTagLogInfo);
-                    itemsToSaveCount++;
+                    context.TagLogInfo.Add(storedTagLogInfo);
+                    storedInfo.Add(storedTagLogInfo);
                 }
                 cfg.TagLogInfo = storedTagLogInfo;
             }
 
-            if (itemsToSaveCount >= ItemsToSaveLimit)
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+            context.Dispose();
+        }
+
+        private async Task SaveAsync(List<TagLogData> cache, CancellationToken cancellationToken)
+        {
+            if ((cache?.Count ?? 0) == 0)
+                return;
+
+            var context = new TagLogContext(FileName);
+
+            context.TagLogData.AddRange(cache);
+
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+            if (nextMaintain < DateTime.Now)
             {
-                await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                itemsToSaveCount = 0;
+                nextMaintain = DateTime.Now + MinMaintainPeriod;
+
+                var count = await context.TagLogData.LongCountAsync(cancellationToken).ConfigureAwait(false);
+
+                if (count > StoreItemsCount)
+                {
+                    var countToRemove = count - StoreItemsCount + DeltaRecordsCount;
+                    int ctr = countToRemove < 0 ? 0 :
+                            countToRemove > int.MaxValue ? int.MaxValue :
+                            (int)countToRemove;
+
+                    var itemsToRemove = context.TagLogData.Take(ctr);
+
+                    context.TagLogData.RemoveRange(itemsToRemove);
+
+                    await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+                    await context.Database.ExecuteSqlRawAsync("VACUUM ;").ConfigureAwait(false);
+
+                    nextMaintain = DateTime.Now + 4 * MinMaintainPeriod; // после такого можно чуть подольше не проверять:)
+                }
             }
+            context.Dispose();
+        }
+
+        protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
+        {
+            // Старт (Инициализация контекста БД алармов)
+            await InnitDB(cancellationToken).ConfigureAwait(false);
+
+            var cache = new List<TagLogData>(baseCapacityOfTmpList);
+
+            var tNextSave = DateTime.Now + SavePeriod;
 
             // Главный цикл (проверка алармов и запись)
             while (!cancellationToken.IsCancellationRequested)
             {
-                try
+                var tNextCheck = DateTime.Now + CheckPeriod;
+
+                foreach (var cfg in Configs)
                 {
-                    foreach (var cfg in Configs)
+                    try
                     {
                         var archiveData = cfg.NeedToArcive;
                         if (archiveData != default)
                         {
-                            await Context.TagLogData.AddAsync(new TagLogData
+                            cache.Add(new TagLogData
                             {
                                 //TagLogInfo = cfg.TagLogInfo,
                                 TagLogInfoId = cfg.TagLogInfo.Id,
                                 TimeStamp = archiveData.TimeStamp,
                                 Value = archiveData.Value,
-                            }).ConfigureAwait(false);
-                            itemsToSaveCount++;
-                        }                            
+                            });
+                        }
                     }
-
-                    if (itemsToSaveCount >= ItemsToSaveLimit)
+                    catch//(Exception ex)
                     {
-                        await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                        itemsToSaveCount = 0;
-                        context?.Dispose();
-                        context = null;
+                        //TODO: log this exception
                     }
+                }//for
 
-                    await Task.Delay(100).ConfigureAwait(false);
+                try
+                {
+                    if (cache.Count > 0)
+                    {
+                        if ((tNextSave <= DateTime.Now) || (cache.Count >= (baseCapacityOfTmpList * 4 / 5))) // 80% заполненности - чтобы избежать разрастания памяти
+                        {
+                            tNextSave = DateTime.Now + SavePeriod;
+                            var newCache = new List<TagLogData>(cache);
+                            _ = Task.Run(async () => {
+                                await SaveAsync(newCache, cancellationToken).ConfigureAwait(false);
+                            });
+                            cache.Clear();
+                        }
+                    }
                 }
                 catch//(Exception ex)
                 {
-                    await Task.Delay(1_000).ConfigureAwait(false);
+                    //TODO: log this exception
                 }
-            }
 
-            // Завершение
-            await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            context.Dispose();
-            context = null;
+                int tSleep = tNextCheck > DateTime.Now ? (int)(tNextCheck - DateTime.Now).TotalMilliseconds : minWaitTimeMs;
+
+                await Task.Delay(tSleep).ConfigureAwait(false);
+            }//while
         }
 
         /// <summary>
@@ -125,13 +182,52 @@ namespace RPCExp.TagLogger
         /// <param name="tBegin">Время начала для выборки</param>
         /// <param name="tEnd">время окончания выборки</param>
         /// <returns></returns>
-        public IEnumerable<TagLogData> GetData(IEnumerable<int> ids, long tBegin = long.MinValue, long tEnd = long.MaxValue)
+        public async Task<IEnumerable<TagLogData>> GetData(TagLogFilter filter, CancellationToken cancellationToken)
         {
-            return from d in Context.TagLogData
-                    where ids.Contains(d.TagLogInfoId) &&
-                    d.TimeStamp >= tBegin &&
-                    d.TimeStamp <= tEnd
-                    select d;
+            var context = new TagLogContext(FileName);
+
+            var query = from a in context.TagLogData
+                        select a;
+
+            if (filter != default)
+            {
+                if (filter.TBegin != long.MinValue)
+                    query = query.Where(a => a.TimeStamp >= filter.TBegin);
+
+                if (filter.TEnd != long.MaxValue)
+                    query = query.Where(a => a.TimeStamp <= filter.TEnd);
+
+                if (filter.InfoIds != default)
+                    query = query.Where(a => filter.InfoIds.Contains(a.TagLogInfo.Id));
+                
+                //TODO: остальное
+                if (filter.Count != 0)
+                    query = query.Skip(filter.Offset).Take(filter.Count);
+            }
+
+            var result = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
+
+            context.Dispose();
+            return result;
         }
+    }
+
+    public class TagLogFilter
+    {
+        public long TBegin { get; set; } = long.MinValue;
+
+        public long TEnd { get; set; } = long.MaxValue;
+
+        public IEnumerable<int> InfoIds { get; set; }
+
+        public IEnumerable<string> FacilityAccessName { get; set; }
+
+        public IEnumerable<string> DeviceName { get; set; }
+
+        public IEnumerable<string> TagName { get; set; }
+
+        public int Offset { get; set; } = 0;
+
+        public int Count { get; set; } = 0;
     }
 }
