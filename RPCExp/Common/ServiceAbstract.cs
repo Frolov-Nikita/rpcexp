@@ -24,8 +24,10 @@ namespace RPCExp.Common
         ~ServiceAbstract() {
             cts?.Cancel();
             main.Wait(10);
+
             main.Dispose();
             cts.Dispose();
+
             cts = null;
             main = null;
         }
@@ -88,8 +90,10 @@ namespace RPCExp.Common
 
             //main = ServiceTaskAsync(cts.Token);
             //main.ConfigureAwait(false);
+#pragma warning disable CA2008 // Не создавайте задачи без передачи TaskScheduler
             main.ContinueWith(OnCompleteBaseAsync, TaskContinuationOptions.OnlyOnRanToCompletion);
             main.ContinueWith(OnErrorBaseAsync, TaskContinuationOptions.OnlyOnFaulted);
+#pragma warning restore CA2008 // Не создавайте задачи без передачи TaskScheduler
 
             State = ServiceState.Started;
         }

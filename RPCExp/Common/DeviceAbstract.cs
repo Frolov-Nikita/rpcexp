@@ -10,7 +10,6 @@ using RPCExp.Connections;
 
 namespace RPCExp.Common
 {
-
     public abstract class DeviceAbstract : ServiceAbstract, INameDescription
     {
         public virtual string Name { get ; set ; }
@@ -81,11 +80,6 @@ namespace RPCExp.Common
         {
             while (!cancellationToken.IsCancellationRequested) {
                 (long nextTime, bool IOUpdateOk) = await IOUpdate(cancellationToken).ConfigureAwait(false);
-                //if (IOUpdateOk)
-                //{
-                //    await AlarmLogHandle(cancellationToken).ConfigureAwait(false);
-                //    await TagLogHandle(cancellationToken).ConfigureAwait(false);
-                //}
 
                 long waitTime = nextTime - DateTime.Now.Ticks;
                 waitTime = waitTime < 0 ? 0 : waitTime;

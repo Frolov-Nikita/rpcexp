@@ -62,7 +62,7 @@ namespace RPCExp.AlarmLogger
             if (alarmCfg.Custom2 != default)
                 config.Custom2 = Argument.From(alarmCfg.Custom2, tags);
 
-            if (alarmCfg.Custom2 != default)
+            if (alarmCfg.Custom3 != default)
                 config.Custom3 = Argument.From(alarmCfg.Custom3, tags);
 
             if (alarmCfg.Custom4 != default)
@@ -132,12 +132,12 @@ namespace RPCExp.AlarmLogger
                 Type = typeof(decimal),
                 Predicate = (a, b) => ((decimal)a) < ((decimal)b) } } ,
 
-            {":", new Operator{Name = ":",
-                Type = typeof(Int32),
-                Predicate = (a, b) => (((Int32)a) & (1 << ((Int32)b))) > 0 } } ,
             {"!:", new Operator{Name = "!:",
                 Type = typeof(Int32),
                 Predicate = (a, b) => (((Int32)a) & (1 << ((Int32)b))) == 0 } } ,
+            {":", new Operator{Name = ":",
+                Type = typeof(Int32),
+                Predicate = (a, b) => (((Int32)a) & (1 << ((Int32)b))) > 0 } } ,
         };
 
         Argument[] Arguments { get; set; }
@@ -261,16 +261,17 @@ namespace RPCExp.AlarmLogger
 
         public static Argument From(string str, IEnumerable<TagAbstract> tags)
         {
-            if (regNumber.IsMatch(str))
+            var s = str?.Trim() ?? "";
+            if (regNumber.IsMatch(s))
 #pragma warning disable CA1305 // Укажите IFormatProvider
-                return new Argument(decimal.Parse(str));
+                return new Argument(decimal.Parse(s));
 #pragma warning restore CA1305 // Укажите IFormatProvider
 
-            if (regTagName.IsMatch(str))
+            if (regTagName.IsMatch(s))
             {
-                var tag = tags.FirstOrDefault(t => t.Name == str);
+                var tag = tags.FirstOrDefault(t => t.Name == s);
                 if (tag == default)
-                    throw new ArgumentException($"Argument tag \'{str}\' doesn`t found.");
+                    throw new ArgumentException($"Argument tag \'{s}\' doesn`t found.");
 
                 if (!tag.Groups.ContainsKey(AlarmsTagGroup.Name))
                     tag.Groups.AddByName(AlarmsTagGroup);
@@ -278,7 +279,7 @@ namespace RPCExp.AlarmLogger
                 return new Argument(tag);
             }
 
-            throw new ArgumentException($"Unknown argument \'{str}\'.");
+            throw new ArgumentException($"Unknown argument \'{s}\'.");
         }
     }
 }

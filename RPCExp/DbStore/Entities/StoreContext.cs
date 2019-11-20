@@ -14,8 +14,12 @@ namespace RPCExp.DbStore.Entities
 
         public StoreContext(string dbName = "storeCfg.sqlite3")
         {
+            //var sw = System.Diagnostics.Stopwatch.StartNew();
+            
             this.dbName = dbName;
             Database.EnsureCreated();
+
+            //Console.WriteLine($"StoreContext {sw.ElapsedMilliseconds}");
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -25,7 +29,12 @@ namespace RPCExp.DbStore.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            //var sw = System.Diagnostics.Stopwatch.StartNew();
+
             base.OnModelCreating(modelBuilder);
+
+            //Console.WriteLine($"base.OnModelCreating {sw.ElapsedMilliseconds}");
+            //sw.Restart();
 
             modelBuilder.Entity<DeviceToTemplate>()
                 .HasKey(d => new { d.DeviceId, d.TemplateId });
@@ -56,6 +65,8 @@ namespace RPCExp.DbStore.Entities
             modelBuilder.Entity<ArchiveCfg>()
                 .HasOne(e => e.Tag)
                 .WithOne(e => e.ArchiveCfg);
+
+            //Console.WriteLine($"OnModelCreating {sw.ElapsedMilliseconds}");
         }
 
         public DbSet<ConnectionSourceCfg> Connections { get; set; }

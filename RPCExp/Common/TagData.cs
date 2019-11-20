@@ -25,9 +25,7 @@ namespace RPCExp.Common
         public long LastGood { get; protected set; } = DateTime.Now.Ticks;
 
         public object Value { get; private set; }
-
-        //public virtual object GetValue() => val;
-
+        
         internal void SetValue(object value, TagQuality qty = TagQuality.GOOD)
         {
             Quality = qty;

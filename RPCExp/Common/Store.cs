@@ -17,8 +17,6 @@ namespace RPCExp.Common
 
         public IDictionary<string, ConnectionSourceAbstract> ConnectionsSources { get; } = new Dictionary<string, ConnectionSourceAbstract>();
         
-        public IDictionary<string, AlarmCategory> AlarmCategories { get; } = new Dictionary<string, AlarmCategory>();
-
         public TagLogService TagLogService { get; } = new TagLogService();
 
         public AlarmService AlarmService { get; } = new AlarmService();

@@ -1,12 +1,11 @@
 ﻿using System;
-using RPCExp.Modbus;
 using System.Threading;
-using RPCExp.Common;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using RPCExp.Connections;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using System.Runtime.InteropServices;
+using RPCExp.DbStore;
+using RPCExp.AlarmLogger.Entities;
 
 namespace RPCExp
 {
@@ -16,20 +15,24 @@ namespace RPCExp
 
         static void Main(/*string[] args*/)
         {
-
-            var dbfilename = "cfg.sqlite3";
-            var storeSource = new DbStore.SqliteStoreSource();
+            var storeSource = new SqliteStoreSource();
+            var global = GlobalConfigFactory.Get();
 
             //var store = StoreTemplateGen.Get();
             //storeSource.Save(store, dbfilename);
             //return;
 
-            var tbegin = DateTime.Now;
-            var store = storeSource.Get(dbfilename);
-            Console.WriteLine($"Store loaded {(DateTime.Now - tbegin).TotalMilliseconds}мсек");
-            
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var store = storeSource.Get(global.DbConfigFile);
+            Console.WriteLine($"Store loaded {stopwatch.ElapsedMilliseconds}ms");
+
+            //store.TagLogService.ItemsToSaveLimit = global.;
             store.TagLogService.Start();
 
+            store.AlarmService.FileName = global.AlarmServiceDbFile;
+            store.AlarmService.CheckPeriod = global.AlarmServiceCheckPeriod;
+            store.AlarmService.SavePeriod = global.AlarmServiceSavePeriod;
+            store.AlarmService.StoreItemsCount = global.AlarmServiceStoreItemsCount;
             store.AlarmService.Start();
 
             // ==== WebSocket ====
@@ -47,9 +50,9 @@ namespace RPCExp
                     router.RegisterMethods(device, fullAccesName);
                 }
 
-            WebSocketServer wss = new WebSocketServer(router, new string[] {  "http://localhost:8888/" }); //any Ip - "http://*:8888/"; "http://localhost:8888/"
+            WebSocketServer wss = new WebSocketServer(router, global.WebSocketServerHosts); //any Ip - "http://*:8888/"; "http://localhost:8888/"
 
-            Console.WriteLine("Start webSocket");
+            Console.WriteLine($"Start webSocket at {global.WebSocketServerHosts[0]}");
             wss.Start();
             Console.WriteLine("Press \"Escape\" to quit");
 

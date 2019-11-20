@@ -21,7 +21,7 @@ namespace RPCExp.TagLogger
         ~TagLogService() =>
             context?.SaveChanges();
 
-        public int ItemsToSaveLimit { get; private set; } = 1;
+        public int ItemsToSaveLimit { get; set; } = 1;
 
         private TagLogContext Context {
             get {

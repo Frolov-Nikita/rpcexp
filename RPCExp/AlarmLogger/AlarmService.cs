@@ -1,4 +1,5 @@
-﻿using RPCExp.AlarmLogger.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using RPCExp.AlarmLogger.Entities;
 using RPCExp.Common;
 using System;
 using System.Collections.Generic;
@@ -8,59 +9,70 @@ using System.Threading.Tasks;
 
 namespace RPCExp.AlarmLogger
 {
+
     public class AlarmService : ServiceAbstract
     {
-        AlarmContext context;
+        const int baseCapacityOfTmpList = 32; // Начальная емкость промежуточного хранилища
+
+        const int minWaitTimeMs = 50; // Минимальное время ожидания, мсек
 
         public List<AlarmConfig> Configs { get; } = new List<AlarmConfig>();
 
-        ~AlarmService()
+        public TimeSpan MinMaintainPeriod { get; set; } = TimeSpan.FromSeconds(10);
+
+        DateTime nextMaintain = DateTime.Now;
+
+        public TimeSpan CheckPeriod { get; set; } = TimeSpan.FromMilliseconds(500);
+
+        public TimeSpan SavePeriod { get; set; } = TimeSpan.FromSeconds(10);
+
+        public long StoreItemsCount { get; set; } = 10_000_000;
+
+        long DeltaRecordsCount => 1 + StoreItemsCount * 5 / 100;
+
+        public string FileName { get; set; } = "alarmLog.sqlite3";
+
+        private readonly List<AlarmCategory> localCategories = new List<AlarmCategory>(4);
+
+        /// <summary>
+        /// Cинхронизация/инициализация категорий и AlarmInfo
+        /// </summary>
+        private async Task InnitDB(CancellationToken cancellationToken) 
         {
-            context?.SaveChanges();
-            context?.Dispose();
-            context = null;
-        }
-
-        public TimeSpan CheckPeriod { get; set; }
-
-        public TimeSpan SavePeriod { get; set; }
-
-        private AlarmContext Context
-        {
-            get
-            {
-                // TODO теоретически утечка памяти.
-                if (context == default)
-                    context = new AlarmContext();
-                return context;
-            }
-        }
-
-        protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
-        {
-            // Старт (Инициализация контекста БД алармов)
-            bool needToSave = false;
+            var context = new AlarmContext(FileName);
+            
+            var storedCategories = await context.AlarmCategories.ToListAsync(cancellationToken).ConfigureAwait(false);
+            var storedInfos = await context.AlarmsInfo.ToListAsync(cancellationToken).ConfigureAwait(false);
+            
             foreach (var cfg in Configs)
             {
-                //синхронизируем категорию
-                var storedCategory = Context.AlarmCategories.FirstOrDefault(e => 
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+
+                //синхронизируем категорию в 2 хранилища
+                var storedCategory = storedCategories.FirstOrDefault(e =>
                     e.Name == cfg.AlarmInfo.Category.Name &&
                     e.Style == cfg.AlarmInfo.Category.Style
                     );
-                if(storedCategory == default)
+
+                if (storedCategory == default)
                 {
                     storedCategory = new AlarmCategory
                     {
                         Name = cfg.AlarmInfo.Category.Name,
                         Style = cfg.AlarmInfo.Category.Style,
                     };
-                    Context.AlarmCategories.Add(storedCategory);
-                    needToSave = true;
+                    context.AlarmCategories.Add(storedCategory);
+                    storedCategories.Add(storedCategory);
                 }
+
                 cfg.AlarmInfo.Category = storedCategory;
 
+                if (!localCategories.Contains(storedCategory))
+                    localCategories.Add(storedCategory);
+
                 //синхронизируем алармИнфо
-                var storedAlarmInfo = Context.AlarmsInfo.FirstOrDefault(e =>
+                var storedAlarmInfo = storedInfos.FirstOrDefault(e =>
                     e.Category == cfg.AlarmInfo.Category &&
                     e.FacilityAccessName == cfg.AlarmInfo.FacilityAccessName &&
                     e.DeviceName == cfg.AlarmInfo.DeviceName &&
@@ -69,7 +81,7 @@ namespace RPCExp.AlarmLogger
                     e.Condition == cfg.AlarmInfo.Condition &&
                     e.TemplateTxt == cfg.AlarmInfo.TemplateTxt);
 
-                if(storedAlarmInfo == default)
+                if (storedAlarmInfo == default)
                 {
                     storedAlarmInfo = new AlarmInfo
                     {
@@ -82,22 +94,70 @@ namespace RPCExp.AlarmLogger
                         TemplateTxt = cfg.AlarmInfo.TemplateTxt,
                     };
 
-                    Context.AlarmsInfo.Add(storedAlarmInfo);                    
-                    needToSave = true;
+                    context.AlarmsInfo.Add(storedAlarmInfo);
+                    storedInfos.Add(storedAlarmInfo);
                 }
+
                 cfg.AlarmInfo = storedAlarmInfo;
             }
 
-            if (needToSave)
-            { 
-                await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                needToSave = false;
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false); 
+
+            context.Dispose();
+        }
+
+        private async Task SaveAsync( List<Alarm> alarms, CancellationToken cancellationToken)
+        {
+            if ((alarms?.Count ?? 0) == 0)
+                return;
+
+            var context = new AlarmContext(FileName);
+
+            context.Alarms.AddRange(alarms);
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+            if(nextMaintain < DateTime.Now)
+            {
+                nextMaintain = DateTime.Now + MinMaintainPeriod;
+
+                var count = await context.Alarms.LongCountAsync(cancellationToken).ConfigureAwait(false);
+            
+                if(count > StoreItemsCount)
+                {
+                    var countToRemove = count - StoreItemsCount + DeltaRecordsCount;
+                    int ctr = countToRemove < 0 ? 0 :
+                            countToRemove > int.MaxValue ? int.MaxValue:
+                            (int)countToRemove;
+                    
+                    var itemsToRemove = context.Alarms.Take(ctr);
+
+                    context.Alarms.RemoveRange(itemsToRemove);
+
+                    await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+                    await context.Database.ExecuteSqlRawAsync("VACUUM ;").ConfigureAwait(false);
+                    
+                    nextMaintain = DateTime.Now + 4 * MinMaintainPeriod; // после такого можно чуть подольше не проверять:)
+                }
             }
+            context.Dispose();
+        }
+
+        protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
+        {
+            // Старт (Инициализация контекста БД алармов)
+            await InnitDB(cancellationToken).ConfigureAwait(false);
+
+            var newAlarms = new List<Alarm>(baseCapacityOfTmpList);
+
+            var tNextSave = DateTime.Now + SavePeriod;
 
             // Главный цикл (проверка алармов и запись)
             while (!cancellationToken.IsCancellationRequested) 
             {
-                foreach(var cfg in Configs)
+                var tNextCheck = DateTime.Now + CheckPeriod;
+                
+                foreach (var cfg in Configs)
                 {
                     if (!cfg.IsOk)
                         continue;
@@ -118,36 +178,39 @@ namespace RPCExp.AlarmLogger
 #pragma warning restore CA1305 // Укажите IFormatProvider
                             };
 
-                            Context.Alarms.Add(alarm);
-                            needToSave = true;
+                            newAlarms.Add(alarm);                         
                         }
                     }
                     catch//(Exception ex)
                     {
                         // TODO: log this exception
                     }
-                }
+                }// for
 
                 try
                 {
-                    if (needToSave)
+                    if (newAlarms.Count > 0)
                     {
-                        await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                        context?.Dispose();
-                        context = null;
-                        needToSave = false;
+                        if ((tNextSave <= DateTime.Now) || (newAlarms.Count >= (baseCapacityOfTmpList * 4 / 5 ))) // 80% заполненности - чтобы избежать разрастания памяти
+                        {
+                            tNextSave = DateTime.Now + SavePeriod;
+                            var newAlarmsCopy = new List<Alarm>(newAlarms);
+                            _ = Task.Run(async () => { 
+                                await SaveAsync(newAlarmsCopy, cancellationToken).ConfigureAwait(false); 
+                            });
+                            newAlarms.Clear();                            
+                        }
+
                     }
                 }catch//(Exception ex)
                 {
                     //TODO: log this exception
                 }
-                
 
-                await Task.Delay(100).ConfigureAwait(false);
-            }
+                int tSleep = tNextCheck > DateTime.Now ? (int)(tNextCheck - DateTime.Now).TotalMilliseconds : minWaitTimeMs;
 
-            // Завершение
-            await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                await Task.Delay(tSleep).ConfigureAwait(false);
+            }// while
         }
 
         /// <summary>
@@ -164,46 +227,48 @@ namespace RPCExp.AlarmLogger
         /// получение списка использующихся категорий
         /// </summary>
         /// <returns></returns>
-        public IQueryable<AlarmCategory> GetCategories()
-        {
-            return from c in Context.AlarmCategories
-                   select c;
-        }
+        public IEnumerable<AlarmCategory> GetCategories() =>
+            localCategories;
 
         /// <summary>
         /// Доступ к архиву сообщений
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
-        public IQueryable<Alarm> GetAlarms(AlarmFilter filter = default)
+        public async Task<IEnumerable<Alarm>> GetAlarms(AlarmFilter filter, CancellationToken cancellationToken)
         {
-            var result =  from a in Context.Alarms
+            var context = new AlarmContext(FileName);
+
+            var query =  from a in context.Alarms
                    select a;
 
             if(filter != default)
             {
                 if (filter.TBegin != long.MinValue)
-                    result = result.Where(a => a.TimeStamp >= filter.TBegin);
+                    query = query.Where(a => a.TimeStamp >= filter.TBegin);
 
                 if (filter.TEnd != long.MaxValue)
-                    result = result.Where(a => a.TimeStamp <= filter.TEnd);
+                    query = query.Where(a => a.TimeStamp <= filter.TEnd);
 
                 if (filter.DeviceName != default)
-                    result = result.Where(a => a.AlarmInfo.DeviceName == filter.DeviceName);
+                    query = query.Where(a => a.AlarmInfo.DeviceName == filter.DeviceName);
 
                 if (filter.AlarmInfoId != default)
-                    result = result.Where(a => a.AlarmInfo.Id == filter.AlarmInfoId);
+                    query = query.Where(a => a.AlarmInfo.Id == filter.AlarmInfoId);
 
                 if (filter.AlarmCategoriesIds?.Count() > 0)
-                    result = result.Where(a => filter.AlarmCategoriesIds.Contains( a.AlarmInfo.Category.Id ));
+                    query = query.Where(a => filter.AlarmCategoriesIds.Contains( a.AlarmInfo.Category.Id ));
 
                 if (filter.FacilityAccessName != default)
-                    result = result.Where(a => a.AlarmInfo.FacilityAccessName.Contains(filter.FacilityAccessName, StringComparison.OrdinalIgnoreCase));
+                    query = query.Where(a => a.AlarmInfo.FacilityAccessName.Contains(filter.FacilityAccessName, StringComparison.OrdinalIgnoreCase));
 
                 if (filter.Count != 0)
-                    result = result.Skip(filter.Offset).Take(filter.Count);                
+                    query = query.Skip(filter.Offset).Take(filter.Count);                
             }
 
+            var result = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
+
+            context.Dispose();
             return result;
         }
     }
