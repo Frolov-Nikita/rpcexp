@@ -63,7 +63,7 @@ namespace RPCExp.TagLogger
         {
             get
             {
-                if ((Tag == default) || (maxDelta == 0) || Tag.Quality < TagQuality.GOOD)
+                if ((Tag == default) || Tag.Quality < TagQuality.GOOD)
                     return null;
 
                 var now = DateTime.Now.Ticks;

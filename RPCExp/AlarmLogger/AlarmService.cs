@@ -3,6 +3,7 @@ using RPCExp.AlarmLogger.Entities;
 using RPCExp.Common;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -106,18 +107,44 @@ namespace RPCExp.AlarmLogger
             context.Dispose();
         }
 
-        private async Task SaveAsync( List<Alarm> cache, CancellationToken cancellationToken)
+        private async Task SaveAsync(Queue<Alarm> cache, CancellationToken cancellationToken)
         {
             if ((cache?.Count ?? 0) == 0)
                 return;
 
+            System.Diagnostics.Debug.WriteLine($"AlarmLog.SaveAsync {cache.Count}");
+
             var context = new AlarmContext(FileName);
 
+            /* // Код как оно должно работать
             context.Alarms.AddRange(cache);
-
             await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            */
 
-            if(nextMaintain < DateTime.Now)
+            // ########## Начало костыля
+            // TODO: при новых версиях EF Core (> 3.0.1) пробовать убрать этот костыль
+            const int maxItemsInInsert = 128;
+            string nullIfNull(string val) => string.IsNullOrEmpty(val) ? "null" : val;
+
+            while (cache.Count > 0)
+            {
+                var len = cache.Count > maxItemsInInsert ? maxItemsInInsert : cache.Count;
+
+                var sql = "INSERT INTO Alarms (\"TimeStamp\", \"AlarmInfoId\", \"Custom1\", \"Custom2\", \"Custom3\", \"Custom4\") VALUES ";
+                for (var i = 0; i < len; i++)
+                {
+                    var item = cache.Dequeue();
+                    sql += $"({item.TimeStamp}, {item.AlarmInfoId}, {nullIfNull(item.Custom1)}, {nullIfNull(item.Custom2)}, {nullIfNull(item.Custom3)}, {nullIfNull(item.Custom4)})" + ",";
+                }
+
+                sql = sql.Trim().Trim(',') + ';';
+
+                await context.Database.ExecuteSqlRawAsync(sql)
+                    .ConfigureAwait(false);
+            }
+            // ########## Конец костыля
+
+            if (nextMaintain < DateTime.Now)
             {
                 nextMaintain = DateTime.Now + MinMaintainPeriod;
 
@@ -141,6 +168,8 @@ namespace RPCExp.AlarmLogger
                     nextMaintain = DateTime.Now + 4 * MinMaintainPeriod; // после такого можно чуть подольше не проверять:)
                 }
             }
+
+            System.Diagnostics.Debug.WriteLine($"AlarmLog.SaveAsync disposing");
             context.Dispose();
         }
 
@@ -195,7 +224,7 @@ namespace RPCExp.AlarmLogger
                         if ((tNextSave <= DateTime.Now) || (cache.Count >= (baseCapacityOfTmpList * 4 / 5 ))) // 80% заполненности - чтобы избежать разрастания памяти
                         {
                             tNextSave = DateTime.Now + SavePeriod;
-                            var newCache = new List<Alarm>(cache);
+                            var newCache = new Queue<Alarm>(cache);
                             _ = Task.Run(async () => { 
                                 await SaveAsync(newCache, cancellationToken).ConfigureAwait(false); 
                             });

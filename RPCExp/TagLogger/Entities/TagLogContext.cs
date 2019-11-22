@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,12 +14,19 @@ namespace RPCExp.TagLogger.Entities
         {
             this.dbName = dbName;
             Database.EnsureCreated();
+            Database.SetCommandTimeout(TimeSpan.FromSeconds(5));
+
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=" + dbName);
+            optionsBuilder
+                .UseSqlite("Data Source=" + dbName)
+                //.UseLoggerFactory(MyLoggerFactory)
+                ;
         }
+
+        private static readonly ILoggerFactory MyLoggerFactory = LoggerFactory.Create(builder => { builder.AddDebug(); });
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

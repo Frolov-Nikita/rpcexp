@@ -6,11 +6,11 @@ namespace RPCExp.AlarmLogger.Entities
 {
     public class Alarm
     {
+        public long TimeStamp { get; set; }
+
         public int AlarmInfoId { get; set; }
 
         public AlarmInfo AlarmInfo { get; set; }
-
-        public long TimeStamp { get; set; }
 
         public string Custom1 { get; set; } = "";
 

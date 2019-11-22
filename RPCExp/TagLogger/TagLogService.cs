@@ -13,8 +13,10 @@ namespace RPCExp.TagLogger
     public class TagLogService : ServiceAbstract
     {
         const int baseCapacityOfTmpList = 32; // Начальная емкость промежуточного хранилища
-
+        
         const int minWaitTimeMs = 50; // Минимальное время ожидания, мсек
+
+        object locker = new object();
 
         public TimeSpan MinMaintainPeriod { get; set; } = TimeSpan.FromSeconds(10);
 
@@ -64,17 +66,40 @@ namespace RPCExp.TagLogger
             context.Dispose();
         }
 
-        private async Task SaveAsync(List<TagLogData> cache, CancellationToken cancellationToken)
+        private async Task SaveAsync(Queue<TagLogData> cache, CancellationToken cancellationToken)
         {
             if ((cache?.Count ?? 0) == 0)
                 return;
 
+            System.Diagnostics.Debug.WriteLine($"TagLog.SaveAsync {cache.Count}");
+
             var context = new TagLogContext(FileName);
 
+            /* // Код как оно должно работать
             context.TagLogData.AddRange(cache);
-
             await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            */
 
+            // ########## Начало костыля
+            // TODO: при новых версиях EF Core (> 3.0.1) пробовать убрать этот костыль
+            const int maxItemsInInsert = 128;
+            while (cache.Count > 0)
+            {
+                var len = cache.Count > maxItemsInInsert ? maxItemsInInsert : cache.Count;
+
+                var sql = "INSERT INTO TagLogData (\"TimeStamp\", \"TagLogInfoId\", \"Value\") VALUES ";
+                for (var i=0; i< len; i++)
+                {
+                    var item = cache.Dequeue();
+                    sql += $"({item.TimeStamp}, {item.TagLogInfoId}, {item.Value})" + ",";
+                }
+                
+                sql = sql.Trim().Trim(',') + ';';
+
+                await context.Database.ExecuteSqlRawAsync(sql).ConfigureAwait(false);
+            }
+            // ########## Конец костыля
+            
             if (nextMaintain < DateTime.Now)
             {
                 nextMaintain = DateTime.Now + MinMaintainPeriod;
@@ -99,8 +124,12 @@ namespace RPCExp.TagLogger
                     nextMaintain = DateTime.Now + 4 * MinMaintainPeriod; // после такого можно чуть подольше не проверять:)
                 }
             }
+
+            System.Diagnostics.Debug.WriteLine("TagLog.SaveAsync disposing");
+
             context.Dispose();
         }
+
 
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
@@ -145,7 +174,7 @@ namespace RPCExp.TagLogger
                         if ((tNextSave <= DateTime.Now) || (cache.Count >= (baseCapacityOfTmpList * 4 / 5))) // 80% заполненности - чтобы избежать разрастания памяти
                         {
                             tNextSave = DateTime.Now + SavePeriod;
-                            var newCache = new List<TagLogData>(cache);
+                            var newCache = new Queue<TagLogData>(cache);
                             _ = Task.Run(async () => {
                                 await SaveAsync(newCache, cancellationToken).ConfigureAwait(false);
                             });

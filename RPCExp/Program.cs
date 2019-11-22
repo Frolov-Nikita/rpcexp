@@ -6,6 +6,8 @@ using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using RPCExp.DbStore;
 using RPCExp.AlarmLogger.Entities;
+using RPCExp.TagLogger.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace RPCExp
 {
@@ -15,8 +17,11 @@ namespace RPCExp
 
         static void Main(/*string[] args*/)
         {
-            var storeSource = new SqliteStoreSource();
+
             var global = GlobalConfigFactory.Get();
+
+            var storeSource = new SqliteStoreSource();
+            
 
             //var store = StoreTemplateGen.Get();
             //storeSource.Save(store, dbfilename);
@@ -26,8 +31,11 @@ namespace RPCExp
             var store = storeSource.Get(global.DbConfigFile);
             Console.WriteLine($"Store loaded {stopwatch.ElapsedMilliseconds}ms");
 
-            //store.TagLogService.ItemsToSaveLimit = global.;
-            store.TagLogService.Start();
+            store.TagLogService.FileName = global.TagLogServiceDbFile;
+            store.TagLogService.CheckPeriod = global.TagLogServiceCheckPeriod;
+            store.TagLogService.SavePeriod = global.TagLogServiceSavePeriod;
+            store.TagLogService.StoreItemsCount = global.TagLogServiceStoreItemsCount;
+            //store.TagLogService.Start();
 
             store.AlarmService.FileName = global.AlarmServiceDbFile;
             store.AlarmService.CheckPeriod = global.AlarmServiceCheckPeriod;
