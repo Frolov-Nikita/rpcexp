@@ -48,10 +48,10 @@ namespace RPCExp.AlarmLogger.Entities
 	                        AlarmsInfo.DeviceName,
 	                        REPLACE( REPLACE( REPLACE( REPLACE(
 			                        AlarmsInfo.TemplateTxt, 
-			                        ""{Custom4}"", ifnull(Alarms.Custom4, '')), 
-			                        ""{Custom3}"", ifnull(Alarms.Custom3, '')), 
-			                        ""{Custom2}"", ifnull(Alarms.Custom2, '')), 
-			                        ""{Custom1}"", ifnull(Alarms.Custom1, '')) as message
+			                        '{{Custom4}}', ifnull(Alarms.Custom4, '')), 
+			                        '{{Custom3}}', ifnull(Alarms.Custom3, '')), 
+			                        '{{Custom2}}', ifnull(Alarms.Custom2, '')), 
+			                        '{{Custom1}}', ifnull(Alarms.Custom1, '')) as message
                         FROM 
 	                        Alarms
                         LEFT JOIN
@@ -60,7 +60,8 @@ namespace RPCExp.AlarmLogger.Entities
                         LEFT JOIN
 	                        AlarmCategories 
 	                        ON AlarmCategories.Id == AlarmsInfo.CategoryId";
-            //Database.ExecuteSqlRaw(sql); //""{Custom1}"" не нравится стрингбильдеру
+
+            Database.ExecuteSqlRaw(sql); //""{Custom1}"" не нравится стрингбильдеру
         }
     }
 }

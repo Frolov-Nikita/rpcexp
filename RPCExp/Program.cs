@@ -29,19 +29,22 @@ namespace RPCExp
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var store = storeSource.Get(global.DbConfigFile);
+
             Console.WriteLine($"Store loaded {stopwatch.ElapsedMilliseconds}ms");
 
             store.TagLogService.FileName = global.TagLogServiceDbFile;
             store.TagLogService.CheckPeriod = global.TagLogServiceCheckPeriod;
             store.TagLogService.SavePeriod = global.TagLogServiceSavePeriod;
             store.TagLogService.StoreItemsCount = global.TagLogServiceStoreItemsCount;
-            //store.TagLogService.Start();
+            store.TagLogService.Start();
 
             store.AlarmService.FileName = global.AlarmServiceDbFile;
             store.AlarmService.CheckPeriod = global.AlarmServiceCheckPeriod;
             store.AlarmService.SavePeriod = global.AlarmServiceSavePeriod;
             store.AlarmService.StoreItemsCount = global.AlarmServiceStoreItemsCount;
             store.AlarmService.Start();
+
+            
 
             // ==== WebSocket ====
             Router router = new Router();
