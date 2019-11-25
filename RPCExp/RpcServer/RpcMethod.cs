@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RPCExp
+namespace RPCExp.RpcServer
 {
     public class RpcMethod
     {

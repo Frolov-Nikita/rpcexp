@@ -35,7 +35,9 @@ namespace RPCExp.DbStore.Entities
 
         public Common.ValueType ValueType { get; set; }
 
+#pragma warning disable CA2227 // Свойства коллекций должны быть доступны только для чтения
         public ICollection<TagsToTagsGroups> TagsToTagsGroups { get; set; }
+#pragma warning restore CA2227 // Свойства коллекций должны быть доступны только для чтения
 
         public ArchiveCfg ArchiveCfg { get; set; }
 

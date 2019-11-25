@@ -1,10 +1,14 @@
 ﻿TagsGroup track period for each client
 
+Alarm dband
+
+taglog hyst asbolute
+
 debug interface
 
-views in db
-
 Статический анализ
+
+Оптимизация оперативки
 
 TUI
 

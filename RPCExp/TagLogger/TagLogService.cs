@@ -16,8 +16,6 @@ namespace RPCExp.TagLogger
         
         const int minWaitTimeMs = 50; // Минимальное время ожидания, мсек
 
-        object locker = new object();
-
         public TimeSpan MinMaintainPeriod { get; set; } = TimeSpan.FromSeconds(10);
 
         DateTime nextMaintain = DateTime.Now;

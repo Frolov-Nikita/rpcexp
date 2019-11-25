@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using RPCExp.JsonRpc;
 using System.ComponentModel.DataAnnotations;
 
-namespace RPCExp
+namespace RPCExp.RpcServer
 {
     public class Router
     {

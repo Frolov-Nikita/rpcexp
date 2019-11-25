@@ -5,29 +5,30 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using RPCExp.DbStore;
-using RPCExp.AlarmLogger.Entities;
+using RPCExp.RpcServer;
 using RPCExp.TagLogger.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace RPCExp
 {
     class Program
     {
         static readonly CancellationTokenSource Cts = new CancellationTokenSource();
-
+        
         static void Main(/*string[] args*/)
         {
-
             var global = GlobalConfigFactory.Get();
 
             var storeSource = new SqliteStoreSource();
             
-
             //var store = StoreTemplateGen.Get();
             //storeSource.Save(store, dbfilename);
             //return;
 
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var stopwatch = Stopwatch.StartNew();
+
             var store = storeSource.Get(global.DbConfigFile);
 
             Console.WriteLine($"Store loaded {stopwatch.ElapsedMilliseconds}ms");
@@ -43,8 +44,6 @@ namespace RPCExp
             store.AlarmService.SavePeriod = global.AlarmServiceSavePeriod;
             store.AlarmService.StoreItemsCount = global.AlarmServiceStoreItemsCount;
             store.AlarmService.Start();
-
-            
 
             // ==== WebSocket ====
             Router router = new Router();

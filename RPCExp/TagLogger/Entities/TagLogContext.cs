@@ -26,7 +26,7 @@ namespace RPCExp.TagLogger.Entities
                 ;
         }
 
-        private static readonly ILoggerFactory MyLoggerFactory = LoggerFactory.Create(builder => { builder.AddDebug(); });
+        //private static readonly ILoggerFactory MyLoggerFactory = LoggerFactory.Create(builder => { builder.AddDebug(); });
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

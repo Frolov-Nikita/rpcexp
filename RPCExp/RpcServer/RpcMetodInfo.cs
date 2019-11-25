@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 
-namespace RPCExp
+namespace RPCExp.RpcServer
 {
     public class RpcMetodInfo
     {

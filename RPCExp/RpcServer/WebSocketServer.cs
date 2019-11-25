@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RPCExp.Common;
 
-namespace RPCExp
+namespace RPCExp.RpcServer
 {
     public class WebSocketServer:ServiceAbstract
     {
