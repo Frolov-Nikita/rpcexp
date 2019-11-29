@@ -1,10 +1,12 @@
-﻿TagsGroup track period for each client
+﻿web sockets - запрос на повышение win
 
-Alarm dband
+TagsGroup track period for each client
 
-taglog hyst asbolute
+fix db entities types
 
-debug interface
+mbdev limit request length
+
+ memory device
 
 Статический анализ
 

@@ -1,6 +1,7 @@
 ﻿using RPCExp.AlarmLogger;
 using RPCExp.AlarmLogger.Entities;
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RPCExp.DbStore.Entities
 {
@@ -18,6 +19,9 @@ namespace RPCExp.DbStore.Entities
 
         public string TemplateTxt { get; set; } = "";
 
+        [Column(TypeName = "DECIMAL")]
+        public decimal DBandRValue { get; set; } = 0M;
+
         public string Custom1 { get; set; } = "";
 
         public string Custom2 { get; set; } = "";
@@ -27,13 +31,13 @@ namespace RPCExp.DbStore.Entities
         public string Custom4 { get; set; } = "";
 
         public void CopyFrom(object original)
-        {
-            
+        {            
             var src = (AlarmCfg)original ?? throw new ArgumentNullException(nameof(original)); 
 
             Name = src.Name;
             Description = src.Description;
             Condition = src.Condition;
+            DBandRValue = src.DBandRValue;
             Category = src.Category;
             TemplateTxt = src.TemplateTxt;
             Custom1 = src.Custom1;

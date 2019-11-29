@@ -118,7 +118,7 @@ namespace RPCExp
 
             store.TagLogService.Configs.Add(new TagLogger.TagLogConfig(tag1)
             {
-                HystProc = 1,
+                Hyst = 1,
                 PeriodMaxSec = 600,
                 PeriodMinSec = 1,
                 TagLogInfo = new TagLogger.Entities.TagLogInfo

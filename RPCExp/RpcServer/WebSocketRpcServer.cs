@@ -9,53 +9,27 @@ using RPCExp.Common;
 
 namespace RPCExp.RpcServer
 {
-    public class WebSocketServer:ServiceAbstract
+    public class WebSocketRpcServer: WebSocketServerAbstract
     {
-        //private HttpListener httpListener;
-        private readonly List<Task> socketsHandlers = new List<Task>(4);
         private readonly Router router;
-        private readonly string[] hosts;
-        
-        public WebSocketServer(Router router, string[] hosts = null)
+
+        public WebSocketRpcServer(Router router, string[] hosts = null)
+            :base(hosts ?? new string[] { "http://localhost:8888/" })
         {
             this.router = router;
-            this.hosts = hosts ?? new string[] { "http://localhost:8888/", }; 
         }
-
-        protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
-        {
-            HttpListener httpListener = new HttpListener();
-
-            foreach(var host in hosts)
-                httpListener.Prefixes.Add(host);
-
-            httpListener.Start();
-
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                var context = await httpListener.GetContextAsync().ConfigureAwait(false);
-                if (context.Request.IsWebSocketRequest)
-                {
-                    HttpListenerWebSocketContext webSocketContext = await context.AcceptWebSocketAsync(null).ConfigureAwait(false);
-                    socketsHandlers.Add(SocketHandlerAsync(webSocketContext.WebSocket, cancellationToken));
-                    socketsHandlers.RemoveAll(t => t.Status != TaskStatus.Running);
-                }
-            }
-            httpListener.Stop();
-            httpListener.Close();
-
-            //httpListener.Dispose(true);
-        }
-
-
+        
         /// <summary>
         /// Обработка сообщений от подключившегося клиента
         /// </summary>
         /// <param name="socket"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task SocketHandlerAsync(WebSocket socket, CancellationToken cancellationToken = default)
+        protected override async Task SocketHandlerAsync(WebSocket socket, CancellationToken cancellationToken = default)
         {
+            if (socket is null)
+                throw new ArgumentNullException(nameof(socket));
+
             try
             {
                 var buffer = new ArraySegment<byte>(new byte[16384]);
@@ -73,9 +47,12 @@ namespace RPCExp.RpcServer
                     await socket.SendAsync(respBytes, WebSocketMessageType.Text, true, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch {
+            catch (WebSocketException ex)
+            {
                 socket.Abort();
+                System.Diagnostics.Trace.Fail($"{nameof(WebSocketRpcServer)}.SocketHandlerAsync(): {ex.InnerMessage()}");
             }
+            socket.Dispose();
         }
 
 

@@ -124,7 +124,8 @@ namespace RPCExp.AlarmLogger
             // ########## Начало костыля
             // TODO: при новых версиях EF Core (> 3.0.1) пробовать убрать этот костыль
             const int maxItemsInInsert = 128;
-            string nullIfNull(string val) => string.IsNullOrEmpty(val) ? "null" : val;
+
+            static string nullIfNull(string val) => string.IsNullOrEmpty(val) ? "null" : val;
 
             while (cache.Count > 0)
             {

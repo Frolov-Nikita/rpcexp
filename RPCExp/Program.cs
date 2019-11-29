@@ -10,6 +10,8 @@ using RPCExp.TagLogger.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
+using RPCExp.TraceListeners;
+using RPCExp.AlarmLogger;
 
 namespace RPCExp
 {
@@ -19,17 +21,23 @@ namespace RPCExp
         
         static void Main(/*string[] args*/)
         {
-            var global = GlobalConfigFactory.Get();
-
-            var storeSource = new SqliteStoreSource();
-            
-            //var store = StoreTemplateGen.Get();
-            //storeSource.Save(store, dbfilename);
-            //return;
-
             var stopwatch = Stopwatch.StartNew();
 
-            var store = storeSource.Get(global.DbConfigFile);
+            var wsts = new WebSocketTraceServer();
+            wsts.Start();
+
+            var global = GlobalConfigFactory.Get();
+
+            Common.Store store;
+
+            using (var storeSource = new SqliteStoreSource())
+            {                
+                //var store = StoreTemplateGen.Get();
+                //storeSource.Save(store, dbfilename);
+                //return;
+
+                store = storeSource.Get(global.DbConfigFile);
+            }
 
             Console.WriteLine($"Store loaded {stopwatch.ElapsedMilliseconds}ms");
 
@@ -60,7 +68,7 @@ namespace RPCExp
                     router.RegisterMethods(device, fullAccesName);
                 }
 
-            WebSocketServer wss = new WebSocketServer(router, global.WebSocketServerHosts); //any Ip - "http://*:8888/"; "http://localhost:8888/"
+            WebSocketRpcServer wss = new WebSocketRpcServer(router, global.WebSocketServerHosts); //any Ip - "http://*:8888/"; "http://localhost:8888/"
 
             Console.WriteLine($"Start webSocket at {global.WebSocketServerHosts[0]}");
             wss.Start();
@@ -85,5 +93,9 @@ namespace RPCExp
             //*/
         }
 
+        private static void Loc_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            ;
+        }
     }
 }

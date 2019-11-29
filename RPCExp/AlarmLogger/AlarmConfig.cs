@@ -10,19 +10,21 @@ namespace RPCExp.AlarmLogger
 
     public class AlarmConfig
     {
-        public Condition Condition { get; set; }
+        public Condition Condition { get; private set; }
 
-        public Argument Custom1 { get; set; }
+        public Argument Custom1 { get; private set; }
 
-        public Argument Custom2 { get; set; }
+        public Argument Custom2 { get; private set; }
 
-        public Argument Custom3 { get; set; }
+        public Argument Custom3 { get; private set; }
 
-        public Argument Custom4 { get; set; }
+        public Argument Custom4 { get; private set; }
 
         public AlarmInfo AlarmInfo { get; set; }
 
         bool lastVal = false;
+
+        public decimal DBandRValue { get; set; } = 0;
 
         public bool IsOk { get
             {
@@ -40,7 +42,15 @@ namespace RPCExp.AlarmLogger
         {
             if (!Condition.IsOk)
                 return false;
+
             var val = Condition.Check();
+
+            // dband
+            if((lastVal == true) && (val == false))
+                val = Condition.InDBand(DBandRValue);
+
+            
+
             var retval = val && (!lastVal);
             lastVal = val;
             return retval;
@@ -55,6 +65,9 @@ namespace RPCExp.AlarmLogger
             {
                 Condition = Condition.From(alarmCfg.Condition, tags)
             };
+
+            if (alarmCfg.DBandRValue != default)
+                config.DBandRValue = alarmCfg.DBandRValue;
 
             if (alarmCfg.Custom1 != default)
                 config.Custom1 = Argument.From(alarmCfg.Custom1, tags);
@@ -76,7 +89,7 @@ namespace RPCExp.AlarmLogger
 
     public class Condition
     {
-        
+
         private readonly string operatorName = "==";
 
         public Condition(string operatoreName, Argument arg1, Argument arg2)
@@ -96,6 +109,8 @@ namespace RPCExp.AlarmLogger
 
             public Type Type { get; set; }
 
+            public bool UseDBand { get; set; } = false;
+
 #pragma warning disable CA1305 // Укажите IFormatProvider
             object ArgCasting(object value) =>
                 Convert.ChangeType(value, Type);
@@ -113,24 +128,36 @@ namespace RPCExp.AlarmLogger
         {
             {">=", new Operator{Name = ">=",
                 Type = typeof(decimal),
-                Predicate = (a, b) => ((decimal)a) >= ((decimal)b) } } ,
+                Predicate = (a, b) => ((decimal)a) >= ((decimal)b),
+                UseDBand = true,
+            } } ,
             {"<=", new Operator{Name = "<=",
                 Type = typeof(decimal),
-                Predicate = (a, b) => ((decimal)a) <= ((decimal)b) } } ,
+                Predicate = (a, b) => ((decimal)a) <= ((decimal)b),
+                UseDBand = true,
+             } } ,
 
             {"==", new Operator{Name = "==",
                 Type = typeof(decimal),
-                Predicate = (a, b) => ((decimal)a) == ((decimal)b) } } ,
+                Predicate = (a, b) => ((decimal)a) == ((decimal)b),
+                UseDBand = true,
+             } } ,
             {"!=", new Operator{Name = "!=",
                 Type = typeof(decimal),
-                Predicate = (a, b) => ((decimal)a) != ((decimal)b) } } ,
+                Predicate = (a, b) => ((decimal)a) != ((decimal)b),
+                UseDBand = true,
+             } } ,
 
             {">", new Operator{Name = ">",
                 Type = typeof(decimal),
-                Predicate = (a, b) => ((decimal)a) > ((decimal)b) } } ,
+                Predicate = (a, b) => ((decimal)a) > ((decimal)b),
+                UseDBand = true,
+             } } ,
             {"<", new Operator{Name = "<",
                 Type = typeof(decimal),
-                Predicate = (a, b) => ((decimal)a) < ((decimal)b) } } ,
+                Predicate = (a, b) => ((decimal)a) < ((decimal)b),
+                UseDBand = true,
+             } } ,
 
             {"!:", new Operator{Name = "!:",
                 Type = typeof(Int32),
@@ -143,11 +170,23 @@ namespace RPCExp.AlarmLogger
         Argument[] Arguments { get; set; }
 
         public bool IsOk =>
-            Arguments[0].IsOk && 
+            Arguments[0].IsOk &&
             Arguments[1].IsOk;
 
         public bool Check()
             => Operators[operatorName].Check(Arguments[0].GetValue(), Arguments[1].GetValue());
+
+        public bool InDBand(decimal dband = 0M) 
+        {
+            if ((dband == 0) || (!IsOk) || (!Operators[operatorName].UseDBand))
+                return false;
+
+            var a0 = Arguments[0].GetValue();
+            var a1 = Arguments[1].GetValue();
+                       
+            return (a0 < (a1 + dband)) && (a0 > (a1 - dband));
+        }
+        
 
         public static Condition From(string conditionString,  IEnumerable<TagAbstract> tags)
         {

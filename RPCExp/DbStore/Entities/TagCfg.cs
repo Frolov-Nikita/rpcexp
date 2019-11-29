@@ -1,6 +1,7 @@
 ﻿using RPCExp.Common;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RPCExp.DbStore.Entities
 {
@@ -23,12 +24,16 @@ namespace RPCExp.DbStore.Entities
 
         public string Format { get; set; }
 
+        [Column(TypeName = "DECIMAL")]
         public decimal ScaleDevMin { get; set; } = -32768;
 
+        [Column(TypeName = "DECIMAL")]
         public decimal ScaleDevMax { get; set; } = 32767;
 
+        [Column(TypeName = "DECIMAL")]
         public decimal ScaleMin { get; set; } = -32768;
 
+        [Column(TypeName = "DECIMAL")]
         public decimal ScaleMax { get; set; } = 32767;
 
         public virtual Access Access { get; set; }

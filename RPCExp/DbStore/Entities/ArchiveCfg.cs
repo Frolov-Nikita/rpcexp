@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RPCExp.DbStore.Entities
 {
@@ -18,7 +19,8 @@ namespace RPCExp.DbStore.Entities
 
         public int PeriodMinSec { get; set; }
 
-        public decimal HystProc { get; set; }
+        [Column(TypeName = "DECIMAL")]
+        public decimal Hyst { get; set; }
 
         public void CopyFrom(object original)
         {
@@ -32,7 +34,7 @@ namespace RPCExp.DbStore.Entities
             Tag = src.Tag;
             PeriodMaxSec = src.PeriodMaxSec;
             PeriodMinSec = src.PeriodMinSec;
-            HystProc = src.HystProc;
+            Hyst = src.Hyst;
 
         }
     }

@@ -13,7 +13,7 @@ namespace RPCExp.DbStore
     /// <summary>
     /// Класс сохранения конфигурации в БД и восстановления конфигурации из БД
     /// </summary>
-    public class SqliteStoreSource 
+    public class SqliteStoreSource : IDisposable
     {
         Dictionary<string, ProtocolSerializerAbstract> protorolSerializers = new Dictionary<string, ProtocolSerializerAbstract>();
         Dictionary<string, IConnectionSourceSerializer> connectionSerializers = new Dictionary<string, IConnectionSourceSerializer>();
@@ -30,6 +30,11 @@ namespace RPCExp.DbStore
             connectionSerializers.Add(tcpConnectionSourceSerializer.ClassName, tcpConnectionSourceSerializer);
             connectionSerializers.Add(udpConnectionSourceSerializer.ClassName, udpConnectionSourceSerializer);
             connectionSerializers.Add(serialConnectionSourceSerializer.ClassName, serialConnectionSourceSerializer);
+        }
+
+        public void Dispose()
+        {
+            //throw new NotImplementedException();
         }
 
         public Store Get(string target)
@@ -113,7 +118,7 @@ namespace RPCExp.DbStore
                             {
                                 var tagLogConfig = new TagLogger.TagLogConfig(tag)
                                 {
-                                    HystProc = tagCfg.ArchiveCfg.HystProc,
+                                    Hyst = tagCfg.ArchiveCfg.Hyst,
                                     PeriodMaxSec = tagCfg.ArchiveCfg.PeriodMaxSec,
                                     PeriodMinSec = tagCfg.ArchiveCfg.PeriodMinSec,
                                     TagLogInfo = new TagLogger.Entities.TagLogInfo { 

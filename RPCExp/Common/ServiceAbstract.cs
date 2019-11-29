@@ -22,6 +22,7 @@ namespace RPCExp.Common
         private CancellationTokenSource cts;
 
         ~ServiceAbstract() {
+            System.Diagnostics.Trace.WriteLine(GetType().Name + " Destructing");
             cts?.Cancel();
             main.Wait(10);
 
@@ -36,18 +37,24 @@ namespace RPCExp.Common
 
         private async Task OnErrorBaseAsync(Task preTask)
         {
+            System.Diagnostics.Trace.Fail(GetType().Name + " Fail: " + preTask.Exception.InnerMessage());
+
             State = ServiceState.Fault;
             await OnErrorAsync(preTask.Exception, cts.Token).ConfigureAwait(false);
         }
 
         private async Task OnCompleteBaseAsync(Task preTask)
         {
+            var ctsState = cts.Token.IsCancellationRequested ? "canceled " : "notcanceled";
+            System.Diagnostics.Trace.WriteLine(GetType().Name + $" Complete. Cts:{ctsState} State:{preTask.Status}");
             State = ServiceState.Stopped;
             await OnCompleteAsync(cts.Token).ConfigureAwait(false);
         }
 
         private async Task OnServiceTask()//(Task preTask) 
         {
+            System.Diagnostics.Trace.WriteLine(GetType().Name + " Starting");
+
             await OnStarting(cts.Token).ConfigureAwait(false);
             State = ServiceState.Started;
             await ServiceTaskAsync(cts.Token).ConfigureAwait(false);
@@ -95,6 +102,7 @@ namespace RPCExp.Common
             main.ContinueWith(OnErrorBaseAsync, TaskContinuationOptions.OnlyOnFaulted);
 #pragma warning restore CA2008 // Не создавайте задачи без передачи TaskScheduler
 
+            System.Diagnostics.Trace.WriteLine(GetType().Name + " Started");
             State = ServiceState.Started;
         }
 
@@ -103,10 +111,13 @@ namespace RPCExp.Common
             if ((State == ServiceState.Started) || (State == ServiceState.Starting))
                 return;
 
+            System.Diagnostics.Trace.WriteLine(GetType().Name + " Stopping normal");
+
             State = ServiceState.Stopping;
             cts.Cancel();
 
             State = ServiceState.Stopped;
+            System.Diagnostics.Trace.WriteLine(GetType().Name + " Stopped");
         }
 
     }
