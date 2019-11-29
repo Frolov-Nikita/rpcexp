@@ -119,7 +119,7 @@ namespace RPCExp.Modbus
             return true;
         }
 
-        public List<MTagsCollection> Slice(int maxGroupLength = 100, int maxSpareSize = 0)
+        public List<MTagsCollection> Slice(int maxGroupLength = 100, int maxSpareLength = 0)
         {
             //124 - макс // (255 - slaveId - func - start*2 - length*2 - crc*2)/2 = 248/2 = 124
             var grouped = new List<MTagsCollection>();
@@ -132,7 +132,7 @@ namespace RPCExp.Modbus
             {
                 var gp = Nearest(grouped, tag);
                 // Если не нашлось подходящей создаем новую группу
-                if ((gp == null) || (gp.SpareTo( tag) > maxSpareSize))
+                if ((gp == null) || (gp.SpareTo( tag) > maxSpareLength))
                 {
                     gp = new MTagsCollection { tag };
                     grouped.Add(gp);

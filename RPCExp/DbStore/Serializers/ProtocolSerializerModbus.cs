@@ -25,6 +25,8 @@ namespace RPCExp.DbStore.Serializers
                 mdev.SlaveId,
                 mdev.ByteOrder,
                 FrameType = mdev.FrameType.ToString(),
+                mdev.MaxGroupLength,
+                mdev.MaxGroupSpareLength,
             });            
         }
 
@@ -42,6 +44,12 @@ namespace RPCExp.DbStore.Serializers
 
             if (jo.ContainsKey("FrameType"))
                 device.FrameType = (FrameType)jo["FrameType"].ToObject(typeof(FrameType));
+
+            if (jo.ContainsKey(nameof(device.MaxGroupLength)))
+                device.MaxGroupLength = (int)jo[nameof(device.MaxGroupLength)].ToObject(typeof(int));
+
+            if (jo.ContainsKey(nameof(device.MaxGroupSpareLength)))
+                device.MaxGroupSpareLength = (int)jo[nameof(device.MaxGroupSpareLength)].ToObject(typeof(int));
 
             return device;
         }

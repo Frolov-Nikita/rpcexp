@@ -25,6 +25,10 @@ namespace RPCExp.Modbus
 
         private static readonly Dictionary<Common.ValueType, TypeConverterAbstract> typeConverters = new Dictionary<Common.ValueType, TypeConverterAbstract> ();
 
+        public int MaxGroupLength { get; set; } = 100;
+
+        public int MaxGroupSpareLength { get; set; } = 0;
+
         private void UpdateTypeConverters() {
             typeConverters.Clear();
             typeConverters.Add(Common.ValueType.Float, new TypeConverterFloat(ByteOrder));
@@ -186,16 +190,16 @@ namespace RPCExp.Modbus
             {
                 IModbusMaster master = masterSource.Get(factory, FrameType, ConnectionSource);
 
-                foreach (var g in (coils).Slice())
+                foreach (var g in (coils).Slice(MaxGroupLength, MaxGroupSpareLength))
                     await UpdateCoils(master, g).ConfigureAwait(false);
 
-                foreach (var g in (discreteInputs).Slice())
+                foreach (var g in (discreteInputs).Slice(MaxGroupLength, MaxGroupSpareLength))
                     await UpdateDiscreteInputs(master, g).ConfigureAwait(false);
 
-                foreach (var g in (inputRegisters).Slice())
+                foreach (var g in (inputRegisters).Slice(MaxGroupLength, MaxGroupSpareLength))
                     await UpdateInputRegisters(master, g).ConfigureAwait(false);
 
-                foreach (var g in (holdingRegisters).Slice())
+                foreach (var g in (holdingRegisters).Slice(MaxGroupLength, MaxGroupSpareLength))
                     await UpdateHoldingRegisters(master, g).ConfigureAwait(false);
             }
 
