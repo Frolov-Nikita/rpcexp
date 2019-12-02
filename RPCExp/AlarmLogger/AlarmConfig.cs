@@ -6,8 +6,6 @@ using System.Linq;
 
 namespace RPCExp.AlarmLogger
 {
-    //TODO: throw заменить на более дешевую диагностику.
-
     public class AlarmConfig
     {
         public Condition Condition { get; private set; }
@@ -48,8 +46,6 @@ namespace RPCExp.AlarmLogger
             // dband
             if((lastVal == true) && (val == false))
                 val = Condition.InDBand(DBandRValue);
-
-            
 
             var retval = val && (!lastVal);
             lastVal = val;

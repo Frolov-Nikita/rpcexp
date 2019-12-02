@@ -27,7 +27,7 @@ namespace RPCExp.DbStore.Serializers
 
             device.Name = config.Name;
             device.Description = config.Description;
-            device.BadCommWaitPeriod = config.BadCommWaitPeriod;
+            device.BadCommPeriod = config.BadCommWaitPeriod;
             device.UpdateInActiveTags = config.InActiveUpdate;
             device.UpdateInActiveTagsPeriod = config.InActiveUpdatePeriod;
 
@@ -43,7 +43,7 @@ namespace RPCExp.DbStore.Serializers
             config.ClassName = this.ClassName;
             config.Name = device.Name;
             config.Description = device.Description;
-            config.BadCommWaitPeriod = device.BadCommWaitPeriod;
+            config.BadCommWaitPeriod = device.BadCommPeriod;
             config.InActiveUpdate = device.UpdateInActiveTags;
             config.InActiveUpdatePeriod = device.UpdateInActiveTagsPeriod;
 

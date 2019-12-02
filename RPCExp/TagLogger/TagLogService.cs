@@ -159,9 +159,9 @@ namespace RPCExp.TagLogger
                             });
                         }
                     }
-                    catch//(Exception ex)
+                    catch(Exception ex)
                     {
-                        //TODO: log this exception
+                        System.Diagnostics.Trace.Fail(GetType().Name + ":" + ex.InnerMessage());
                     }
                 }//for
 
@@ -180,9 +180,9 @@ namespace RPCExp.TagLogger
                         }
                     }
                 }
-                catch//(Exception ex)
+                catch(Exception ex)
                 {
-                    //TODO: log this exception
+                    System.Diagnostics.Trace.Fail(GetType().Name + ":" + ex.InnerMessage());
                 }
 
                 int tSleep = tNextCheck > DateTime.Now ? (int)(tNextCheck - DateTime.Now).TotalMilliseconds : minWaitTimeMs;
@@ -227,7 +227,15 @@ namespace RPCExp.TagLogger
                 if (filter.InfoIds != default)
                     query = query.Where(a => filter.InfoIds.Contains(a.TagLogInfo.Id));
                 
-                //TODO: остальное
+                if (filter.FacilityAccessNames != default)
+                    query = query.Where(a => filter.FacilityAccessNames.Contains(a.TagLogInfo.FacilityAccessName));
+
+                if (filter.DeviceNames != default)
+                    query = query.Where(a => filter.DeviceNames.Contains(a.TagLogInfo.DeviceName));
+
+                if (filter.TagNames != default)
+                    query = query.Where(a => filter.TagNames.Contains(a.TagLogInfo.TagName));
+
                 if (filter.Count != 0)
                     query = query.Skip(filter.Offset).Take(filter.Count);
             }
@@ -247,11 +255,11 @@ namespace RPCExp.TagLogger
 
         public IEnumerable<int> InfoIds { get; set; }
 
-        public IEnumerable<string> FacilityAccessName { get; set; }
+        public IEnumerable<string> FacilityAccessNames { get; set; }
 
-        public IEnumerable<string> DeviceName { get; set; }
+        public IEnumerable<string> DeviceNames { get; set; }
 
-        public IEnumerable<string> TagName { get; set; }
+        public IEnumerable<string> TagNames { get; set; }
 
         public int Offset { get; set; } = 0;
 

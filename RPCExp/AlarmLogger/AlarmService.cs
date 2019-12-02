@@ -212,9 +212,9 @@ namespace RPCExp.AlarmLogger
                             cache.Add(alarm);                         
                         }
                     }
-                    catch//(Exception ex)
+                    catch(Exception ex)
                     {
-                        // TODO: log this exception
+                        System.Diagnostics.Trace.Fail(GetType().Name + ":" + ex.InnerMessage());
                     }
                 }// for
 
@@ -232,9 +232,9 @@ namespace RPCExp.AlarmLogger
                             cache.Clear();                            
                         }
                     }
-                }catch//(Exception ex)
+                }catch(Exception ex)
                 {
-                    //TODO: log this exception
+                    System.Diagnostics.Trace.Fail(GetType().Name + ":" + ex.InnerMessage());
                 }
 
                 int tSleep = tNextCheck > DateTime.Now ? (int)(tNextCheck - DateTime.Now).TotalMilliseconds : minWaitTimeMs;
@@ -283,7 +283,6 @@ namespace RPCExp.AlarmLogger
                 if (filter.InfoIds != default)
                     query = query.Where(a => filter.InfoIds.Contains( a.AlarmInfo.Id));
                 
-                //TODO: остальное
                 if (filter.AlarmCategoriesIds?.Count() > 0)
                     query = query.Where(a => filter.AlarmCategoriesIds.Contains( a.AlarmInfo.Category.Id ));
 

@@ -12,15 +12,17 @@ namespace RPCExp.Common
 {
     public abstract class DeviceAbstract : ServiceAbstract, INameDescription
     {
+        private const int ONE_SECOND_TICKS = 10_000_000;
+
         public virtual string Name { get ; set ; }
 
         public string Description { get; set; }
         
-        public long BadCommWaitPeriod { get; set; } = 10 * 10_000_000;
+        public long BadCommPeriod { get; set; } = 10 * ONE_SECOND_TICKS;
 
         public bool UpdateInActiveTags { get; set; } = true;
 
-        public long UpdateInActiveTagsPeriod { get; set; } = 20 * 10_000_000;
+        public long UpdateInActiveTagsPeriod { get; set; } = 20 * ONE_SECOND_TICKS;
 
         public IDictionary<string, TagsGroup> Groups { get; } = new Dictionary<string, TagsGroup>();
 
@@ -28,44 +30,44 @@ namespace RPCExp.Common
         
         public ConnectionSourceAbstract ConnectionSource { get; set; }
 
-        protected ICollection<TagAbstract> NeedToUpdate(out long nextTime, bool force = false)
+        /// <summary>
+        /// Определяет список тегов требующих чтения сейчас и даиу-время следующего обновления
+        /// </summary>
+        /// <returns>Tuple(список тегов, время следующего обновления</returns>
+        protected virtual (ICollection<TagAbstract> tags, long nextTime) GetPeriodicApdateTags()
         {
             var nowTick = DateTime.Now.Ticks;
-            var afterTick = nowTick + TimeSpan.FromSeconds(1).Ticks;
-            nextTime = nowTick + BadCommWaitPeriod;
+            var afterTick = nowTick + ONE_SECOND_TICKS;
+            var nextTime = nowTick + BadCommPeriod + UpdateInActiveTagsPeriod + ONE_SECOND_TICKS;
+
             List<TagAbstract> retTags = new List<TagAbstract>();
             
             foreach (var tag in Tags.Values)
             {
-                if ((!tag.IsActive) && (!UpdateInActiveTags) && (!force))
+                if ((!tag.IsActive) && (!UpdateInActiveTags))
                     continue;
 
                 long period = (tag.Quality == TagQuality.GOOD) ?
                     tag.Period :
-                    BadCommWaitPeriod;
+                    BadCommPeriod;
 
                 if ((!tag.IsActive) && UpdateInActiveTags)
                     period = UpdateInActiveTagsPeriod;
 
                 long tagNextTick = tag.Last + period;
 
-                if (tagNextTick > afterTick)
+                if (tagNextTick < afterTick)
                 {
-                    if (nextTime > tagNextTick)
-                        nextTime = tagNextTick;
-                    if (!force)
-                        continue;
-                }
-                else
-                {
+                    retTags.Add(tag);
                     tagNextTick = nowTick + period;
-                    if (nextTime > tagNextTick)
-                        nextTime = tagNextTick;
                 }
-                retTags.Add(tag);
+
+                if (nextTime > tagNextTick)
+                    nextTime = tagNextTick;
+                
             }
 
-            return retTags;
+            return (retTags, nextTime);
         }
 
         public virtual IDictionary< string, IEnumerable<string>> GetTagsGroups()
@@ -79,29 +81,46 @@ namespace RPCExp.Common
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested) {
-                (long nextTime, bool IOUpdateOk) = await IOUpdate(cancellationToken).ConfigureAwait(false);
-                // TODO: Вынести сюда общую логику определения необходимости. Абстрактным должен быть метод получающий данные для коллекции тегов.
-
-
-                // Ожидание следующего цикла
+                long nextTime = await PeriodicUpdate(cancellationToken).ConfigureAwait(false);
+                
+                // Ожидание до времени обновления следующего тега
                 long waitTime = nextTime - DateTime.Now.Ticks;
-                waitTime = waitTime < 0 ? 0 : waitTime;
-                waitTime = waitTime > 10_000 ? waitTime : 10_000; // 10_000 = 1 миллисекунда
+                waitTime = waitTime > 10_000 ? waitTime : 10_000; // не меньше 10_000 = 1 миллисекунда
                 waitTime = waitTime > 50_000_000 ? waitTime / 2 : waitTime;
-                waitTime = waitTime < 50_000_000 ? waitTime : 50_000_000;// 100_000_000 = 10 сек
+                waitTime = waitTime < 50_000_000 ? waitTime : 50_000_000; // не больше 50_000_000 = 5 сек
                 
                 await Task.Delay((int)(waitTime / 10_000)).ConfigureAwait(false);
             }
         }
 
-
         /// <summary>
-        /// Обновление тегов
+        /// 
         /// </summary>
         /// <param name="cancellationToken"></param>
-        /// <returns>long - next time for update, bool - update was successfull</returns>
-        public abstract Task<(long, bool)> IOUpdate(CancellationToken cancellationToken);
+        /// <returns></returns>
+        private async Task<long> PeriodicUpdate(CancellationToken cancellationToken)
+        {
+            long nextTime = 0;
+            if (ConnectionSource.IsOpen)
+            {
+                (ICollection<TagAbstract> tags, long periodicNextTime) = GetPeriodicApdateTags();
+             
+                nextTime = periodicNextTime;
 
+                await Read(tags).ConfigureAwait(false);
+            }
+            else
+            {
+                if (!ConnectionSource.EnshureConnected())
+                {
+                    nextTime = DateTime.Now.Ticks + BadCommPeriod;
+
+                    foreach (var t in Tags)
+                        t.Value.SetValue(null, TagQuality.BAD_COMM_FAILURE);
+                }
+            }
+            return nextTime;
+        }
 
         public virtual IEnumerable<object> GetGroupInfos(string groupName)
         {
@@ -162,6 +181,8 @@ namespace RPCExp.Common
 
             return datas;
         }
+        
+        protected abstract Task Read(ICollection<TagAbstract> tags);
 
         /// <summary>
         /// 

@@ -93,9 +93,6 @@ namespace RPCExp
             //*/
         }
 
-        private static void Loc_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            ;
-        }
+
     }
 }

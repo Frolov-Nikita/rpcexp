@@ -1,8 +1,12 @@
 ﻿web sockets - запрос на повышение win
 
-Функции "синхронного чтения", "записи и последующего чтения" по модбас
+Документирование + ревизия public
 
-TagsGroup track period for each client
+refactor service abstract:
+1) Hассчет времени главного цикла
+2) Выделение цикличной функции - async Task<int> Cycle(cts);
+
+TagsGroup track period for each client (Tick(int hash))
 
  memory device
 
@@ -19,5 +23,8 @@ messure & Refactor reflection in Router methods
 
 TUI
 
+throw заменить на более дешевую диагностику.
+
+-- Функции "синхронного чтения", "записи и последующего чтения" по модбас
 -- fix db entities types
 -- mbdev limit request length

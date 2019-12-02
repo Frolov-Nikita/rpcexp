@@ -4,6 +4,7 @@ using RPCExp.Connections;
 using RPCExp.Modbus.TypeConverters;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,9 +21,7 @@ namespace RPCExp.Modbus
     public class ModbusDevice : DeviceAbstract
     {
         static readonly ModbusFactory factory = new ModbusFactory();
-
-        private bool forceRead = true;
-
+        
         private static readonly Dictionary<Common.ValueType, TypeConverterAbstract> typeConverters = new Dictionary<Common.ValueType, TypeConverterAbstract> ();
 
         public int MaxGroupLength { get; set; } = 100;
@@ -155,10 +154,9 @@ namespace RPCExp.Modbus
             }
         }
 
-        // TODO: Переделать force на 1-st cycle.
-        private async Task<long> Update(bool force = false)
+        
+        protected override async Task Read(ICollection<TagAbstract> tags)
         {
-            var tags = NeedToUpdate(out long groupNextUpdate, force);
 
             var holdingRegisters = new MTagsCollection();
             var inputRegisters = new MTagsCollection();
@@ -203,14 +201,13 @@ namespace RPCExp.Modbus
                     await UpdateHoldingRegisters(master, g).ConfigureAwait(false);
             }
 
-            return groupNextUpdate;
         }
 
         /// <summary>
         /// Записать значения тегов в устройство 
         /// </summary>
         /// <param name="tagsValues"></param>
-        /// <returns></returns>
+        /// <returns>Count of written tags</returns>
         public override async Task<int> Write(IDictionary<string, object> tagsValues)
         {
             if (tagsValues is null)
@@ -219,7 +216,11 @@ namespace RPCExp.Modbus
             List<MTag> tags = new List<MTag>();
             foreach (var tv in tagsValues)
                 if (Tags.ContainsKey(tv.Key))
-                    tags.Add((MTag)Tags[tv.Key]);
+                {
+                    var t = (MTag)Tags[tv.Key];
+                    if((t.Access == Access.ReadWrite) || (t.Access == Access.WriteOnly))
+                        tags.Add(t);
+                }
 
             if(tags.Count > 0)
             {
@@ -272,34 +273,84 @@ namespace RPCExp.Modbus
                 }
             }
 
-            return 0;
-            //throw new NotImplementedException();
+            return tags.Count;
         }
 
-        public override async Task<(long, bool)> IOUpdate(CancellationToken cancellationToken)
+        /// <summary>
+        /// Функция синхронного чтения
+        /// </summary>
+        /// <param name="region">Region</param>
+        /// <param name="begin">Start address</param>
+        /// <param name="length">Count of registers.</param>
+        /// <returns></returns>
+        public async Task<ushort[]> ReadRegisters(ModbusRegion region, ushort begin, ushort length)
         {
-            long nextTime = 0;
-            bool succes = false;
-            if (ConnectionSource.IsOpen)
-            {
-                nextTime = await Update(forceRead).ConfigureAwait(false);
-                forceRead = false;
-                succes = true;
-            }
-            else
-            {
-                forceRead = true;
+            if (!ConnectionSource.IsOpen)
+                throw new IOException("Device does not connectd.");
 
-                if (!ConnectionSource.EnshureConnected())
-                {
-                    nextTime = DateTime.Now.Ticks + BadCommWaitPeriod;
+            if (length > 125)
+                throw new ArgumentException($"Length ({length}) is too big.");
 
-                    foreach (var t in Tags)
-                        t.Value.SetValue(null, TagQuality.BAD_COMM_FAILURE);
-                }
+            if (length == 0)
+                throw new ArgumentException($"Length ({length}) is not good.");
+
+            IModbusMaster master = masterSource.Get(factory, FrameType, ConnectionSource);
+
+            switch (region)
+            {
+                case ModbusRegion.InputRegisters:
+                    return await master.ReadInputRegistersAsync(SlaveId, begin, length).ConfigureAwait(false);
+                case ModbusRegion.HoldingRegisters:
+                    return await master.ReadHoldingRegistersAsync(SlaveId, begin, length).ConfigureAwait(false);
+                default:
+                    throw new NotSupportedException($"{region} region does not supported by this function");
             }
-            return (nextTime, succes);
         }
 
+        /// <summary>
+        /// Функция синхронной записи
+        /// </summary>
+        /// <param name="begin">Start address</param>
+        /// <param name="data">registers.</param>
+        /// <returns></returns>
+        public async Task WriteRegisters(ushort begin, ushort[] data)
+        {
+            if (!ConnectionSource.IsOpen)
+                throw new IOException("Device does not connectd.");
+
+            if (data.Length > 125)
+                throw new ArgumentException($"Length ({data.Length}) is too big.");
+
+            if (data.Length == 0)
+                throw new ArgumentException($"Length ({data.Length}) is not good.");
+
+            IModbusMaster master = masterSource.Get(factory, FrameType, ConnectionSource);
+
+            await master.WriteMultipleRegistersAsync(SlaveId, begin, data).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Функция синхронной записи и последующего чтения записанных значений
+        /// </summary>
+        /// <param name="begin">Start address</param>
+        /// <param name="data">registers.</param>
+        /// <returns></returns>
+        public async Task<ushort[]> WriteAndReadRegisters(ushort begin, ushort[] data)
+        {
+            if (!ConnectionSource.IsOpen)
+                throw new IOException("Device does not connectd.");
+
+            if (data?.Length > 125)
+                throw new ArgumentException($"Length ({data.Length}) is too big.");
+
+            if (data?.Length == 0)
+                throw new ArgumentException($"Length ({data.Length}) is not good.");
+
+            IModbusMaster master = masterSource.Get(factory, FrameType, ConnectionSource);
+
+            await master.WriteMultipleRegistersAsync(SlaveId, begin, data).ConfigureAwait(false);
+
+            return await master.ReadHoldingRegistersAsync(SlaveId, begin, (ushort)data.Length).ConfigureAwait(false);
+        }
     }
 }
