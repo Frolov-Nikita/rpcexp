@@ -18,7 +18,8 @@ namespace RPCExp.DbStore.Serializers
             // SlaveId, 
             // ByteOrder, 
             // FrameType, 
-            // ConnectionRef
+            // MaxGroupLength
+            // MaxGroupSpareLength
             var mdev = (ModbusDevice)device;
             return JsonConvert.SerializeObject(new
             {

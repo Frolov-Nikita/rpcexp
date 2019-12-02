@@ -80,7 +80,10 @@ namespace RPCExp.Common
         {
             while (!cancellationToken.IsCancellationRequested) {
                 (long nextTime, bool IOUpdateOk) = await IOUpdate(cancellationToken).ConfigureAwait(false);
+                // TODO: Вынести сюда общую логику определения необходимости. Абстрактным должен быть метод получающий данные для коллекции тегов.
 
+
+                // Ожидание следующего цикла
                 long waitTime = nextTime - DateTime.Now.Ticks;
                 waitTime = waitTime < 0 ? 0 : waitTime;
                 waitTime = waitTime > 10_000 ? waitTime : 10_000; // 10_000 = 1 миллисекунда
@@ -91,7 +94,6 @@ namespace RPCExp.Common
             }
         }
 
-        // TODO: Вынести сюда общую логику определения необходимости. Абстрактным должен быть метод получающий данные для коллекции тегов.
 
         /// <summary>
         /// Обновление тегов

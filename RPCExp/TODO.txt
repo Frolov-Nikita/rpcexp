@@ -1,20 +1,14 @@
 ﻿web sockets - запрос на повышение win
 
+Функции "синхронного чтения", "записи и последующего чтения" по модбас
+
 TagsGroup track period for each client
-
--- fix db entities types
-
--- mbdev limit request length
 
  memory device
 
 Статический анализ
 
 Оптимизация оперативки
-
-TUI
-
-Функции "синхронного чтения", "записи и последующего чтения" по модбас
 
 Add real async to NModbus
 
@@ -23,4 +17,7 @@ messure & Refactor reflection in Router methods
 
 Функция rpc обновления конфигурации facility и connections
 
+TUI
 
+-- fix db entities types
+-- mbdev limit request length
