@@ -37,7 +37,7 @@ namespace RPCExp.Common
 
         private async Task OnErrorBaseAsync(Task preTask)
         {
-            System.Diagnostics.Trace.Fail(GetType().Name + " Fail: " + preTask.Exception.InnerMessage());
+            System.Diagnostics.Trace.Fail(GetType().Name + " FAIL: " + preTask.Exception.InnerMessage());
 
             State = ServiceState.Fault;
             await OnErrorAsync(preTask.Exception, cts.Token).ConfigureAwait(false);
@@ -45,7 +45,7 @@ namespace RPCExp.Common
 
         private async Task OnCompleteBaseAsync(Task preTask)
         {
-            var ctsState = cts.Token.IsCancellationRequested ? "canceled " : "notcanceled";
+            var ctsState = cts.Token.IsCancellationRequested ? "canceled " : "not canceled";
             System.Diagnostics.Trace.WriteLine(GetType().Name + $" Complete. Cts:{ctsState} State:{preTask.Status}");
             State = ServiceState.Stopped;
             await OnCompleteAsync(cts.Token).ConfigureAwait(false);

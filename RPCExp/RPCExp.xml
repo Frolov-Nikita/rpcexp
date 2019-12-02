@@ -4,9 +4,79 @@
         <name>RPCExp</name>
     </assembly>
     <members>
+        <member name="P:RPCExp.AlarmLogger.AlarmConfig.Condition">
+            <summary>
+            Условие срабатывания аварии. => формирования сообщения.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmConfig.Custom1">
+            <summary>
+            Значение для подстановки в текст
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmConfig.AlarmInfo">
+            <summary>
+            Описание аварии. Текст сообщения, категория, описание, связь с оборудованием.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmConfig.DBandRValue">
+            <summary>
+            Мертвая зона.
+            Предназначена для фильтрации дребезга аварий.
+            После срабатывания аварии возврат значения в 0 будет, если условие срабатывания не выполняется и аргументы условия отличаются на эту величину.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmConfig.IsOk">
+            <summary>
+            В порядке ли все псоставные части аварии.
+            True - все участвующие теги прочитаны и доступны (Quality >= 192)
+            </summary>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.AlarmConfig.IsRized">
+            <summary>
+            Определяет фронт срабатывания условия
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.Condition.IsOk">
+            <summary>
+            В порядке ли аргументы?
+            </summary>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.Condition.Check">
+            <summary>
+            Выполняется ли условие
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.Condition.InDBand(System.Decimal)">
+            <summary>
+            Определяет находятся ли аргументы условия внутри мертвой зоны друг друга.
+            </summary>
+            <param name="dband">величина мертвой зоны</param>
+            <returns>true- находятся</returns>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.Condition.From(System.String,System.Collections.Generic.IEnumerable{RPCExp.Common.TagAbstract})">
+            <summary>
+            Парсинг строки условия и привязка аргументов к тегам (сохраняем ссылку)
+            </summary>
+            <param name="conditionString">Строка условия</param>
+            <param name="tags">Список тегов из которых производится привязка</param>
+            <returns>объект условия</returns>
+        </member>
         <member name="T:RPCExp.AlarmLogger.Argument">
             <summary>
             Источник значения. Может быть константой или тегом.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmService.Configs">
+            <summary>
+            Список сконфигурированных аварий.
+            </summary>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.AlarmService.InnitDB(System.Threading.CancellationToken)">
+            <summary>
+            Cинхронизация/инициализация категорий и AlarmInfo
             </summary>
         </member>
         <member name="M:RPCExp.AlarmLogger.AlarmService.GetInfos">
@@ -21,7 +91,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:RPCExp.AlarmLogger.AlarmService.GetAlarms(RPCExp.AlarmLogger.AlarmFilter)">
+        <member name="M:RPCExp.AlarmLogger.AlarmService.GetAlarms(RPCExp.AlarmLogger.AlarmFilter,System.Threading.CancellationToken)">
             <summary>
             Доступ к архиву сообщений
             </summary>
@@ -33,18 +103,37 @@
             Фильтр для сообщений
             </summary>
         </member>
-        <member name="M:RPCExp.Common.DeviceAbstract.IOUpdate(System.Threading.CancellationToken)">
+        <member name="M:RPCExp.Common.DeviceAbstract.GetPeriodicTagsForUpdate">
             <summary>
-            Обновление тегов
+            Определяет список тегов требующих чтения сейчас и даиу-время следующего обновления
+            </summary>
+            <returns>Tuple(список тегов, время следующего обновления</returns>
+        </member>
+        <member name="M:RPCExp.Common.DeviceAbstract.GetTagsGroups">
+            <summary>
+            Вывод списка групп
+            </summary>
+            <returns>группа со списком имен тегов входящих в эту группу</returns>
+        </member>
+        <member name="M:RPCExp.Common.DeviceAbstract.PeriodicUpdate(System.Threading.CancellationToken)">
+            <summary>
+            Периодическое чтение тегов
             </summary>
             <param name="cancellationToken"></param>
-            <returns>long - next time for update, bool - update was successfull</returns>
+            <returns>Время в которое нужно запустить следующую проверку</returns>
+        </member>
+        <member name="M:RPCExp.Common.DeviceAbstract.GetGroupInfos(System.String)">
+            <summary>
+            Получить полное описание группы тегов
+            </summary>
+            <param name="groupName">Имя группы</param>
+            <returns></returns>
         </member>
         <member name="M:RPCExp.Common.DeviceAbstract.GetGroupValues(System.String)">
             <summary>
-            Получает значения набора переменных
+            Получает значения группы тегов
             </summary>
-            <param name="groupName"></param>
+            <param name="groupName">Имя группы</param>
             <returns></returns>
             <example>
             { "jsonrpc": "2.0", "method": "f1$Plc1.GetGroupValues", "params": ["usts2"], "id": "159"}
@@ -62,10 +151,10 @@
         </member>
         <member name="M:RPCExp.Common.DeviceAbstract.Write(System.Collections.Generic.IDictionary{System.String,System.Object})">
             <summary>
-            
+            Запись значений.
             </summary>
-            <param name="tagsValues"></param>
-            <returns></returns>
+            <param name="tagsValues">пара имя тега - значение</param>
+            <returns>Кол-во записаных значений. Теги помеченные как "только для чтения" не будут записаны.</returns>
             <example>
             { "jsonrpc": "2.0", "method": "f1$Plc1.Write", "params": [{"UST_112":"-5"}], "id": "159"}
             </example>
@@ -156,6 +245,32 @@
             An adapter for the SerialPortStream class. Useful for getting serial port access on non-Windows devices.
             </summary>
         </member>
+        <member name="T:RPCExp.DbStore.Entities.DeviceToTemplate">
+            <summary>
+            Класс для связи many2many
+            </summary>
+        </member>
+        <member name="T:RPCExp.DbStore.Entities.ICopyFrom">
+            <summary>
+            Копирует все, кроме ID
+            </summary>
+        </member>
+        <member name="T:RPCExp.DbStore.Entities.TagsToTagsGroups">
+            <summary>
+            Many2Many relartion
+            </summary>
+        </member>
+        <member name="T:RPCExp.DbStore.Serializers.ProtocolSerializerAbstract">
+            <summary>
+            Класс преобразует сущности из БД в объекты программы и обратно.
+            </summary>
+            <typeparam name="T">Сласс устройства реализующего протокол</typeparam>
+        </member>
+        <member name="T:RPCExp.DbStore.SqliteStoreSource">
+            <summary>
+            Класс сохранения конфигурации в БД и восстановления конфигурации из БД
+            </summary>
+        </member>
         <member name="T:RPCExp.DocumenationExtensions">
             <summary>
             Utility class to provide documentation for various types where available with the assembly
@@ -244,35 +359,71 @@
             Записать значения тегов в устройство 
             </summary>
             <param name="tagsValues"></param>
+            <returns>Count of written tags</returns>
+        </member>
+        <member name="M:RPCExp.Modbus.ModbusDevice.ReadRegisters(RPCExp.Modbus.ModbusRegion,System.UInt16,System.UInt16)">
+            <summary>
+            Функция синхронного чтения
+            </summary>
+            <param name="region">Region</param>
+            <param name="begin">Start address</param>
+            <param name="length">Count of registers.</param>
             <returns></returns>
         </member>
-        <member name="T:RPCExp.Store.Entities.DeviceToTemplate">
+        <member name="M:RPCExp.Modbus.ModbusDevice.WriteRegisters(System.UInt16,System.UInt16[])">
             <summary>
-            Класс для связи many2many
+            Функция синхронной записи
+            </summary>
+            <param name="begin">Start address</param>
+            <param name="data">registers.</param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.Modbus.ModbusDevice.WriteAndReadRegisters(System.UInt16,System.UInt16[])">
+            <summary>
+            Функция синхронной записи и последующего чтения записанных значений
+            </summary>
+            <param name="begin">Start address</param>
+            <param name="data">registers.</param>
+            <returns></returns>
+        </member>
+        <member name="P:RPCExp.Modbus.MTag.Access">
+            <summary>
+            Разрешение на запись
             </summary>
         </member>
-        <member name="T:RPCExp.Store.Entities.ICopyFrom">
+        <member name="T:RPCExp.Properties.Resources">
             <summary>
-            Копирует все, кроме ID
+              Класс ресурса со строгой типизацией для поиска локализованных строк и т.д.
             </summary>
         </member>
-        <member name="T:RPCExp.Store.Entities.TagsToTagsGroups">
+        <member name="P:RPCExp.Properties.Resources.ResourceManager">
             <summary>
-            Many2Many relartion
+              Возвращает кэшированный экземпляр ResourceManager, использованный этим классом.
             </summary>
         </member>
-        <member name="T:RPCExp.Store.Serializers.ProtocolSerializerAbstract">
+        <member name="P:RPCExp.Properties.Resources.Culture">
             <summary>
-            Класс преобразует сущности из БД в объекты программы и обратно.
-            </summary>
-            <typeparam name="T">Сласс устройства реализующего протокол</typeparam>
-        </member>
-        <member name="T:RPCExp.Store.SqliteStoreSource">
-            <summary>
-            Класс сохранения конфигурации в БД и восстановления конфигурации из БД
+              Перезаписывает свойство CurrentUICulture текущего потока для всех
+              обращений к ресурсу с помощью этого класса ресурса со строгой типизацией.
             </summary>
         </member>
-        <member name="P:RPCExp.TagLogger.TagLogConfig.HystProc">
+        <member name="M:RPCExp.RpcServer.WebSocketRpcServer.SocketHandlerAsync(System.Net.WebSockets.WebSocket,System.Threading.CancellationToken)">
+            <summary>
+            Обработка сообщений от подключившегося клиента
+            </summary>
+            <param name="socket"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.RpcServer.WebSocketServerAbstract.SocketHandlerAsync(System.Net.WebSockets.WebSocket,System.Threading.CancellationToken)">
+            <summary>
+            Обработка сообщений от подключившегося клиента
+            </summary>
+            <param name="socket"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogConfig.Hyst">
             <summary>
             Макс процент от шкалы
             </summary>
@@ -294,21 +445,13 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:RPCExp.TagLogger.TagLogService.GetData(System.Collections.Generic.IEnumerable{System.Int32},System.Int64,System.Int64)">
+        <member name="M:RPCExp.TagLogger.TagLogService.GetData(RPCExp.TagLogger.TagLogFilter,System.Threading.CancellationToken)">
             <summary>
             Получить архивные данные.
             </summary>
             <param name="ids">Идентификаторы параметров</param>
             <param name="tBegin">Время начала для выборки</param>
             <param name="tEnd">время окончания выборки</param>
-            <returns></returns>
-        </member>
-        <member name="M:RPCExp.WebSocketServer.SocketHandlerAsync(System.Net.WebSockets.WebSocket,System.Threading.CancellationToken)">
-            <summary>
-            Обработка сообщений от подключившегося клиента
-            </summary>
-            <param name="socket"></param>
-            <param name="cancellationToken"></param>
             <returns></returns>
         </member>
     </members>

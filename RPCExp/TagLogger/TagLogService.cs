@@ -68,9 +68,7 @@ namespace RPCExp.TagLogger
         {
             if ((cache?.Count ?? 0) == 0)
                 return;
-
-            System.Diagnostics.Debug.WriteLine($"TagLog.SaveAsync {cache.Count}");
-
+            
             var context = new TagLogContext(FileName);
 
             /* // Код как оно должно работать
@@ -122,9 +120,7 @@ namespace RPCExp.TagLogger
                     nextMaintain = DateTime.Now + 4 * MinMaintainPeriod; // после такого можно чуть подольше не проверять:)
                 }
             }
-
-            System.Diagnostics.Debug.WriteLine("TagLog.SaveAsync disposing");
-
+            
             context.Dispose();
         }
 

@@ -16,7 +16,6 @@ namespace RPCExp.AlarmLogger
 
         const int minWaitTimeMs = 50; // Минимальное время ожидания, мсек
 
-
         public TimeSpan MinMaintainPeriod { get; set; } = TimeSpan.FromSeconds(10);
 
         DateTime nextMaintain = DateTime.Now;
@@ -33,10 +32,13 @@ namespace RPCExp.AlarmLogger
 
         private readonly List<AlarmCategory> localCategories = new List<AlarmCategory>(4);
 
+        /// <summary>
+        /// Список сконфигурированных аварий.
+        /// </summary>
         public List<AlarmConfig> Configs { get; } = new List<AlarmConfig>();
 
         /// <summary>
-        /// Cинхронизация/инициализация категорий и AlarmInfo
+        /// Синхронизация/инициализация категорий и AlarmInfo
         /// </summary>
         private async Task InnitDB(CancellationToken cancellationToken) 
         {
@@ -111,9 +113,7 @@ namespace RPCExp.AlarmLogger
         {
             if ((cache?.Count ?? 0) == 0)
                 return;
-
-            System.Diagnostics.Debug.WriteLine($"AlarmLog.SaveAsync {cache.Count}");
-
+            
             var context = new AlarmContext(FileName);
 
             /* // Код как оно должно работать
@@ -166,11 +166,10 @@ namespace RPCExp.AlarmLogger
 
                     await context.Database.ExecuteSqlRawAsync("VACUUM ;").ConfigureAwait(false);
                     
-                    nextMaintain = DateTime.Now + 4 * MinMaintainPeriod; // после такого можно чуть подольше не проверять:)
+                    nextMaintain = DateTime.Now + 4 * MinMaintainPeriod; // после такого можно чуть подольше не проверять кэш:)
                 }
             }
 
-            System.Diagnostics.Debug.WriteLine($"AlarmLog.SaveAsync disposing");
             context.Dispose();
         }
 
@@ -244,7 +243,7 @@ namespace RPCExp.AlarmLogger
         }
 
         /// <summary>
-        /// Получение списка сконфигурировных сообщений
+        /// Получение списка сконфигурированных сообщений
         /// </summary>
         /// <returns></returns>
         public IEnumerable<AlarmInfo> GetInfos()

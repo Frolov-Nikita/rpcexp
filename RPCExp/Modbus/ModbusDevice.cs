@@ -155,8 +155,10 @@ namespace RPCExp.Modbus
         }
 
         
-        protected override async Task Read(ICollection<TagAbstract> tags)
+        protected override async Task Read(ICollection<TagAbstract> tags, CancellationToken cancellationToken)
         {
+            if (tags is null)
+                throw new ArgumentNullException(nameof(tags));
 
             var holdingRegisters = new MTagsCollection();
             var inputRegisters = new MTagsCollection();
@@ -286,7 +288,7 @@ namespace RPCExp.Modbus
         public async Task<ushort[]> ReadRegisters(ModbusRegion region, ushort begin, ushort length)
         {
             if (!ConnectionSource.IsOpen)
-                throw new IOException("Device does not connectd.");
+                throw new IOException("Device does not connected.");
 
             if (length > 125)
                 throw new ArgumentException($"Length ({length}) is too big.");
@@ -316,7 +318,7 @@ namespace RPCExp.Modbus
         public async Task WriteRegisters(ushort begin, ushort[] data)
         {
             if (!ConnectionSource.IsOpen)
-                throw new IOException("Device does not connectd.");
+                throw new IOException("Device does not connected.");
 
             if (data.Length > 125)
                 throw new ArgumentException($"Length ({data.Length}) is too big.");
@@ -338,7 +340,7 @@ namespace RPCExp.Modbus
         public async Task<ushort[]> WriteAndReadRegisters(ushort begin, ushort[] data)
         {
             if (!ConnectionSource.IsOpen)
-                throw new IOException("Device does not connectd.");
+                throw new IOException("Device does not connected.");
 
             if (data?.Length > 125)
                 throw new ArgumentException($"Length ({data.Length}) is too big.");

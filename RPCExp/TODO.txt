@@ -2,8 +2,8 @@
 
 Документирование + ревизия public
 
-refactor service abstract:
-1) Hассчет времени главного цикла
+? refactor service abstract:
+1) Расчет времени главного цикла
 2) Выделение цикличной функции - async Task<int> Cycle(cts);
 
 TagsGroup track period for each client (Tick(int hash))

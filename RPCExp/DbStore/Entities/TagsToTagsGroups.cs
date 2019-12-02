@@ -5,7 +5,7 @@ using System.Text;
 namespace RPCExp.DbStore.Entities
 {
     /// <summary>
-    /// Many2Many relartion
+    /// Many2Many relation
     /// </summary>
     public class TagsToTagsGroups
     {

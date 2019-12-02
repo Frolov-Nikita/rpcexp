@@ -35,7 +35,7 @@ namespace RPCExp.TagLogger
         static TagsGroup TagsLogTagGroup = new TagsGroup(new BasicPeriodSource())
         {
             Name = "TagsLogTagGroup",
-            Description = "Tags group to periodicly check alarms",
+            Description = "Tags group to periodically check alarms",
             Min = 20 * 10_000_000,
         };
 

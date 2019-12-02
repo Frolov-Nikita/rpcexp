@@ -31,10 +31,10 @@ namespace RPCExp.Common
         public ConnectionSourceAbstract ConnectionSource { get; set; }
 
         /// <summary>
-        /// Определяет список тегов требующих чтения сейчас и даиу-время следующего обновления
+        /// Определяет список тегов требующих чтения сейчас и дату-время следующего обновления
         /// </summary>
         /// <returns>Tuple(список тегов, время следующего обновления</returns>
-        protected virtual (ICollection<TagAbstract> tags, long nextTime) GetPeriodicApdateTags()
+        protected virtual (ICollection<TagAbstract> tags, long nextTime) GetPeriodicTagsForUpdate()
         {
             var nowTick = DateTime.Now.Ticks;
             var afterTick = nowTick + ONE_SECOND_TICKS;
@@ -70,6 +70,10 @@ namespace RPCExp.Common
             return (retTags, nextTime);
         }
 
+        /// <summary>
+        /// Вывод списка групп
+        /// </summary>
+        /// <returns>группа со списком имен тегов входящих в эту группу</returns>
         public virtual IDictionary< string, IEnumerable<string>> GetTagsGroups()
         {
             var r = new Dictionary<string, IEnumerable<string>>(Tags.Count);
@@ -94,20 +98,20 @@ namespace RPCExp.Common
         }
 
         /// <summary>
-        /// 
+        /// Периодическое чтение тегов
         /// </summary>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <returns>Время в которое нужно запустить следующую проверку</returns>
         private async Task<long> PeriodicUpdate(CancellationToken cancellationToken)
         {
             long nextTime = 0;
             if (ConnectionSource.IsOpen)
             {
-                (ICollection<TagAbstract> tags, long periodicNextTime) = GetPeriodicApdateTags();
+                (ICollection<TagAbstract> tags, long periodicNextTime) = GetPeriodicTagsForUpdate();
              
                 nextTime = periodicNextTime;
 
-                await Read(tags).ConfigureAwait(false);
+                await Read(tags, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -122,6 +126,11 @@ namespace RPCExp.Common
             return nextTime;
         }
 
+        /// <summary>
+        /// Получить полное описание группы тегов
+        /// </summary>
+        /// <param name="groupName">Имя группы</param>
+        /// <returns></returns>
         public virtual IEnumerable<object> GetGroupInfos(string groupName)
         {
             return from t in Tags.Values
@@ -130,9 +139,9 @@ namespace RPCExp.Common
         }
 
         /// <summary>
-        /// Получает значения набора переменных
+        /// Получает значения группы тегов
         /// </summary>
-        /// <param name="groupName"></param>
+        /// <param name="groupName">Имя группы</param>
         /// <returns></returns>
         /// <example>
         /// { "jsonrpc": "2.0", "method": "f1$Plc1.GetGroupValues", "params": ["usts2"], "id": "159"}
@@ -182,13 +191,13 @@ namespace RPCExp.Common
             return datas;
         }
         
-        protected abstract Task Read(ICollection<TagAbstract> tags);
+        protected abstract Task Read(ICollection<TagAbstract> tags, CancellationToken cancellationToken);
 
         /// <summary>
-        /// 
+        /// Запись значений.
         /// </summary>
-        /// <param name="tagsValues"></param>
-        /// <returns></returns>
+        /// <param name="tagsValues">пара имя тега - значение</param>
+        /// <returns>Кол-во записанных значений. Теги помеченные как "только для чтения" не будут записаны.</returns>
         /// <example>
         /// { "jsonrpc": "2.0", "method": "f1$Plc1.Write", "params": [{"UST_112":"-5"}], "id": "159"}
         /// </example>

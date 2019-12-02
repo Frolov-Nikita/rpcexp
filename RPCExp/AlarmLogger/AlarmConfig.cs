@@ -8,8 +8,14 @@ namespace RPCExp.AlarmLogger
 {
     public class AlarmConfig
     {
+        /// <summary>
+        /// Условие срабатывания аварии. => формирования сообщения.
+        /// </summary>
         public Condition Condition { get; private set; }
 
+        /// <summary>
+        /// Значение для подстановки в текст
+        /// </summary>
         public Argument Custom1 { get; private set; }
 
         public Argument Custom2 { get; private set; }
@@ -18,12 +24,24 @@ namespace RPCExp.AlarmLogger
 
         public Argument Custom4 { get; private set; }
 
+        /// <summary>
+        /// Описание аварии. Текст сообщения, категория, описание, связь с оборудованием.
+        /// </summary>
         public AlarmInfo AlarmInfo { get; set; }
 
         bool lastVal = false;
 
+        /// <summary>
+        /// Мертвая зона.
+        /// Предназначена для фильтрации дребезга аварий.
+        /// После срабатывания аварии возврат значения в 0 будет, если условие срабатывания не выполняется и аргументы условия отличаются на эту величину.
+        /// </summary>
         public decimal DBandRValue { get; set; } = 0;
 
+        /// <summary>
+        /// В порядке ли все составные части аварии.
+        /// True - все участвующие теги прочитаны и доступны (Quality >= 192)
+        /// </summary>
         public bool IsOk { get
             {
                 return
@@ -36,6 +54,10 @@ namespace RPCExp.AlarmLogger
             } 
         }
 
+        /// <summary>
+        /// Определяет фронт срабатывания условия
+        /// </summary>
+        /// <returns></returns>
         public bool IsRized()
         {
             if (!Condition.IsOk)
@@ -165,13 +187,25 @@ namespace RPCExp.AlarmLogger
 
         Argument[] Arguments { get; set; }
 
+        /// <summary>
+        /// В порядке ли аргументы?
+        /// </summary>
         public bool IsOk =>
             Arguments[0].IsOk &&
             Arguments[1].IsOk;
 
+        /// <summary>
+        /// Выполняется ли условие
+        /// </summary>
+        /// <returns></returns>
         public bool Check()
             => Operators[operatorName].Check(Arguments[0].GetValue(), Arguments[1].GetValue());
 
+        /// <summary>
+        /// Определяет находятся ли аргументы условия внутри мертвой зоны друг друга.
+        /// </summary>
+        /// <param name="dband">величина мертвой зоны</param>
+        /// <returns>true- находятся</returns>
         public bool InDBand(decimal dband = 0M) 
         {
             if ((dband == 0) || (!IsOk) || (!Operators[operatorName].UseDBand))
@@ -179,11 +213,16 @@ namespace RPCExp.AlarmLogger
 
             var a0 = Arguments[0].GetValue();
             var a1 = Arguments[1].GetValue();
-                       
+            
             return (a0 < (a1 + dband)) && (a0 > (a1 - dband));
         }
         
-
+        /// <summary>
+        /// Разбор строки условия и привязка аргументов к тегам (сохраняем ссылку)
+        /// </summary>
+        /// <param name="conditionString">Строка условия</param>
+        /// <param name="tags">Список тегов из которых производится привязка</param>
+        /// <returns>объект условия</returns>
         public static Condition From(string conditionString,  IEnumerable<TagAbstract> tags)
         {
             string operatorName = default;
@@ -290,7 +329,7 @@ namespace RPCExp.AlarmLogger
         static readonly System.Text.RegularExpressions.Regex regTagName = new System.Text.RegularExpressions.Regex("^[_a-zA-Zа-яА-Я]+[_a-zA-Zа-яА-Я0-9]*$");
         static readonly TagsGroup AlarmsTagGroup = new TagsGroup(new BasicPeriodSource()) {
             Name = "AlarmsTagGroup", 
-            Description = "Tags group to periodicly check alarms",
+            Description = "Tags group to periodically check alarms",
             Min = 2 * 10_000_000,
         };
 
@@ -306,7 +345,7 @@ namespace RPCExp.AlarmLogger
             {
                 var tag = tags.FirstOrDefault(t => t.Name == s);
                 if (tag == default)
-                    throw new ArgumentException($"Argument tag \'{s}\' doesn`t found.");
+                    throw new ArgumentException($"Argument tag \'{s}\' doesn't found.");
 
                 if (!tag.Groups.ContainsKey(AlarmsTagGroup.Name))
                     tag.Groups.AddByName(AlarmsTagGroup);

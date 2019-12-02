@@ -83,7 +83,7 @@ namespace RPCExp.DbStore
                     var protocolSerializer = protorolSerializers[deviceCfg.ClassName];
                     var device = protocolSerializer.UnpackDevice(deviceCfg, store);
 
-                    // Обрвботка шаблона (переделать этот код когда в EF Core будет реализован релейшн many2many)
+                    // Обработка шаблона (переделать этот код когда в EF Core будет реализован релейшн many2many)
                     foreach (var deviceToTemplate in storedDeviceToTemplates.Where(e => e.DeviceId == deviceCfg.Id))
                     {
                         var template = deviceToTemplate.Template;
