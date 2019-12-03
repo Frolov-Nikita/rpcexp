@@ -5,10 +5,16 @@ using System.Text;
 
 namespace RPCExp.Common
 {
+    /// <summary>
+    /// Represents runtime data of the tag.
+    /// It used in json serialization.
+    /// </summary>
     public class TagData
     {
-        const long ZeroTick = 621_355_968_000_000_000; //1970.01.01 00:00:00.000
-
+        /// <summary>
+        /// Copying ctor
+        /// </summary>
+        /// <param name="tagData"></param>
         public TagData(TagData tagData = null)
         {
             if (tagData == null) return;
@@ -18,38 +24,25 @@ namespace RPCExp.Common
             LastGood = tagData.LastGood;
         }
 
+        /// <summary>
+        /// Quality of tag's data
+        /// </summary>
         public TagQuality Quality { get; protected set; } = TagQuality.BAD;
 
+        /// <summary>
+        /// DateTime.Ticks when tags data was updated.
+        /// </summary>
         public long Last { get; protected set; } = DateTime.Now.Ticks;
 
+        /// <summary>
+        /// DateTime.Ticks when tags data was updated by data of good quality.
+        /// </summary>
         public long LastGood { get; protected set; } = DateTime.Now.Ticks;
 
-        public object Value { get; private set; }
-        
-        internal void SetValue(object value, TagQuality qty = TagQuality.GOOD)
-        {
-            Quality = qty;
-            Last = DateTime.Now.Ticks;
-            if (qty == TagQuality.GOOD)
-            {
-                Value = value;
-                LastGood = Last;
-            }
-        }
+        /// <summary>
+        /// Last updated value
+        /// </summary>
+        public object Value { get; protected set; }
 
-        public string ToJson()
-        {
-            long tsLast = (Last - ZeroTick) / 10_000; // миллисекунды с начала времен (1970)
-            var result = $"[\"{Value.ToString()}\",\"{ Quality}\",{tsLast}";
-            
-            if (Quality < TagQuality.GOOD)
-            {
-                long tsLastGood = (LastGood - ZeroTick) / 10_000;
-                result += $",{tsLastGood}";
-            }
-            
-            result += "]"; 
-            return result;
-        }
     }
 }

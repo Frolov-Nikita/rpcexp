@@ -15,10 +15,12 @@ using RPCExp.AlarmLogger;
 
 namespace RPCExp
 {
+
+
     class Program
     {
         static readonly CancellationTokenSource Cts = new CancellationTokenSource();
-        
+
         static void Main(/*string[] args*/)
         {
             var stopwatch = Stopwatch.StartNew();

@@ -2,6 +2,8 @@
 
 Документирование + ревизия public
 
+Scale only for analogs
+
 ? refactor service abstract:
 1) Расчет времени главного цикла
 2) Выделение цикличной функции - async Task<int> Cycle(cts);

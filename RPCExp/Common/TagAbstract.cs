@@ -75,5 +75,21 @@ namespace RPCExp.Common
             LastGood,
             Last,
         };
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="qty"></param>
+        internal void SetValue(object value, TagQuality qty = TagQuality.GOOD)
+        {
+            Quality = qty;
+            Last = DateTime.Now.Ticks;
+            if (qty == TagQuality.GOOD)
+            {
+                Value = Scale.ScaleDevToSrv(value);
+                LastGood = Last;
+            }
+        }
     }
 }

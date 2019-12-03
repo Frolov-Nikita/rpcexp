@@ -210,26 +210,17 @@ namespace RPCExp.Modbus
         /// </summary>
         /// <param name="tagsValues"></param>
         /// <returns>Count of written tags</returns>
-        public override async Task<int> Write(IDictionary<string, object> tagsValues)
+        protected override async Task<int> Write(IDictionary<TagAbstract, object> tagsValues)
         {
             if (tagsValues is null)
                 return 0;
 
-            List<MTag> tags = new List<MTag>();
-            foreach (var tv in tagsValues)
-                if (Tags.ContainsKey(tv.Key))
-                {
-                    var t = (MTag)Tags[tv.Key];
-                    if((t.Access == Access.ReadWrite) || (t.Access == Access.WriteOnly))
-                        tags.Add(t);
-                }
-
-            if(tags.Count > 0)
+            if(tagsValues.Count > 0)
             {
                 var holdingRegisters = new MTagsCollection();
                 var coils = new MTagsCollection();
 
-                foreach (MTag tag in tags)
+                foreach (MTag tag in tagsValues.Keys)
                 {
                     switch (tag.Region)
                     {
@@ -253,7 +244,7 @@ namespace RPCExp.Modbus
 
                     foreach (var t in g)
                     {
-                        var v = tagsValues[t.Name];
+                        var v = tagsValues[t];
                         var tc = GetTypeConverter(t.ValueType);
                         
                         tc.GetBytes(buff, v);
@@ -270,12 +261,12 @@ namespace RPCExp.Modbus
                     var values = new bool[g.Length];
                     int i = 0;
                     foreach (var t in g)
-                        values[i++] = (bool)tagsValues[t.Name];
+                        values[i++] = (bool)tagsValues[t];
                     await master.WriteMultipleCoilsAsync(SlaveId, (ushort)g.Begin, values).ConfigureAwait(false);
                 }
             }
 
-            return tags.Count;
+            return tagsValues.Count;
         }
 
         /// <summary>
@@ -304,6 +295,8 @@ namespace RPCExp.Modbus
                     return await master.ReadInputRegistersAsync(SlaveId, begin, length).ConfigureAwait(false);
                 case ModbusRegion.HoldingRegisters:
                     return await master.ReadHoldingRegistersAsync(SlaveId, begin, length).ConfigureAwait(false);
+                case ModbusRegion.Coils:
+                case ModbusRegion.DiscreteInputs:
                 default:
                     throw new NotSupportedException($"{region} region does not supported by this function");
             }

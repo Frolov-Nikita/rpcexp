@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace RPCExp.JsonRpc
+namespace RPCExp.RpcServer.JsonRpc
 {
     class Request
     {
@@ -26,10 +26,7 @@ namespace RPCExp.JsonRpc
 
         public string ToJson() =>
             JsonConvert.SerializeObject(
-                this, 
-                new JsonSerializerSettings {
-                    NullValueHandling = NullValueHandling.Ignore
-                });
+                this, JsonSerializerSettingsSource.Settings);
 
     }
 }

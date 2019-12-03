@@ -1,32 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace RPCExp.JsonRpc
+namespace RPCExp.RpcServer.JsonRpc
 {
-    public class ResponseError
-    {
-        [JsonProperty("code")]
-        public int Code { get; set; }
-        [JsonProperty("message")]
-        public string Message { get; set; }
-        [JsonProperty("data")]
-        public object Data { get; set; }
-
-        public static Response FromJson(string json) =>
-            JsonConvert.DeserializeObject<Response>(json);
-
-        public string ToJson()
-        {
-            var jsonData = Data == null ? "" : ",\"data\"" + JsonConvert.SerializeObject(Data, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-            return $"{{\"code\":{Code}, \"message\":{JsonConvert.SerializeObject(Message)}{jsonData}}}";
-        }
-    }//class ResponseError
-
 
     public class Response
     {
+
         [JsonProperty("id")]
         public string Id { get; set; }
 
@@ -46,7 +27,8 @@ namespace RPCExp.JsonRpc
         {
             var jsonId = "\"id\":" + (Id == default ? "null": "\"" + Id +"\"");
             if (Error == null)
-                return $"{{\"jsonrpc\":\"{Version}\",{jsonId},\"result\":{JsonConvert.SerializeObject(Result, Formatting.Indented, new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore})}}}";
+                //return $"{{\"jsonrpc\":\"{Version}\",{jsonId},\"result\":{JsonConvert.SerializeObject(Result, Formatting.Indented, new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore})}}}";
+                return $"{{\"jsonrpc\":\"{Version}\",{jsonId},\"result\":{JsonConvert.SerializeObject(Result, JsonSerializerSettingsSource.Settings)}}}";
             else
                 return $"{{\"jsonrpc\":\"{Version}\",{jsonId},\"error\":{Error.ToJson()}}}";
         }

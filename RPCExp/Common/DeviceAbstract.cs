@@ -10,16 +10,25 @@ using RPCExp.Connections;
 
 namespace RPCExp.Common
 {
+    /// <summary>
+    /// Base class for a number of protocols implementation
+    /// </summary>
     public abstract class DeviceAbstract : ServiceAbstract, INameDescription
     {
         private const int ONE_SECOND_TICKS = 10_000_000;
 
-        public virtual string Name { get ; set ; }
+        public string Name { get ; set ; }
 
         public string Description { get; set; }
         
+        /// <summary>
+        /// Amount of ticks to wait then communication issue occurs.
+        /// </summary>
         public long BadCommPeriod { get; set; } = 10 * ONE_SECOND_TICKS;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public bool UpdateInActiveTags { get; set; } = true;
 
         public long UpdateInActiveTagsPeriod { get; set; } = 20 * ONE_SECOND_TICKS;
@@ -201,7 +210,33 @@ namespace RPCExp.Common
         /// <example>
         /// { "jsonrpc": "2.0", "method": "f1$Plc1.Write", "params": [{"UST_112":"-5"}], "id": "159"}
         /// </example>
-        public abstract Task<int> Write(IDictionary<string, object> tagsValues);
+        public async Task<int> Write(IDictionary<string, object> tagsValues)
+        {
+            if (tagsValues is null)
+                return 0;
+
+            IDictionary<TagAbstract, object> tags = new Dictionary<TagAbstract, object>(tagsValues.Count);
+
+            foreach (var tv in tagsValues)
+                if (Tags.ContainsKey(tv.Key))
+                {
+                    var tag = Tags[tv.Key];
+                    if ((tag.Access == Access.ReadWrite) || (tag.Access == Access.WriteOnly))
+                    {
+                        var val = tag.Scale.ScaleSrvToDev(tv.Value);
+                        tags.Add(tag, val);
+                    }                        
+                }
+
+            return await Write(tags).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tagsValues"></param>
+        /// <returns></returns>
+        protected abstract Task<int> Write(IDictionary<TagAbstract, object> tagsValues);
     }
 
 }

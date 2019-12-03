@@ -28,7 +28,7 @@
         </member>
         <member name="P:RPCExp.AlarmLogger.AlarmConfig.IsOk">
             <summary>
-            В порядке ли все псоставные части аварии.
+            В порядке ли все составные части аварии.
             True - все участвующие теги прочитаны и доступны (Quality >= 192)
             </summary>
         </member>
@@ -58,7 +58,7 @@
         </member>
         <member name="M:RPCExp.AlarmLogger.Condition.From(System.String,System.Collections.Generic.IEnumerable{RPCExp.Common.TagAbstract})">
             <summary>
-            Парсинг строки условия и привязка аргументов к тегам (сохраняем ссылку)
+            Разбор строки условия и привязка аргументов к тегам (сохраняем ссылку)
             </summary>
             <param name="conditionString">Строка условия</param>
             <param name="tags">Список тегов из которых производится привязка</param>
@@ -76,12 +76,12 @@
         </member>
         <member name="M:RPCExp.AlarmLogger.AlarmService.InnitDB(System.Threading.CancellationToken)">
             <summary>
-            Cинхронизация/инициализация категорий и AlarmInfo
+            Синхронизация/инициализация категорий и AlarmInfo
             </summary>
         </member>
         <member name="M:RPCExp.AlarmLogger.AlarmService.GetInfos">
             <summary>
-            Получение списка сконфигурировных сообщений
+            Получение списка сконфигурированных сообщений
             </summary>
             <returns></returns>
         </member>
@@ -103,9 +103,24 @@
             Фильтр для сообщений
             </summary>
         </member>
+        <member name="T:RPCExp.Common.DeviceAbstract">
+            <summary>
+            Base class for a number of protocols implementation
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.DeviceAbstract.BadCommPeriod">
+            <summary>
+            Amount of ticks to wait then communication issue occurs.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.DeviceAbstract.UpdateInActiveTags">
+            <summary>
+            
+            </summary>
+        </member>
         <member name="M:RPCExp.Common.DeviceAbstract.GetPeriodicTagsForUpdate">
             <summary>
-            Определяет список тегов требующих чтения сейчас и даиу-время следующего обновления
+            Определяет список тегов требующих чтения сейчас и дату-время следующего обновления
             </summary>
             <returns>Tuple(список тегов, время следующего обновления</returns>
         </member>
@@ -154,10 +169,31 @@
             Запись значений.
             </summary>
             <param name="tagsValues">пара имя тега - значение</param>
-            <returns>Кол-во записаных значений. Теги помеченные как "только для чтения" не будут записаны.</returns>
+            <returns>Кол-во записанных значений. Теги помеченные как "только для чтения" не будут записаны.</returns>
             <example>
             { "jsonrpc": "2.0", "method": "f1$Plc1.Write", "params": [{"UST_112":"-5"}], "id": "159"}
             </example>
+        </member>
+        <member name="M:RPCExp.Common.DeviceAbstract.Write(System.Collections.Generic.IDictionary{RPCExp.Common.TagAbstract,System.Object})">
+            <summary>
+            
+            </summary>
+            <param name="tagsValues"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.Common.Scale.ScaleDevToSrv(System.Object)">
+            <summary>
+            Scale value from device scale to server scale
+            </summary>
+            <param name="valueFromDev"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.Common.Scale.ScaleSrvToDev(System.Object)">
+            <summary>
+            Scale value from server scale to device scale
+            </summary>
+            <param name="valueFromSrv"></param>
+            <returns></returns>
         </member>
         <member name="P:RPCExp.Common.TagAbstract.Groups">
             <summary>
@@ -171,12 +207,51 @@
         </member>
         <member name="P:RPCExp.Common.TagAbstract.Period">
             <summary>
-            Период опроса определяется как минимальный период из гупп опроса
+            Период опроса определяется как минимальный период из групп опроса
             </summary>
         </member>
         <member name="P:RPCExp.Common.TagAbstract.IsActive">
             <summary>
             Тег активен, если активна хоть одна и групп опроса тэга
+            </summary>
+        </member>
+        <member name="M:RPCExp.Common.TagAbstract.SetValue(System.Object,RPCExp.Common.TagQuality)">
+            <summary>
+            
+            </summary>
+            <param name="value"></param>
+            <param name="qty"></param>
+        </member>
+        <member name="T:RPCExp.Common.TagData">
+            <summary>
+            Represents runtime data of the tag.
+            It used in json serialization.
+            </summary>
+        </member>
+        <member name="M:RPCExp.Common.TagData.#ctor(RPCExp.Common.TagData)">
+            <summary>
+            Copying ctor
+            </summary>
+            <param name="tagData"></param>
+        </member>
+        <member name="P:RPCExp.Common.TagData.Quality">
+            <summary>
+            Quality of tag's data
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagData.Last">
+            <summary>
+            DateTime.Ticks when tags data was updated.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagData.LastGood">
+            <summary>
+            DateTime.Ticks when tags data was updated by data of good quality.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagData.Value">
+            <summary>
+            Last updated value
             </summary>
         </member>
         <member name="F:RPCExp.Common.TagQuality.BAD">
@@ -257,14 +332,14 @@
         </member>
         <member name="T:RPCExp.DbStore.Entities.TagsToTagsGroups">
             <summary>
-            Many2Many relartion
+            Many2Many relation
             </summary>
         </member>
         <member name="T:RPCExp.DbStore.Serializers.ProtocolSerializerAbstract">
             <summary>
             Класс преобразует сущности из БД в объекты программы и обратно.
             </summary>
-            <typeparam name="T">Сласс устройства реализующего протокол</typeparam>
+            <typeparam name="T">Класс устройства реализующего протокол</typeparam>
         </member>
         <member name="T:RPCExp.DbStore.SqliteStoreSource">
             <summary>
@@ -354,7 +429,7 @@
             <param name="assembly">The assembly to find the XML document for</param>
             <returns>The XML document</returns>
         </member>
-        <member name="M:RPCExp.Modbus.ModbusDevice.Write(System.Collections.Generic.IDictionary{System.String,System.Object})">
+        <member name="M:RPCExp.Modbus.ModbusDevice.Write(System.Collections.Generic.IDictionary{RPCExp.Common.TagAbstract,System.Object})">
             <summary>
             Записать значения тегов в устройство 
             </summary>
@@ -389,22 +464,6 @@
         <member name="P:RPCExp.Modbus.MTag.Access">
             <summary>
             Разрешение на запись
-            </summary>
-        </member>
-        <member name="T:RPCExp.Properties.Resources">
-            <summary>
-              Класс ресурса со строгой типизацией для поиска локализованных строк и т.д.
-            </summary>
-        </member>
-        <member name="P:RPCExp.Properties.Resources.ResourceManager">
-            <summary>
-              Возвращает кэшированный экземпляр ResourceManager, использованный этим классом.
-            </summary>
-        </member>
-        <member name="P:RPCExp.Properties.Resources.Culture">
-            <summary>
-              Перезаписывает свойство CurrentUICulture текущего потока для всех
-              обращений к ресурсу с помощью этого класса ресурса со строгой типизацией.
             </summary>
         </member>
         <member name="M:RPCExp.RpcServer.WebSocketRpcServer.SocketHandlerAsync(System.Net.WebSockets.WebSocket,System.Threading.CancellationToken)">
@@ -453,6 +512,36 @@
             <param name="tBegin">Время начала для выборки</param>
             <param name="tEnd">время окончания выборки</param>
             <returns></returns>
+        </member>
+        <member name="T:System.ExceptionExtension">
+            <summary>
+            Some useful extension methods for exceptions
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:System.ExceptionExtension.InnerMessage(System.Exception,System.Boolean)" -->
+        <member name="T:System.INameDescription">
+            <summary>
+            For lists of entities. It describe how to store data in DB by attributes.
+            </summary>
+        </member>
+        <member name="T:System.Collections.Generic.LimitedObservableCollection`1">
+            <summary>
+            Observable collection with limited capacity.
+            New elements crowd out old ones
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:System.Collections.Generic.LimitedObservableCollection`1.Limit">
+            <summary>
+            Max count of items inside the collection
+            </summary>
+        </member>
+        <member name="M:System.Collections.Generic.LimitedObservableCollection`1.InsertItem(System.Int32,`0)">
+            <summary>
+            This method do all magic. It calling by other Add, AddRange, etc.
+            </summary>
+            <param name="index"></param>
+            <param name="item"></param>
         </member>
     </members>
 </doc>

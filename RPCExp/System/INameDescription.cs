@@ -5,6 +5,9 @@ using System.Text;
 
 namespace System
 {
+    /// <summary>
+    /// For lists of entities. It describe how to store data in DB by attributes.
+    /// </summary>
     public interface INameDescription
     {
         [MaxLength(64)]
