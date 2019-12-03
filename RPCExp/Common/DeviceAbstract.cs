@@ -223,7 +223,7 @@ namespace RPCExp.Common
                     var tag = Tags[tv.Key];
                     if ((tag.Access == Access.ReadWrite) || (tag.Access == Access.WriteOnly))
                     {
-                        var val = tag.Scale.ScaleSrvToDev(tv.Value);
+                        var val = tag.Scale?.ScaleSrvToDev(tv.Value) ?? tv.Value;
                         tags.Add(tag, val);
                     }                        
                 }

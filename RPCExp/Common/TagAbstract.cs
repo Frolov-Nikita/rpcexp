@@ -34,7 +34,7 @@ namespace RPCExp.Common
         /// <summary>
         /// Необязательное масштабирование
         /// </summary>
-        public Scale Scale { get; set; } = new Scale();
+        public Scale Scale { get; set; }
 
         /// <summary>
         /// Период опроса определяется как минимальный период из групп опроса
@@ -77,7 +77,9 @@ namespace RPCExp.Common
         };
 
         /// <summary>
-        /// 
+        /// Sets value received from plc to tag.
+        /// Uses scaling if it needs.
+        /// Updates timestamps.
         /// </summary>
         /// <param name="value"></param>
         /// <param name="qty"></param>
@@ -87,7 +89,7 @@ namespace RPCExp.Common
             Last = DateTime.Now.Ticks;
             if (qty == TagQuality.GOOD)
             {
-                Value = Scale.ScaleDevToSrv(value);
+                Value = Scale?.ScaleDevToSrv(value) ?? value;
                 LastGood = Last;
             }
         }

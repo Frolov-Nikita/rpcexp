@@ -2,7 +2,8 @@
 
 Документирование + ревизия public
 
-Scale only for analogs
+Scale only analogs
+
 
 ? refactor service abstract:
 1) Расчет времени главного цикла
