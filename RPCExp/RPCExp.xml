@@ -4,19 +4,24 @@
         <name>RPCExp</name>
     </assembly>
     <members>
+        <member name="T:RPCExp.AlarmLogger.AlarmConfig">
+            <summary>
+            Alarm configuration. 
+            </summary>
+        </member>
         <member name="P:RPCExp.AlarmLogger.AlarmConfig.Condition">
             <summary>
-            Условие срабатывания аварии. => формирования сообщения.
+            Condition for message triggering.
             </summary>
         </member>
         <member name="P:RPCExp.AlarmLogger.AlarmConfig.Custom1">
             <summary>
-            Значение для подстановки в текст
+            Value for substitution
             </summary>
         </member>
         <member name="P:RPCExp.AlarmLogger.AlarmConfig.AlarmInfo">
             <summary>
-            Описание аварии. Текст сообщения, категория, описание, связь с оборудованием.
+            Alarm information. Contain message text template, category, facility reference
             </summary>
         </member>
         <member name="P:RPCExp.AlarmLogger.AlarmConfig.DBandRValue">
@@ -34,9 +39,24 @@
         </member>
         <member name="M:RPCExp.AlarmLogger.AlarmConfig.IsRized">
             <summary>
-            Определяет фронт срабатывания условия
+            Determine the front of triggered condition.
             </summary>
             <returns></returns>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.AlarmConfig.From(RPCExp.DbStore.Entities.AlarmCfg,System.Collections.Generic.IEnumerable{RPCExp.Common.TagAbstract},RPCExp.AlarmLogger.Entities.AlarmInfo)">
+            <summary>
+            Create full AlarmConfig from db entity AlarmCfg
+            </summary>
+            <param name="alarmCfg">db entity</param>
+            <param name="tags"></param>
+            <param name="alarmInfo"></param>
+            <returns></returns>
+        </member>
+        <member name="T:RPCExp.AlarmLogger.Condition">
+            <summary>
+            Condition for triggering the message.
+            It contains operator and its arguments.
+            </summary>
         </member>
         <member name="P:RPCExp.AlarmLogger.Condition.IsOk">
             <summary>
@@ -66,47 +86,158 @@
         </member>
         <member name="T:RPCExp.AlarmLogger.Argument">
             <summary>
-            Источник значения. Может быть константой или тегом.
+            Source of the value for the condition. It can be reference for tag, or constant value.
+            </summary>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.Argument.GetValue">
+            <summary>
+            Gets the value of this argument.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.Argument.From(System.String,System.Collections.Generic.IEnumerable{RPCExp.Common.TagAbstract})">
+            <summary>
+            Deserialization of argument from string.
+            If string contains number, argument will be constant.
+            If string contains tag name, argument will be contain the tag reference from tags list.
+            If tag doesn't exist in the list the ArgumentException will be thrown.
+            </summary>
+            <param name="str">name of the tag or number</param>
+            <param name="tags">list of tags</param>
+            <returns></returns>
+        </member>
+        <member name="T:RPCExp.AlarmLogger.AlarmService">
+            <summary>
+            Класс сообщений.
+            После запуска начинает периодически проверять кешированые значения тегов на предмет выполнения условия выдачи сообщения. Период проверки: CheckPeriod.
+            По фронту сработавшего условия информация о сообщении попадает во временный кеш. После того как данные накопятся в кеше они записываются в БД. Данные также попадут из кеша в БД периодически по периоду SavePeriod.
+            Количество записей в БД ограничивается параметром StoreItemsCount. Проверка превышения этого количества происходит периодически с периодом MinMaintainPeriod. 
+            Класс также предоставляет методы получения архивных данных.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmService.MinMaintainPeriod">
+            <summary>
+            Period for maintain db. Maintain will start when save new messages into db AND this period is elapsed. 
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmService.CheckPeriod">
+            <summary>
+            Period for check conditions of alarms.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmService.SavePeriod">
+            <summary>
+            Period for saving data into db. Data can be saved faster, if caching buffer is full.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmService.StoreItemsCount">
+            <summary>
+            Limit of stored items in DB
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmService.FileName">
+            <summary>
+            SQlite db file name
             </summary>
         </member>
         <member name="P:RPCExp.AlarmLogger.AlarmService.Configs">
             <summary>
-            Список сконфигурированных аварий.
+            Configured messages
             </summary>
         </member>
         <member name="M:RPCExp.AlarmLogger.AlarmService.InnitDB(System.Threading.CancellationToken)">
             <summary>
-            Синхронизация/инициализация категорий и AlarmInfo
+            db initialization 
             </summary>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.AlarmService.SaveAsync(System.Collections.Generic.Queue{RPCExp.AlarmLogger.Entities.Alarm},System.Threading.CancellationToken)">
+            <summary>
+            Save cache into db. And call maintain if maintain period completed.
+            </summary>
+            <param name="cache"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.AlarmLogger.AlarmService.ServiceTaskAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="M:RPCExp.AlarmLogger.AlarmService.GetInfos">
             <summary>
-            Получение списка сконфигурированных сообщений
+            Gets information about ALL of configured alarms.
             </summary>
             <returns></returns>
         </member>
         <member name="M:RPCExp.AlarmLogger.AlarmService.GetCategories">
             <summary>
-            получение списка использующихся категорий
+            Gets available categories.
             </summary>
             <returns></returns>
         </member>
         <member name="M:RPCExp.AlarmLogger.AlarmService.GetAlarms(RPCExp.AlarmLogger.AlarmFilter,System.Threading.CancellationToken)">
             <summary>
-            Доступ к архиву сообщений
+            Gets stored messages.
             </summary>
-            <param name="filter"></param>
+            <param name="filter">
+            filter is optional. If filter.offset and filter.count doesn't set, then count will be limited by first 20 records.
+            </param>
             <returns></returns>
         </member>
         <member name="T:RPCExp.AlarmLogger.AlarmFilter">
             <summary>
-            Фильтр для сообщений
+            Messages filter
+            Every member of this class is optional.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmFilter.TBegin">
+            <summary>
+            Time of the begin selection. Messages before this time will not be selected.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmFilter.TEnd">
+            <summary>
+            Time of the end selection. Messages after this time will not be selected.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmFilter.AlarmCategoriesIds">
+            <summary>
+            List of categories ids. Messages mast have one of this category to be selected.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmFilter.InfoIds">
+            <summary>
+            List of ids of concrete alarms.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmFilter.FacilityAccessName">
+            <summary>
+            Select facility related messages.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmFilter.DeviceName">
+            <summary>
+            Select messages related to device with this name
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmFilter.Offset">
+            <summary>
+            Part of pagination. Sets limit offset for the resulting query.
+            </summary>
+        </member>
+        <member name="P:RPCExp.AlarmLogger.AlarmFilter.Count">
+            <summary>
+            Part of pagination. Sets limit count for the resulting query.
             </summary>
         </member>
         <member name="T:RPCExp.Common.DeviceAbstract">
             <summary>
             Base class for a number of protocols implementation
             </summary>
+        </member>
+        <member name="P:RPCExp.Common.DeviceAbstract.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.DeviceAbstract.Description">
+            <inheritdoc/>
         </member>
         <member name="P:RPCExp.Common.DeviceAbstract.BadCommPeriod">
             <summary>
@@ -115,7 +246,27 @@
         </member>
         <member name="P:RPCExp.Common.DeviceAbstract.UpdateInActiveTags">
             <summary>
-            
+            if it is true unused tags are updating with period of UpdateInActiveTagsPeriod
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.DeviceAbstract.UpdateInActiveTagsPeriod">
+            <summary>
+            Period for update unused tags
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.DeviceAbstract.Groups">
+            <summary>
+            Groups that includes this tag. TagData is available by group name in GetValues() rpc request. 
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.DeviceAbstract.Tags">
+            <summary>
+            Tags collection
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.DeviceAbstract.ConnectionSource">
+            <summary>
+            Reference for getting connection from global connections store.
             </summary>
         </member>
         <member name="M:RPCExp.Common.DeviceAbstract.GetPeriodicTagsForUpdate">
@@ -129,6 +280,9 @@
             Вывод списка групп
             </summary>
             <returns>группа со списком имен тегов входящих в эту группу</returns>
+        </member>
+        <member name="M:RPCExp.Common.DeviceAbstract.ServiceTaskAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="M:RPCExp.Common.DeviceAbstract.PeriodicUpdate(System.Threading.CancellationToken)">
             <summary>
@@ -164,6 +318,14 @@
             { "jsonrpc": "2.0", "method": "f1$Plc1.GetTagsValues", "params": [["DATA_95"]], "id": "159"}
             </example>
         </member>
+        <member name="M:RPCExp.Common.DeviceAbstract.Read(System.Collections.Generic.ICollection{RPCExp.Common.TagAbstract},System.Threading.CancellationToken)">
+            <summary>
+            abstract method for read values of collection tags from device by concrete protocol.
+            </summary>
+            <param name="tags"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
         <member name="M:RPCExp.Common.DeviceAbstract.Write(System.Collections.Generic.IDictionary{System.String,System.Object})">
             <summary>
             Запись значений.
@@ -176,10 +338,82 @@
         </member>
         <member name="M:RPCExp.Common.DeviceAbstract.Write(System.Collections.Generic.IDictionary{RPCExp.Common.TagAbstract,System.Object})">
             <summary>
-            
+            abstract method to write values in collection tags to device by concrete protocol.
             </summary>
             <param name="tagsValues"></param>
             <returns></returns>
+        </member>
+        <member name="T:RPCExp.Common.Facility">
+            <summary>
+            An automation object. Can contain devices (controllers, plcs, etc.)
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.Facility.Id">
+            <summary>
+            Identity
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.Facility.AccessName">
+            <summary>
+            Long name which contains the path of the tree automation objects
+            </summary>
+            <example>
+            for example nameSeparator == "$"
+            AccessName == "Нефтедобывающая компания$Цех 321$Месторождение 123$Куст 5$Скважина 456А"
+            The tree should looks like:
+            "Нефтедобывающая компания"
+             └ "Цех 321"
+                └ "Месторождение 123"
+                   └ "Куст 5"
+                      └ "Скважина 456А"
+            </example>
+        </member>
+        <member name="P:RPCExp.Common.Facility.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.Facility.Description">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.Facility.Devices">
+            <summary>
+            Collection of automation devices inside the automation object
+            </summary>
+        </member>
+        <member name="T:RPCExp.Common.Scale">
+            <summary>
+            Designed to scale numerical values
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.Scale.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.Scale.Description">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.Scale.DevMin">
+            <summary>
+            Begin of the Scale inside device (source)
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.Scale.DevMax">
+            <summary>
+            End of the Scale inside device (source)
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.Scale.Min">
+            <summary>
+            Begin of the Scale inside this server (destination)
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.Scale.Max">
+            <summary>
+            End of the Scale inside this server (destination)
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.Scale.Units">
+            <summary>
+            Engineering units
+            </summary>
         </member>
         <member name="M:RPCExp.Common.Scale.ScaleDevToSrv(System.Object)">
             <summary>
@@ -194,6 +428,92 @@
             </summary>
             <param name="valueFromSrv"></param>
             <returns></returns>
+        </member>
+        <member name="T:RPCExp.Common.ServiceState">
+            <summary>
+            State of the service
+            </summary>
+        </member>
+        <member name="T:RPCExp.Common.ServiceAbstract">
+            <summary>
+            <para>
+            Base class for all services in this project.
+            Provide service state. Trace messages when state changing.
+            </para>
+            Steps to run service:
+            <list type="number">
+            <item>Create object</item>
+            <item>SettingUp created object</item>
+            <item>Fire method Start() and service will start starting in separate task:)</item>
+            <item>when you need to stop it call method Stop() and service will start stopping</item>
+            </list>
+            </summary>
+        </member>
+        <member name="M:RPCExp.Common.ServiceAbstract.Finalize">
+            <summary>
+            Stopping service (hard way).
+            Disposes all resources.
+            Delete this object from memory
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.ServiceAbstract.State">
+            <summary>
+            State of the service
+            </summary>
+        </member>
+        <member name="M:RPCExp.Common.ServiceAbstract.ServiceTaskAsync(System.Threading.CancellationToken)">
+            <summary>
+            Base method for implementation service logic
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.Common.ServiceAbstract.OnStarting(System.Threading.CancellationToken)">
+            <summary>
+            This method can be override to make preparation steps before starting
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.Common.ServiceAbstract.OnErrorAsync(System.Exception,System.Threading.CancellationToken)">
+            <summary>
+            This method can be override to handle exceptions thrown by service logic in ServiceTaskAsync()
+            </summary>
+            <param name="exception"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.Common.ServiceAbstract.OnCompleteAsync(System.Threading.CancellationToken)">
+            <summary>
+            This method can be override to make some logic when service stopped. Save results, cleanup, etc..
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.Common.ServiceAbstract.Start">
+            <summary>
+            Non blocking method to start starting service in separate task.
+            </summary>
+        </member>
+        <member name="M:RPCExp.Common.ServiceAbstract.Stop">
+            <summary>
+            Non blocking method to start stopping service normally.
+            </summary>
+        </member>
+        <member name="T:RPCExp.Common.Store">
+            <summary>
+            main container for services and resources
+            </summary>
+        </member>
+        <member name="F:RPCExp.Common.Store.nameSeparator">
+            <summary>
+            Separator to build tree nodes from access names
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.Store.Facilities">
+            <summary>
+            HashSet of automation objects, hashed by AccesNames
+            </summary>
         </member>
         <member name="P:RPCExp.Common.TagAbstract.Groups">
             <summary>

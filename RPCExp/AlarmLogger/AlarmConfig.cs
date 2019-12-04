@@ -6,15 +6,18 @@ using System.Linq;
 
 namespace RPCExp.AlarmLogger
 {
+    /// <summary>
+    /// Alarm configuration. 
+    /// </summary>
     public class AlarmConfig
     {
         /// <summary>
-        /// Условие срабатывания аварии. => формирования сообщения.
+        /// Condition for message triggering.
         /// </summary>
         public Condition Condition { get; private set; }
 
         /// <summary>
-        /// Значение для подстановки в текст
+        /// Value for substitution
         /// </summary>
         public Argument Custom1 { get; private set; }
 
@@ -25,7 +28,7 @@ namespace RPCExp.AlarmLogger
         public Argument Custom4 { get; private set; }
 
         /// <summary>
-        /// Описание аварии. Текст сообщения, категория, описание, связь с оборудованием.
+        /// Alarm information. Contain message text template, category, facility reference
         /// </summary>
         public AlarmInfo AlarmInfo { get; set; }
 
@@ -57,7 +60,7 @@ namespace RPCExp.AlarmLogger
         }
 
         /// <summary>
-        /// Определяет фронт срабатывания условия
+        /// Determine the front of triggered condition.
         /// </summary>
         /// <returns></returns>
         public bool IsRized()
@@ -76,6 +79,13 @@ namespace RPCExp.AlarmLogger
             return retval;
         }
 
+        /// <summary>
+        /// Create full AlarmConfig from db entity AlarmCfg
+        /// </summary>
+        /// <param name="alarmCfg">db entity</param>
+        /// <param name="tags"></param>
+        /// <param name="alarmInfo"></param>
+        /// <returns></returns>
         public static AlarmConfig From(DbStore.Entities.AlarmCfg alarmCfg, IEnumerable<TagAbstract> tags, AlarmInfo alarmInfo)
         {
             if (alarmCfg is null)
@@ -107,6 +117,10 @@ namespace RPCExp.AlarmLogger
         }
     }
 
+    /// <summary>
+    /// Condition for triggering the message.
+    /// It contains operator and its arguments.
+    /// </summary>
     public class Condition
     {
 
@@ -251,7 +265,7 @@ namespace RPCExp.AlarmLogger
     }
 
     /// <summary>
-    /// Источник значения. Может быть константой или тегом.
+    /// Source of the value for the condition. It can be reference for tag, or constant value.
     /// </summary>
     public class Argument
     {
@@ -316,6 +330,10 @@ namespace RPCExp.AlarmLogger
 
         public bool IsOk => IsConst || ((tag?.Quality ?? 0) >= TagQuality.GOOD);
 
+        /// <summary>
+        /// Gets the value of this argument.
+        /// </summary>
+        /// <returns></returns>
         public decimal GetValue()
         {
             if (IsConst)
@@ -337,6 +355,16 @@ namespace RPCExp.AlarmLogger
             Min = 2 * 10_000_000,
         };
 
+
+        /// <summary>
+        /// Deserialization of argument from string.
+        /// If string contains number, argument will be constant.
+        /// If string contains tag name, argument will be contain the tag reference from tags list.
+        /// If tag doesn't exist in the list the ArgumentException will be thrown.
+        /// </summary>
+        /// <param name="str">name of the tag or number</param>
+        /// <param name="tags">list of tags</param>
+        /// <returns></returns>
         public static Argument From(string str, IEnumerable<TagAbstract> tags)
         {
             var s = str?.Trim() ?? "";

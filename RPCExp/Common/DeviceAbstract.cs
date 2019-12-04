@@ -14,8 +14,10 @@ namespace RPCExp.Common
     {
         private const int ONE_SECOND_TICKS = 10_000_000;
 
+        /// <inheritdoc/>
         public string Name { get; set; }
 
+        /// <inheritdoc/>
         public string Description { get; set; }
 
         /// <summary>
@@ -24,16 +26,28 @@ namespace RPCExp.Common
         public long BadCommPeriod { get; set; } = 10 * ONE_SECOND_TICKS;
 
         /// <summary>
-        /// 
+        /// if it is true unused tags are updating with period of UpdateInActiveTagsPeriod
         /// </summary>
         public bool UpdateInActiveTags { get; set; } = true;
 
+        /// <summary>
+        /// Period for update unused tags
+        /// </summary>
         public long UpdateInActiveTagsPeriod { get; set; } = 20 * ONE_SECOND_TICKS;
 
+        /// <summary>
+        /// Groups that includes this tag. TagData is available by group name in GetValues() rpc request. 
+        /// </summary>
         public IDictionary<string, TagsGroup> Groups { get; } = new Dictionary<string, TagsGroup>();
 
+        /// <summary>
+        /// Tags collection
+        /// </summary>
         public IDictionary<string, TagAbstract> Tags { get; } = new Dictionary<string, TagAbstract>();
 
+        /// <summary>
+        /// Reference for getting connection from global connections store.
+        /// </summary>
         public ConnectionSourceAbstract ConnectionSource { get; set; }
 
         /// <summary>
@@ -88,6 +102,7 @@ namespace RPCExp.Common
             return r;
         }
 
+        /// <inheritdoc/>
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
@@ -198,6 +213,12 @@ namespace RPCExp.Common
             return datas;
         }
 
+        /// <summary>
+        /// abstract method for read values of collection tags from device by concrete protocol.
+        /// </summary>
+        /// <param name="tags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         protected abstract Task Read(ICollection<TagAbstract> tags, CancellationToken cancellationToken);
 
         /// <summary>
@@ -230,7 +251,7 @@ namespace RPCExp.Common
         }
 
         /// <summary>
-        /// 
+        /// abstract method to write values in collection tags to device by concrete protocol.
         /// </summary>
         /// <param name="tagsValues"></param>
         /// <returns></returns>

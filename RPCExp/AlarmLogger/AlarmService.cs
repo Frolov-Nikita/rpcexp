@@ -9,35 +9,57 @@ using System.Threading.Tasks;
 
 namespace RPCExp.AlarmLogger
 {
+    /// <summary>
+    /// Класс сообщений.
+    /// После запуска начинает периодически проверять кешированые значения тегов на предмет выполнения условия выдачи сообщения. Период проверки: CheckPeriod.
+    /// По фронту сработавшего условия информация о сообщении попадает во временный кеш. После того как данные накопятся в кеше они записываются в БД. Данные также попадут из кеша в БД периодически по периоду SavePeriod.
+    /// Количество записей в БД ограничивается параметром StoreItemsCount. Проверка превышения этого количества происходит периодически с периодом MinMaintainPeriod. 
+    /// Класс также предоставляет методы получения архивных данных.
+    /// </summary>
     public class AlarmService : ServiceAbstract
     {
         private const int baseCapacityOfTmpList = 32; // Начальная емкость промежуточного хранилища
 
         private const int minWaitTimeMs = 50; // Минимальное время ожидания, мсек
 
+        /// <summary>
+        /// Period for maintain db. Maintain will start when save new messages into db AND this period is elapsed. 
+        /// </summary>
         public TimeSpan MinMaintainPeriod { get; set; } = TimeSpan.FromSeconds(10);
 
         private DateTime nextMaintain = DateTime.Now;
 
+        /// <summary>
+        /// Period for check conditions of alarms.
+        /// </summary>
         public TimeSpan CheckPeriod { get; set; } = TimeSpan.FromMilliseconds(500);
 
+        /// <summary>
+        /// Period for saving data into db. Data can be saved faster, if caching buffer is full.
+        /// </summary>
         public TimeSpan SavePeriod { get; set; } = TimeSpan.FromSeconds(10);
 
+        /// <summary>
+        /// Limit of stored items in DB
+        /// </summary>
         public long StoreItemsCount { get; set; } = 10_000_000;
 
         private long DeltaRecordsCount => 1 + StoreItemsCount * 5 / 100;
 
+        /// <summary>
+        /// SQlite db file name
+        /// </summary>
         public string FileName { get; set; } = "alarmLog.sqlite3";
 
         private readonly List<AlarmCategory> localCategories = new List<AlarmCategory>(4);
 
         /// <summary>
-        /// Список сконфигурированных аварий.
+        /// Configured messages
         /// </summary>
         public List<AlarmConfig> Configs { get; } = new List<AlarmConfig>();
 
         /// <summary>
-        /// Синхронизация/инициализация категорий и AlarmInfo
+        /// db initialization 
         /// </summary>
         private async Task InnitDB(CancellationToken cancellationToken)
         {
@@ -108,6 +130,12 @@ namespace RPCExp.AlarmLogger
             context.Dispose();
         }
 
+        /// <summary>
+        /// Save cache into db. And call maintain if maintain period completed.
+        /// </summary>
+        /// <param name="cache"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         private async Task SaveAsync(Queue<Alarm> cache, CancellationToken cancellationToken)
         {
             if ((cache?.Count ?? 0) == 0)
@@ -172,6 +200,7 @@ namespace RPCExp.AlarmLogger
             context.Dispose();
         }
 
+        /// <inheritdoc/>
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             // Старт (Инициализация контекста БД алармов)
@@ -244,7 +273,7 @@ namespace RPCExp.AlarmLogger
         }
 
         /// <summary>
-        /// Получение списка сконфигурированных сообщений
+        /// Gets information about ALL of configured alarms.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<AlarmInfo> GetInfos()
@@ -254,16 +283,18 @@ namespace RPCExp.AlarmLogger
         }
 
         /// <summary>
-        /// получение списка использующихся категорий
+        /// Gets available categories.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<AlarmCategory> GetCategories() =>
             localCategories;
 
         /// <summary>
-        /// Доступ к архиву сообщений
+        /// Gets stored messages.
         /// </summary>
-        /// <param name="filter"></param>
+        /// <param name="filter">
+        /// filter is optional. If filter.offset and filter.count doesn't set, then count will be limited by first 20 records.
+        /// </param>
         /// <returns></returns>
         public async Task<IEnumerable<Alarm>> GetAlarms(AlarmFilter filter, CancellationToken cancellationToken)
         {
@@ -271,6 +302,9 @@ namespace RPCExp.AlarmLogger
 
             var query = from a in context.Alarms
                         select a;
+
+            var offset = 0;
+            var count = 20;
 
             if (filter != default)
             {
@@ -293,10 +327,13 @@ namespace RPCExp.AlarmLogger
                     query = query.Where(a => a.AlarmInfo.DeviceName == filter.DeviceName);
 
                 if (filter.Count != 0)
-                    query = query.Skip(filter.Offset).Take(filter.Count);
+                {
+                    offset = filter.Offset;
+                    count = filter.Count;
+                }
             }
 
-            var result = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
+            var result = await query.Skip(offset).Take(count).ToListAsync(cancellationToken).ConfigureAwait(false);
 
             context.Dispose();
             return result;
@@ -304,24 +341,49 @@ namespace RPCExp.AlarmLogger
     }
 
     /// <summary>
-    /// Фильтр для сообщений
+    /// Messages filter
+    /// Every member of this class is optional.
     /// </summary>
     public class AlarmFilter
     {
+        /// <summary>
+        /// Time of the begin selection. Messages before this time will not be selected.
+        /// </summary>
         public long TBegin { get; set; } = long.MinValue;
 
+        /// <summary>
+        /// Time of the end selection. Messages after this time will not be selected.
+        /// </summary>
         public long TEnd { get; set; } = long.MaxValue;
 
+        /// <summary>
+        /// List of categories ids. Messages mast have one of this category to be selected.
+        /// </summary>
         public IEnumerable<int> AlarmCategoriesIds { get; set; }
 
+        /// <summary>
+        /// List of ids of concrete alarms.
+        /// </summary>
         public IEnumerable<int> InfoIds { get; set; }
 
+        /// <summary>
+        /// Select facility related messages.
+        /// </summary>
         public string FacilityAccessName { get; set; }
 
+        /// <summary>
+        /// Select messages related to device with this name
+        /// </summary>
         public string DeviceName { get; set; }
 
+        /// <summary>
+        /// Part of pagination. Sets limit offset for the resulting query.
+        /// </summary>
         public int Offset { get; set; } = 0;
 
+        /// <summary>
+        /// Part of pagination. Sets limit count for the resulting query.
+        /// </summary>
         public int Count { get; set; } = 0;
 
     }

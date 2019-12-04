@@ -2,9 +2,6 @@
 
 Документирование + ревизия public
 
-Scale only analogs
-
-
 ? refactor service abstract:
 1) Расчет времени главного цикла
 2) Выделение цикличной функции - async Task<int> Cycle(cts);
@@ -31,3 +28,4 @@ throw заменить на более дешевую диагностику.
 -- Функции "синхронного чтения", "записи и последующего чтения" по модбас
 -- fix db entities types
 -- mbdev limit request length
+-- Scale only analogs

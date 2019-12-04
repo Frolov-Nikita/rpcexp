@@ -2,20 +2,40 @@
 
 namespace RPCExp.Common
 {
+    /// <summary>
+    /// Designed to scale numerical values
+    /// </summary>
     public class Scale: INameDescription
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
-
+        
+        /// <inheritdoc/>
         public string Description { get; set; }
 
+        /// <summary>
+        /// Begin of the Scale inside device (source)
+        /// </summary>
         public decimal DevMin { get; set; } = -32768;
 
+        /// <summary>
+        /// End of the Scale inside device (source)
+        /// </summary>
         public decimal DevMax { get; set; } = 32767;
-
+        
+        /// <summary>
+        /// Begin of the Scale inside this server (destination)
+        /// </summary>
         public decimal Min { get; set; } = -32768;
 
+        /// <summary>
+        /// End of the Scale inside this server (destination)
+        /// </summary>
         public decimal Max { get; set; } = 32767;
 
+        /// <summary>
+        /// Engineering units
+        /// </summary>
         public string Units { get; set; }
 
 #pragma warning disable CA1305 // Укажите IFormatProvider
