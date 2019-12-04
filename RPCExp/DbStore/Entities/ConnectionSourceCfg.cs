@@ -1,12 +1,9 @@
-﻿using RPCExp.Connections;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 
 namespace RPCExp.DbStore.Entities
 {
-    
-    public class ConnectionSourceCfg: INameDescription, ICopyFrom, IIdentity
+
+    public class ConnectionSourceCfg : INameDescription, ICopyFrom, IIdentity
     {
 
         public int Id { get; set; }
@@ -24,7 +21,7 @@ namespace RPCExp.DbStore.Entities
             if (original is null)
                 throw new ArgumentNullException(nameof(original));
 
-            var src = (ConnectionSourceCfg) original;
+            var src = (ConnectionSourceCfg)original;
             ClassName = src.ClassName;
             Name = src.Name;
             Description = src.Description;

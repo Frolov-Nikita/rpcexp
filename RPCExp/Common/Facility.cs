@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace RPCExp.Common
 {
-    public class Facility: INameDescription
+    public class Facility : INameDescription
     {
         public int Id { get; set; }
 

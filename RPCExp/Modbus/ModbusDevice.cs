@@ -1,6 +1,5 @@
 ﻿using ModbusBasic;
 using RPCExp.Common;
-using RPCExp.Connections;
 using RPCExp.Modbus.TypeConverters;
 using System;
 using System.Collections.Generic;
@@ -17,18 +16,19 @@ namespace RPCExp.Modbus
         Rtu,
         Ascii,
     }
-    
+
     public class ModbusDevice : DeviceAbstract
     {
-        static readonly ModbusFactory factory = new ModbusFactory();
-        
-        private static readonly Dictionary<Common.ValueType, TypeConverterAbstract> typeConverters = new Dictionary<Common.ValueType, TypeConverterAbstract> ();
+        private static readonly ModbusFactory factory = new ModbusFactory();
+
+        private static readonly Dictionary<Common.ValueType, TypeConverterAbstract> typeConverters = new Dictionary<Common.ValueType, TypeConverterAbstract>();
 
         public int MaxGroupLength { get; set; } = 100;
 
         public int MaxGroupSpareLength { get; set; } = 0;
 
-        private void UpdateTypeConverters() {
+        private void UpdateTypeConverters()
+        {
             typeConverters.Clear();
             typeConverters.Add(Common.ValueType.Float, new TypeConverterFloat(ByteOrder));
             typeConverters.Add(Common.ValueType.Int16, new TypeConverterInt16(ByteOrder));
@@ -43,18 +43,20 @@ namespace RPCExp.Modbus
             return typeConverters[modbusValueType];
         }
 
-        private byte[] byteOrder = new byte[] {  0, 1, 2, 3 };
+        private byte[] byteOrder = new byte[] { 0, 1, 2, 3 };
 
         public byte SlaveId { get; set; }
 
 #pragma warning disable CA1819 // Свойства не должны возвращать массивы
-        public byte[] ByteOrder {
+        public byte[] ByteOrder
+        {
             get => byteOrder;
-            set {
+            set
+            {
                 byteOrder = value;
                 UpdateTypeConverters();
             }
-        }        
+        }
 #pragma warning restore CA1819 // Свойства не должны возвращать массивы
 
         public FrameType FrameType { get; set; } = FrameType.Ip;
@@ -123,9 +125,9 @@ namespace RPCExp.Modbus
         {
             await master.ReadCoilsAsync(SlaveId, (ushort)g.Begin, (ushort)g.Length)
                 .ContinueWith(
-                (TResult) => 
+                (TResult) =>
                 {
-                    if(TResult.Status == TaskStatus.RanToCompletion)
+                    if (TResult.Status == TaskStatus.RanToCompletion)
                     { // успех
                         var data = TResult.Result;
                         foreach (var t in g)
@@ -154,7 +156,7 @@ namespace RPCExp.Modbus
             }
         }
 
-        
+
         protected override async Task Read(ICollection<TagAbstract> tags, CancellationToken cancellationToken)
         {
             if (tags is null)
@@ -215,7 +217,7 @@ namespace RPCExp.Modbus
             if (tagsValues is null)
                 return 0;
 
-            if(tagsValues.Count > 0)
+            if (tagsValues.Count > 0)
             {
                 var holdingRegisters = new MTagsCollection();
                 var coils = new MTagsCollection();
@@ -246,7 +248,7 @@ namespace RPCExp.Modbus
                     {
                         var v = tagsValues[t];
                         var tc = GetTypeConverter(t.ValueType);
-                        
+
                         tc.GetBytes(buff, v);
                         var b = t.Begin - g.Begin;
                         for (int i = 0; i < t.Length; i++)

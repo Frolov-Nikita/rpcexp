@@ -1,35 +1,34 @@
-﻿using RPCExp.Common;
+﻿using Microsoft.EntityFrameworkCore;
+using RPCExp.Common;
 using RPCExp.TagLogger.Entities;
-using System.Linq;
+using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System;
-using Microsoft.EntityFrameworkCore;
 
 namespace RPCExp.TagLogger
 {
     public class TagLogService : ServiceAbstract
     {
-        const int baseCapacityOfTmpList = 32; // Начальная емкость промежуточного хранилища
-        
-        const int minWaitTimeMs = 50; // Минимальное время ожидания, мсек
+        private const int baseCapacityOfTmpList = 32; // Начальная емкость промежуточного хранилища
+
+        private const int minWaitTimeMs = 50; // Минимальное время ожидания, мсек
 
         public TimeSpan MinMaintainPeriod { get; set; } = TimeSpan.FromSeconds(10);
 
-        DateTime nextMaintain = DateTime.Now;
+        private DateTime nextMaintain = DateTime.Now;
 
         public TimeSpan CheckPeriod { get; set; } = TimeSpan.FromMilliseconds(500);
 
         public TimeSpan SavePeriod { get; set; } = TimeSpan.FromSeconds(10);
 
         public long StoreItemsCount { get; set; } = 10_000_000;
-        
-        long DeltaRecordsCount => 1 + StoreItemsCount * 5 / 100;
+
+        private long DeltaRecordsCount => 1 + StoreItemsCount * 5 / 100;
 
         public string FileName { get; set; } = "alarmLog.sqlite3";
-        
+
         public List<TagLogConfig> Configs { get; } = new List<TagLogConfig>();
 
         private async Task InnitDB(CancellationToken cancellationToken)
@@ -68,7 +67,7 @@ namespace RPCExp.TagLogger
         {
             if ((cache?.Count ?? 0) == 0)
                 return;
-            
+
             var context = new TagLogContext(FileName);
 
             /* // Код как оно должно работать
@@ -84,18 +83,18 @@ namespace RPCExp.TagLogger
                 var len = cache.Count > maxItemsInInsert ? maxItemsInInsert : cache.Count;
 
                 var sql = "INSERT INTO TagLogData (\"TimeStamp\", \"TagLogInfoId\", \"Value\") VALUES ";
-                for (var i=0; i< len; i++)
+                for (var i = 0; i < len; i++)
                 {
                     var item = cache.Dequeue();
                     sql += $"({item.TimeStamp}, {item.TagLogInfoId}, {item.Value})" + ",";
                 }
-                
+
                 sql = sql.Trim().Trim(',') + ';';
 
                 await context.Database.ExecuteSqlRawAsync(sql).ConfigureAwait(false);
             }
             // ########## Конец костыля
-            
+
             if (nextMaintain < DateTime.Now)
             {
                 nextMaintain = DateTime.Now + MinMaintainPeriod;
@@ -120,7 +119,7 @@ namespace RPCExp.TagLogger
                     nextMaintain = DateTime.Now + 4 * MinMaintainPeriod; // после такого можно чуть подольше не проверять:)
                 }
             }
-            
+
             context.Dispose();
         }
 
@@ -155,7 +154,7 @@ namespace RPCExp.TagLogger
                             });
                         }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         System.Diagnostics.Trace.Fail(GetType().Name + ":" + ex.InnerMessage());
                     }
@@ -169,14 +168,15 @@ namespace RPCExp.TagLogger
                         {
                             tNextSave = DateTime.Now + SavePeriod;
                             var newCache = new Queue<TagLogData>(cache);
-                            _ = Task.Run(async () => {
+                            _ = Task.Run(async () =>
+                            {
                                 await SaveAsync(newCache, cancellationToken).ConfigureAwait(false);
                             });
                             cache.Clear();
                         }
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     System.Diagnostics.Trace.Fail(GetType().Name + ":" + ex.InnerMessage());
                 }
@@ -194,7 +194,7 @@ namespace RPCExp.TagLogger
         /// <returns></returns>
         public IEnumerable<TagLogInfo> GetInfos()
         {
-            return from cfg in Configs 
+            return from cfg in Configs
                    select cfg.TagLogInfo;
         }
 
@@ -222,7 +222,7 @@ namespace RPCExp.TagLogger
 
                 if (filter.InfoIds != default)
                     query = query.Where(a => filter.InfoIds.Contains(a.TagLogInfo.Id));
-                
+
                 if (filter.FacilityAccessNames != default)
                     query = query.Where(a => filter.FacilityAccessNames.Contains(a.TagLogInfo.FacilityAccessName));
 

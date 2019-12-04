@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RPCExp.DbStore.Entities
+﻿namespace RPCExp.DbStore.Entities
 {
     public interface IIdentity
     {

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace RPCExp.RpcServer
@@ -9,16 +7,16 @@ namespace RPCExp.RpcServer
     public class RpcMethod
     {
         public string TargetName { get; set; }
-     
+
         public string MethodName { get; set; }
-        
+
         public string Description { get; set; }
-        
+
         public string FullMethodName =>
             (TargetName != default) ? TargetName + "." + MethodName : MethodName;
-        
+
         public object Target { get; set; }
-        
+
         public bool IsAsync { get; set; }
 
 #pragma warning disable CA1819 // Свойства не должны возвращать массивы
@@ -34,7 +32,7 @@ namespace RPCExp.RpcServer
             object[] args = null;
 
             var mastParamsCount = 0;
-            if(Parameters != null)
+            if (Parameters != null)
                 foreach (var p in Parameters)
                     if (!p.IsOptional)
                         mastParamsCount++;
@@ -42,7 +40,7 @@ namespace RPCExp.RpcServer
             if ((parametrs is Newtonsoft.Json.Linq.JArray) && (ParametersLength > 0))
             {
                 var ps = (Newtonsoft.Json.Linq.JArray)parametrs;
-                if(mastParamsCount > ps.Count)
+                if (mastParamsCount > ps.Count)
                     throw new ArgumentException($"Количество параметров должно быть не меньше {mastParamsCount}");
                 int argsCount = ParametersLength < ps.Count ? ParametersLength : ps.Count;
                 args = new object[argsCount];
@@ -59,13 +57,13 @@ namespace RPCExp.RpcServer
                 int i = 0;
                 foreach (var p in Parameters)
                     args[i++] = ps[p.Name].ToObject(p.ParameterType); //Convert.ChangeType(((Newtonsoft.Json.Linq.JValue)ps[p.Name]).Value, p.ParameterType);
-            }           
+            }
 
             var ret = Target.GetType().InvokeMember(MethodName,
                 System.Reflection.BindingFlags.InvokeMethod,
                 null,
                 Target,
-                args, 
+                args,
                 CultureInfo.CurrentCulture);
 
             if (IsAsync)

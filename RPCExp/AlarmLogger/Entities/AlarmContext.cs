@@ -1,13 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RPCExp.AlarmLogger.Entities
 {
     internal class AlarmContext : DbContext
     {
-        string dbName;
+        private string dbName;
 
         public AlarmContext(string dbName = "alarmLog.sqlite3")
         {
@@ -27,7 +24,7 @@ namespace RPCExp.AlarmLogger.Entities
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Alarm>()
-                .HasKey(e => new {e.TimeStamp, e.AlarmInfoId });
+                .HasKey(e => new { e.TimeStamp, e.AlarmInfoId });
         }
 
         public DbSet<Alarm> Alarms { get; set; }

@@ -1,11 +1,9 @@
-﻿using System;
+﻿using RPCExp.Common;
 using System.Collections.Generic;
-using System.Text;
 using System.Net;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using RPCExp.Common;
 
 namespace RPCExp.RpcServer
 {
@@ -13,17 +11,17 @@ namespace RPCExp.RpcServer
     {
         private readonly List<Task> socketsHandlers = new List<Task>(4);
         private readonly string[] hosts;
-        
-        public WebSocketServerAbstract(string[] hosts )
+
+        public WebSocketServerAbstract(string[] hosts)
         {
-            this.hosts = hosts ?? new string[] { "http://localhost:6666/", }; 
+            this.hosts = hosts ?? new string[] { "http://localhost:6666/", };
         }
 
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             HttpListener httpListener = new HttpListener();
 
-            foreach(var host in hosts)
+            foreach (var host in hosts)
                 httpListener.Prefixes.Add(host);
 
             httpListener.Start();
@@ -31,7 +29,7 @@ namespace RPCExp.RpcServer
             while (!cancellationToken.IsCancellationRequested)
             {
                 var context = await httpListener.GetContextAsync().ConfigureAwait(false);
-                
+
                 if (context.Request.IsWebSocketRequest)
                 {
                     HttpListenerWebSocketContext webSocketContext = await context.AcceptWebSocketAsync(null).ConfigureAwait(false);

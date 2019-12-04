@@ -19,7 +19,7 @@ namespace RPCExp.RpcServer
             MethodName = rpcMethod.MethodName;
             Description = rpcMethod.Description;
             IsAsync = rpcMethod.IsAsync;
-            if(rpcMethod.ParametersLength > 0)
+            if (rpcMethod.ParametersLength > 0)
             {
                 Parameters = new List<string>(rpcMethod.ParametersLength);
                 foreach (var p in rpcMethod.Parameters)

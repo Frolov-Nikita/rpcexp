@@ -1,8 +1,6 @@
 ﻿using RPCExp.Common;
 using RPCExp.TagLogger.Entities;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RPCExp.TagLogger
 {
@@ -32,7 +30,7 @@ namespace RPCExp.TagLogger
         /// </summary>
         public int PeriodMinSec { get; set; } = 1;
 
-        static TagsGroup TagsLogTagGroup = new TagsGroup(new BasicPeriodSource())
+        private static TagsGroup TagsLogTagGroup = new TagsGroup(new BasicPeriodSource())
         {
             Name = "TagsLogTagGroup",
             Description = "Tags group to periodically check alarms",
@@ -42,7 +40,7 @@ namespace RPCExp.TagLogger
         public TagLogConfig(TagAbstract tag)
         {
             Tag = tag ?? throw new ArgumentNullException(nameof(tag));
-            
+
             if (tag.Groups.ContainsKey(TagsLogTagGroup.Name))
                 tag.Groups.AddByName(TagsLogTagGroup);
         }
@@ -55,19 +53,19 @@ namespace RPCExp.TagLogger
                     return null;
 
                 var now = DateTime.Now.Ticks;
-                if(lastTime + PeriodMinSec * 10_000_000 >= now)
+                if (lastTime + PeriodMinSec * 10_000_000 >= now)
                     return null;
 
 #pragma warning disable CA1305 // Укажите IFormatProvider
                 var val = (decimal)Convert.ChangeType(Tag?.Value ?? 0, typeof(decimal));
 #pragma warning restore CA1305 // Укажите IFormatProvider
 
-                if (((lastTime + PeriodMaxSec * 10_000_000) <= now) || 
+                if (((lastTime + PeriodMaxSec * 10_000_000) <= now) ||
                     (Math.Abs(lastVal - val) >= Hyst))
                 {
                     lastVal = val;
                     lastTime = now;
-                    return new TagLogData 
+                    return new TagLogData
                     {
                         TagLogInfo = TagLogInfo,
                         TagLogInfoId = TagLogInfo.Id,

@@ -217,7 +217,9 @@
         </member>
         <member name="M:RPCExp.Common.TagAbstract.SetValue(System.Object,RPCExp.Common.TagQuality)">
             <summary>
-            
+            Sets value received from plc to tag.
+            Uses scaling if it needs.
+            Updates timestamps.
             </summary>
             <param name="value"></param>
             <param name="qty"></param>

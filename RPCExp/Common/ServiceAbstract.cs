@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +19,8 @@ namespace RPCExp.Common
 
         private CancellationTokenSource cts;
 
-        ~ServiceAbstract() {
+        ~ServiceAbstract()
+        {
             System.Diagnostics.Trace.WriteLine(GetType().Name + " Destructing");
             cts?.Cancel();
             main.Wait(10);
@@ -64,22 +63,25 @@ namespace RPCExp.Common
 
         protected virtual async Task OnStarting(CancellationToken cancellationToken)
         {
-            await Task.Run(() => {
-                ; 
+            await Task.Run(() =>
+            {
+                ;
             }).ConfigureAwait(false);
         }
 
         protected virtual async Task OnErrorAsync(Exception exception, CancellationToken cancellationToken)
         {
-            await Task.Run(() => {
-                ; 
+            await Task.Run(() =>
+            {
+                ;
             }).ConfigureAwait(false);
         }
 
         protected virtual async Task OnCompleteAsync(CancellationToken cancellationToken)
         {
-            await Task.Run(() => {
-                ; 
+            await Task.Run(() =>
+            {
+                ;
             }).ConfigureAwait(false);
         }
 

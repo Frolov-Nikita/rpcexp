@@ -1,17 +1,16 @@
-﻿using System;
+﻿using RPCExp.RpcServer.JsonRpc;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using RPCExp.RpcServer.JsonRpc;
-using System.ComponentModel.DataAnnotations;
 
 namespace RPCExp.RpcServer
 {
     public class Router
     {
-        static readonly Encoding encoding = Encoding.UTF8;
-        readonly List<RpcMethod> rpcMethods = new List<RpcMethod>();
+        private static readonly Encoding encoding = Encoding.UTF8;
+        private readonly List<RpcMethod> rpcMethods = new List<RpcMethod>();
 
         public IEnumerable<RpcMetodInfo> GetMethods()
         {
@@ -41,7 +40,7 @@ namespace RPCExp.RpcServer
 
         public void RegisterMethods(object target, string targetName = default)
         {
-            if (target == default) 
+            if (target == default)
                 return;
             var methods = target.GetType().GetMethods();
             Type asyncAttrType = typeof(System.Runtime.CompilerServices.AsyncStateMachineAttribute);
@@ -81,7 +80,7 @@ namespace RPCExp.RpcServer
         {
             var tmp = request.MethodName.Split('.', 2);
             string objName = default, methodName = "";
-            if(tmp.Length > 1)
+            if (tmp.Length > 1)
             {
                 objName = tmp[0];
                 methodName = tmp[1];
@@ -96,7 +95,7 @@ namespace RPCExp.RpcServer
                 m.TargetName == objName);
 
             var method = methods.Find(m => (m.Parameters?.Length ?? 0) == parameters.Count);
-            
+
             if (method == default(RpcMethod))
                 return Response.GetErrorMethodNotFound(request.Id, request.MethodName);
 
@@ -114,7 +113,7 @@ namespace RPCExp.RpcServer
             {
                 return Response.GetErrorInternalError(request.Id, request.MethodName, ex.Message);
             }
-            
+
         }
 
     }

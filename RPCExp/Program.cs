@@ -1,27 +1,17 @@
-﻿using System;
-using System.Threading;
-using System.Linq;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
-using RPCExp.DbStore;
+﻿using RPCExp.DbStore;
 using RPCExp.RpcServer;
-using RPCExp.TagLogger.Entities;
-using Microsoft.EntityFrameworkCore;
-using System.Runtime.CompilerServices;
-using System.Diagnostics;
 using RPCExp.TraceListeners;
-using RPCExp.AlarmLogger;
+using System;
+using System.Diagnostics;
+using System.Threading;
 
 namespace RPCExp
 {
-
-
-    class Program
+    internal class Program
     {
-        static readonly CancellationTokenSource Cts = new CancellationTokenSource();
+        private static readonly CancellationTokenSource Cts = new CancellationTokenSource();
 
-        static void Main(/*string[] args*/)
+        private static void Main(/*string[] args*/)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -33,7 +23,7 @@ namespace RPCExp
             Common.Store store;
 
             using (var storeSource = new SqliteStoreSource())
-            {                
+            {
                 //var store = StoreTemplateGen.Get();
                 //storeSource.Save(store, dbfilename);
                 //return;

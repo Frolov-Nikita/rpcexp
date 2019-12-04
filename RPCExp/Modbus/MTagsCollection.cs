@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace RPCExp.Modbus
 {
@@ -22,7 +21,7 @@ namespace RPCExp.Modbus
         private static int Max(int x, int y) => x > y ? x : y;
         private static int Min(int x, int y) => x < y ? x : y;
 
-        private int SpareTo( IRange r)
+        private int SpareTo(IRange r)
         {
             if (Count == 0)
                 return 0;
@@ -73,8 +72,8 @@ namespace RPCExp.Modbus
 
             if (Count > 0)
             {
-                begin = Min( item.Begin, begin );
-                end = Max(item.End, end) ;
+                begin = Min(item.Begin, begin);
+                end = Max(item.End, end);
 
                 var i = base.FindIndex(x => x.Begin > item.Begin);
                 if (i >= 0)
@@ -123,7 +122,7 @@ namespace RPCExp.Modbus
         {
             //124 - макс // (255 - slaveId - func - start*2 - length*2 - crc*2)/2 = 248/2 = 124
             var grouped = new List<MTagsCollection>();
-            
+
             // Для ускорения сортируем // По идее должно быть уже отсортировано
             this.Sort((x1, x2) => x1.Begin.CompareTo(x2.Begin));
 
@@ -132,7 +131,7 @@ namespace RPCExp.Modbus
             {
                 var gp = Nearest(grouped, tag);
                 // Если не нашлось подходящей создаем новую группу
-                if ((gp == null) || (gp.SpareTo( tag) > maxSpareLength))
+                if ((gp == null) || (gp.SpareTo(tag) > maxSpareLength))
                 {
                     gp = new MTagsCollection { tag };
                     grouped.Add(gp);
@@ -140,7 +139,7 @@ namespace RPCExp.Modbus
                 }
                 gp.Add(tag);
             }
-            
+
             // Разделить по максимальному размеру пакета. Пакеты длиннее, делятся на ~равные интервалы.
             var spared = new List<MTagsCollection>();
             foreach (var g in grouped)
@@ -151,7 +150,7 @@ namespace RPCExp.Modbus
                     for (int i = 0; i < g.Count;)
                     {
                         var newGroup = new MTagsCollection();
-                        while ((i < g.Count) && (newGroup.NewSize( g[i]) <= optLen))
+                        while ((i < g.Count) && (newGroup.NewSize(g[i]) <= optLen))
                             newGroup.Add(g[i++]);
 
                         if (newGroup.Count > 0)

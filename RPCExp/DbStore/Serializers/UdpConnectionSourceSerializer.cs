@@ -1,16 +1,13 @@
-﻿using RPCExp.Connections;
+﻿using Newtonsoft.Json;
+using RPCExp.Connections;
 using RPCExp.DbStore.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Newtonsoft.Json;
 
 namespace RPCExp.DbStore.Serializers
 {
-    class UdpConnectionSourceSerializer : IConnectionSourceSerializer
+    internal class UdpConnectionSourceSerializer : IConnectionSourceSerializer
     {
         public string ClassName => "Udp";
-        
+
         public ConnectionSourceCfg Pack(ConnectionSourceAbstract connectionSource)
         {
             var src = (UdpConnectionSource)connectionSource;
@@ -38,7 +35,7 @@ namespace RPCExp.DbStore.Serializers
 
             var jo = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(config.Cfg);
 
-            if(jo.ContainsKey(nameof(connectionSource.Host)))
+            if (jo.ContainsKey(nameof(connectionSource.Host)))
                 connectionSource.Host = (string)jo[nameof(connectionSource.Host)].ToObject(typeof(string));
 
             if (jo.ContainsKey(nameof(connectionSource.Port)))

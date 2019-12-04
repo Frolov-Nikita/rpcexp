@@ -20,21 +20,7 @@ namespace RPCExp.DbStore.Entities
 
         public string Description { get; set; }
 
-        public string Units { get; set; }
-
         public string Format { get; set; }
-
-        [Column(TypeName = "DECIMAL")]
-        public decimal ScaleDevMin { get; set; } = -32768;
-
-        [Column(TypeName = "DECIMAL")]
-        public decimal ScaleDevMax { get; set; } = 32767;
-
-        [Column(TypeName = "DECIMAL")]
-        public decimal ScaleMin { get; set; } = -32768;
-
-        [Column(TypeName = "DECIMAL")]
-        public decimal ScaleMax { get; set; } = 32767;
 
         public virtual Access Access { get; set; }
 
@@ -43,6 +29,10 @@ namespace RPCExp.DbStore.Entities
 #pragma warning disable CA2227 // Свойства коллекций должны быть доступны только для чтения
         public ICollection<TagsToTagsGroups> TagsToTagsGroups { get; set; }
 #pragma warning restore CA2227 // Свойства коллекций должны быть доступны только для чтения
+
+        public int ScaleId { get; set; }
+
+        public ScaleCfg Scale { get; set; }
 
         public ArchiveCfg ArchiveCfg { get; set; }
 
@@ -63,17 +53,7 @@ namespace RPCExp.DbStore.Entities
 
             Description = src.Description;
 
-            Units = src.Units;
-
             Format = src.Format;
-
-            ScaleDevMin = src.ScaleDevMin;
-
-            ScaleDevMax = src.ScaleDevMax;
-
-            ScaleMin = src.ScaleMin;
-
-            ScaleMax = src.ScaleMax;
 
             Access = src.Access;
 

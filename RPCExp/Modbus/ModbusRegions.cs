@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RPCExp.Modbus
+﻿namespace RPCExp.Modbus
 {
     public enum ModbusRegion
     {

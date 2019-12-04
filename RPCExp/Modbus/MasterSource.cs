@@ -9,7 +9,7 @@ namespace RPCExp.Modbus
         private ConnectionSourceAbstract _connectionSource;
 
         private IModbusMaster modbusMaster;
-        
+
         public IModbusMaster Get(IModbusFactory factory, FrameType frameType, ConnectionSourceAbstract connectionSource)
         {
             if (factory == default)
@@ -19,12 +19,12 @@ namespace RPCExp.Modbus
                 throw new ArgumentException("argument 'connectionSource' is mandatory");
 
 
-            if ((connectionSource == _connectionSource) && 
-                (_connectionSource.IsOpen) && 
-                (modbusMaster != default) && 
-                (modbusMaster?.Transport?.StreamResource?.IsOpen??false))
+            if ((connectionSource == _connectionSource) &&
+                (_connectionSource.IsOpen) &&
+                (modbusMaster != default) &&
+                (modbusMaster?.Transport?.StreamResource?.IsOpen ?? false))
                 return modbusMaster;
-            
+
             _connectionSource = connectionSource;
 
             var streamResource = _connectionSource.Get();

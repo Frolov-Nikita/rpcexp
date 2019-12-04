@@ -1,9 +1,5 @@
-﻿using Newtonsoft.Json;
-using RPCExp.Common;
+﻿using RPCExp.Common;
 using RPCExp.Modbus.TypeConverters;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 
 namespace RPCExp.Modbus
 {

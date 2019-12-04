@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace RPCExp.Common
 {
 
     public class TagsGroup : IPeriodSource, INameDescription
     {
-        readonly IPeriodSource periodSource = new TickPeriodSource();
+        private readonly IPeriodSource periodSource = new TickPeriodSource();
 
         public TagsGroup()
         {

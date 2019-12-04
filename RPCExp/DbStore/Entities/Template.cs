@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace RPCExp.DbStore.Entities
 {
-    public class Template: INameDescription, ICopyFrom, IIdentity
+    public class Template : INameDescription, ICopyFrom, IIdentity
     {
         public int Id { get; set; }
 

@@ -2,8 +2,12 @@
 
 namespace RPCExp.Common
 {
-    public class Scale
+    public class Scale: INameDescription
     {
+        public string Name { get; set; }
+
+        public string Description { get; set; }
+
         public decimal DevMin { get; set; } = -32768;
 
         public decimal DevMax { get; set; } = 32767;
@@ -11,6 +15,8 @@ namespace RPCExp.Common
         public decimal Min { get; set; } = -32768;
 
         public decimal Max { get; set; } = 32767;
+
+        public string Units { get; set; }
 
 #pragma warning disable CA1305 // Укажите IFormatProvider
 
@@ -42,7 +48,7 @@ namespace RPCExp.Common
             decimal val = (decimal)Convert.ChangeType(valueFromSrv, typeof(decimal));
 
             return ((val - Min) * (DevMax - DevMin) / (Max - Min)) + DevMin;
-        }            
+        }
 
 #pragma warning restore CA1305 // Укажите IFormatProvider
 

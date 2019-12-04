@@ -1,8 +1,8 @@
 ﻿using RPCExp.Common;
-using System;
-using System.Linq;
 using RPCExp.DbStore.Entities;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RPCExp.DbStore.Serializers
 {
@@ -17,7 +17,7 @@ namespace RPCExp.DbStore.Serializers
         {
         }
 
-        public abstract string ClassName { get; } 
+        public abstract string ClassName { get; }
 
         public Common.Store Store { get; }
 
@@ -48,9 +48,9 @@ namespace RPCExp.DbStore.Serializers
             config.InActiveUpdatePeriod = device.UpdateInActiveTagsPeriod;
 
             config.ConnectionSourceCfg = context.Connections.GetOrCreate(c => c.Name == device.ConnectionSource.Name);
-            
+
             config.Custom = PackDeviceSpecific(device);
-            
+
             foreach (var tag in device.Tags.Values)
             {
                 var tagCfg = PackTag(tag, context);
@@ -60,7 +60,7 @@ namespace RPCExp.DbStore.Serializers
 
                 var dev2Templ = config.DeviceToTemplates.FirstOrDefault(d2t => d2t.Template.Id == tag.TemplateId);
 
-                if(dev2Templ == default)
+                if (dev2Templ == default)
                 {
                     dev2Templ = context.DeviceToTemplates.GetOrCreate(d2t => d2t.TemplateId == tag.TemplateId && d2t.DeviceId == config.Id);
                     dev2Templ.Device = config;
@@ -81,17 +81,9 @@ namespace RPCExp.DbStore.Serializers
             t.Name = config.Name;
             t.DisplayName = config.DisplayName;
             t.Description = config.Description;
-            t.Units = config.Units;
             t.Format = config.Format;
             t.Access = config.Access;
             t.ValueType = config.ValueType;
-            t.Scale = new Scale
-            {
-                DevMax = config.ScaleDevMax,
-                DevMin = config.ScaleDevMin,
-                Max = config.ScaleMax,
-                Min = config.ScaleMin,
-            };
 
             return t;
         }
@@ -104,14 +96,9 @@ namespace RPCExp.DbStore.Serializers
                 Name = tag.Name,
                 DisplayName = tag.DisplayName,
                 Description = tag.Description,
-                Units = tag.Units,
                 Format = tag.Format,
                 Access = tag.Access,
                 ValueType = tag.ValueType,
-                ScaleDevMax = tag.Scale?.DevMax ?? Int16.MaxValue,
-                ScaleDevMin = tag.Scale?.DevMin ?? Int16.MinValue,
-                ScaleMax = tag.Scale?.Max ?? Int16.MaxValue,
-                ScaleMin = tag.Scale?.Min ?? Int16.MinValue,
                 Custom = PackTagSpecific(tag),
                 TagsToTagsGroups = new List<TagsToTagsGroups>(),
             };
@@ -124,14 +111,14 @@ namespace RPCExp.DbStore.Serializers
                 storedGroup.Description = tagsGroup.Description;
 
                 var ttg = config.TagsToTagsGroups.FirstOrDefault(o => o.TagsGroupCfg.Name == storedGroup.Name);
-                if(ttg == default)
+                if (ttg == default)
                 {
                     ttg = context.TagsToTagsGroups.GetOrCreate(o => o.TagsGroupCfg.Name == storedGroup.Name && o.TagCfg.Id == config.Id);
                     ttg.TagCfg = config;
                     ttg.TagsGroupCfg = storedGroup;
                 }
                 config.TagsToTagsGroups.Add(ttg);
-            }                
+            }
 
             return config;
         }

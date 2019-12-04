@@ -1,11 +1,10 @@
-﻿using RPCExp.AlarmLogger;
-using RPCExp.AlarmLogger.Entities;
+﻿using RPCExp.AlarmLogger.Entities;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RPCExp.DbStore.Entities
 {
-    public class AlarmCfg: INameDescription, ICopyFrom, IIdentity
+    public class AlarmCfg : INameDescription, ICopyFrom, IIdentity
     {
         public int Id { get; set; }
 
@@ -31,8 +30,8 @@ namespace RPCExp.DbStore.Entities
         public string Custom4 { get; set; } = "";
 
         public void CopyFrom(object original)
-        {            
-            var src = (AlarmCfg)original ?? throw new ArgumentNullException(nameof(original)); 
+        {
+            var src = (AlarmCfg)original ?? throw new ArgumentNullException(nameof(original));
 
             Name = src.Name;
             Description = src.Description;

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-
-namespace System
+﻿namespace System
 {
     /// <summary>
     /// Some useful extension methods for exceptions

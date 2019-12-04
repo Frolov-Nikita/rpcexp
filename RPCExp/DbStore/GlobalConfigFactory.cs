@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System.IO;
-using System.Runtime.CompilerServices;
 
 namespace RPCExp.DbStore
 {
@@ -24,7 +23,7 @@ namespace RPCExp.DbStore
             {
                 globalConfig = new GlobalConfig();
                 Save(globalConfig, fileName);
-            }                
+            }
 
             return globalConfig;
         }

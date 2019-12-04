@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RPCExp.Common
+﻿namespace RPCExp.Common
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1720:Идентификатор содержит имя типа", Justification = "<Ожидание>")]
-    public enum ValueType 
+    public enum ValueType
     {
         Bool,
         Float,

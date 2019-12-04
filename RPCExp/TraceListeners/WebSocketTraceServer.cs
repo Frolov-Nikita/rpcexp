@@ -1,9 +1,6 @@
-﻿using RPCExp.Common;
-using RPCExp.RpcServer;
+﻿using RPCExp.RpcServer;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -13,9 +10,8 @@ namespace RPCExp.TraceListeners
 {
     public class WebSocketTraceServer : WebSocketServerAbstract
     {
-        List<WebSocket> webSockets = new List<WebSocket>();
-
-        LimitedObservableCollection<TraceMessage> messages;
+        private List<WebSocket> webSockets = new List<WebSocket>();
+        private LimitedObservableCollection<TraceMessage> messages;
 
         public WebSocketTraceServer(string[] hosts = default)
             : base(hosts ?? new string[] { "http://*:7777/" })
@@ -23,7 +19,7 @@ namespace RPCExp.TraceListeners
             messages = TraceListenerLimited.GetConnectedInstatce().Messages;
             messages.CollectionChanged += handler;
         }
-        
+
         protected override async Task SocketHandlerAsync(WebSocket socket, CancellationToken cancellationToken = default)
         {
             if (socket is null)
@@ -36,11 +32,11 @@ namespace RPCExp.TraceListeners
                 socketIsOk &= await WriteToSocket(buffer, socket, cancellationToken).ConfigureAwait(false);
             }
 
-            if(socketIsOk)
+            if (socketIsOk)
                 webSockets.Add(socket);
         }
 
-        async void handler(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private async void handler(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             if ((e?.NewItems?.Count ?? 0) == 0)
                 return;
@@ -73,7 +69,7 @@ namespace RPCExp.TraceListeners
 
         }
 
-        static async Task<bool> WriteToSocket(byte[] buffer, WebSocket socket, CancellationToken cancellationToken = default)
+        private static async Task<bool> WriteToSocket(byte[] buffer, WebSocket socket, CancellationToken cancellationToken = default)
         {
             if (socket?.State == WebSocketState.Open)
                 try

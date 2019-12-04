@@ -1,14 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RPCExp.TagLogger.Entities
 {
     internal class TagLogContext : DbContext
     {
-        string dbName;
+        private string dbName;
 
         public TagLogContext(string dbName = "tagLog.sqlite3")
         {
@@ -32,7 +29,7 @@ namespace RPCExp.TagLogger.Entities
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<TagLogData>()
-                .HasKey(t => new {t.TimeStamp, t.TagLogInfoId });
+                .HasKey(t => new { t.TimeStamp, t.TagLogInfoId });
         }
 
         public DbSet<TagLogData> TagLogData { get; set; }

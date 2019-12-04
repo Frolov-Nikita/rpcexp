@@ -1,9 +1,9 @@
-﻿using System;
-using ModbusBasic.IO;
+﻿using ModbusBasic.IO;
+using System;
 
 namespace RPCExp.Connections
 {
-    public abstract class ConnectionSourceAbstract: INameDescription
+    public abstract class ConnectionSourceAbstract : INameDescription
     {
         public abstract string ClassName { get; }
 
@@ -40,7 +40,7 @@ namespace RPCExp.Connections
 
             return streamResource;
         }
-        
+
         protected abstract IStreamResource TryOpen();
     }
 }

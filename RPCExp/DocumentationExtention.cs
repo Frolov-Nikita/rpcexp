@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Xml;
 
 namespace RPCExp
@@ -27,8 +26,8 @@ namespace RPCExp
             if (gtaLen > 0)
             {
                 n += "{";
-                for (var i=0; i < gtaLen; i++)
-                    n += type.GenericTypeArguments[i].GetDocFullName() + (i + 1 != gtaLen?",":"");
+                for (var i = 0; i < gtaLen; i++)
+                    n += type.GenericTypeArguments[i].GetDocFullName() + (i + 1 != gtaLen ? "," : "");
                 n += "}";
             }
 
@@ -44,7 +43,7 @@ namespace RPCExp
         {
             if (methodInfo is null)
                 return null;
-            
+
             // Calculate the parameter string as this is in the member name in the XML
             var parametersString = "";
             foreach (var parameterInfo in methodInfo.GetParameters())

@@ -1,24 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using RPCExp.Common;
 
 namespace RPCExp.RpcServer
 {
-    public class WebSocketRpcServer: WebSocketServerAbstract
+    public class WebSocketRpcServer : WebSocketServerAbstract
     {
         private readonly Router router;
 
         public WebSocketRpcServer(Router router, string[] hosts = null)
-            :base(hosts ?? new string[] { "http://localhost:8888/" })
+            : base(hosts ?? new string[] { "http://localhost:8888/" })
         {
             this.router = router;
         }
-        
+
         /// <summary>
         /// Обработка сообщений от подключившегося клиента
         /// </summary>
@@ -40,7 +36,7 @@ namespace RPCExp.RpcServer
                     // --TODO дочитка для партальных пакетов
                     while (!req.EndOfMessage)
                         await socket.ReceiveAsync(buffer, cancellationToken).ConfigureAwait(false);
-                    
+
                     var respBytes = await router.Handle(buffer.Array, 0, req.Count).ConfigureAwait(false);
 
                     //var resp = await router.Handle(buffer.AsSpan(0, r.Count));

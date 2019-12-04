@@ -1,21 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using RPCExp.Common;
 
 namespace RPCExp.DbStore.Entities
 {
     internal class StoreContext : DbContext
     {
-        string dbName;
+        private string dbName;
 
         public StoreContext(string dbName = "storeCfg.sqlite3")
         {
             //var sw = System.Diagnostics.Stopwatch.StartNew();
-            
+
             this.dbName = dbName;
             Database.EnsureCreated();
 
@@ -50,7 +46,7 @@ namespace RPCExp.DbStore.Entities
                 .HasForeignKey(d => d.TemplateId);
 
             modelBuilder.Entity<TagsToTagsGroups>()
-                .HasKey(e => new {e.TagId, e.TagsGroupId });
+                .HasKey(e => new { e.TagId, e.TagsGroupId });
 
             modelBuilder.Entity<TagsToTagsGroups>()
                 .HasOne(e => e.TagCfg)
@@ -79,36 +75,35 @@ namespace RPCExp.DbStore.Entities
 
         public DbSet<TagsGroupCfg> TagsGroups { get; set; }
 
-        public DbSet<TagCfg> Tags{ get; set; }
+        public DbSet<TagCfg> Tags { get; set; }
 
         public DbSet<AlarmCfg> Alarms { get; set; }
 
         public DbSet<ArchiveCfg> Archives { get; set; }
-        
-        
-        // Связи many2many:
 
+        public DbSet<ScaleCfg> Scales { get; set; }
+
+        // Связи many2many:
 
         public DbSet<DeviceToTemplate> DeviceToTemplates { get; set; }
 
         public DbSet<TagsToTagsGroups> TagsToTagsGroups { get; set; }
 
-
     }
 
     internal static class DbSetExtentions
     {
-        public static T GetOrCreate<T>(this DbSet<T> dbSet, Func<T,bool> predicate)
-            where T: class, new()
+        public static T GetOrCreate<T>(this DbSet<T> dbSet, Func<T, bool> predicate)
+            where T : class, new()
         {
             var stored = dbSet.Local.FirstOrDefault(predicate);
 
-            if(stored == default)
+            if (stored == default)
                 stored = dbSet.FirstOrDefault(predicate);
 
             if (stored == default)
             {
-                stored = new T();                
+                stored = new T();
                 dbSet.Add(stored);
             }
 

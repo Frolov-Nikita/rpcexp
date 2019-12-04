@@ -29,7 +29,7 @@ namespace RPCExp.AlarmLogger
         /// </summary>
         public AlarmInfo AlarmInfo { get; set; }
 
-        bool lastVal = false;
+        private bool lastVal = false;
 
         /// <summary>
         /// Мертвая зона.
@@ -42,16 +42,18 @@ namespace RPCExp.AlarmLogger
         /// В порядке ли все составные части аварии.
         /// True - все участвующие теги прочитаны и доступны (Quality >= 192)
         /// </summary>
-        public bool IsOk { get
+        public bool IsOk
+        {
+            get
             {
                 return
-                    (Custom1?.IsOk ?? true )&&
-                    (Custom2?.IsOk ?? true )&&
-                    (Custom3?.IsOk ?? true )&&
-                    (Custom4?.IsOk ?? true )&&
+                    (Custom1?.IsOk ?? true) &&
+                    (Custom2?.IsOk ?? true) &&
+                    (Custom3?.IsOk ?? true) &&
+                    (Custom4?.IsOk ?? true) &&
                     Condition.IsOk;
 
-            } 
+            }
         }
 
         /// <summary>
@@ -66,7 +68,7 @@ namespace RPCExp.AlarmLogger
             var val = Condition.Check();
 
             // dband
-            if((lastVal == true) && (val == false))
+            if ((lastVal == true) && (val == false))
                 val = Condition.InDBand(DBandRValue);
 
             var retval = val && (!lastVal);
@@ -100,7 +102,7 @@ namespace RPCExp.AlarmLogger
                 config.Custom4 = Argument.From(alarmCfg.Custom4, tags);
 
             config.AlarmInfo = alarmInfo;
-            
+
             return config;
         }
     }
@@ -119,7 +121,7 @@ namespace RPCExp.AlarmLogger
             };
         }
 
-        class Operator
+        private class Operator
         {
             public string Name { get; set; }
 
@@ -130,7 +132,7 @@ namespace RPCExp.AlarmLogger
             public bool UseDBand { get; set; } = false;
 
 #pragma warning disable CA1305 // Укажите IFormatProvider
-            object ArgCasting(object value) =>
+            private object ArgCasting(object value) =>
                 Convert.ChangeType(value, Type);
 #pragma warning restore CA1305 // Укажите IFormatProvider
 
@@ -142,7 +144,7 @@ namespace RPCExp.AlarmLogger
             }
         }
 
-        static readonly Dictionary<string, Operator> Operators = new Dictionary<string, Operator>()
+        private static readonly Dictionary<string, Operator> Operators = new Dictionary<string, Operator>()
         {
             {">=", new Operator{Name = ">=",
                 Type = typeof(decimal),
@@ -185,7 +187,7 @@ namespace RPCExp.AlarmLogger
                 Predicate = (a, b) => (((Int32)a) & (1 << ((Int32)b))) > 0 } } ,
         };
 
-        Argument[] Arguments { get; set; }
+        private Argument[] Arguments { get; set; }
 
         /// <summary>
         /// В порядке ли аргументы?
@@ -206,24 +208,24 @@ namespace RPCExp.AlarmLogger
         /// </summary>
         /// <param name="dband">величина мертвой зоны</param>
         /// <returns>true- находятся</returns>
-        public bool InDBand(decimal dband = 0M) 
+        public bool InDBand(decimal dband = 0M)
         {
             if ((dband == 0) || (!IsOk) || (!Operators[operatorName].UseDBand))
                 return false;
 
             var a0 = Arguments[0].GetValue();
             var a1 = Arguments[1].GetValue();
-            
+
             return (a0 < (a1 + dband)) && (a0 > (a1 - dband));
         }
-        
+
         /// <summary>
         /// Разбор строки условия и привязка аргументов к тегам (сохраняем ссылку)
         /// </summary>
         /// <param name="conditionString">Строка условия</param>
         /// <param name="tags">Список тегов из которых производится привязка</param>
         /// <returns>объект условия</returns>
-        public static Condition From(string conditionString,  IEnumerable<TagAbstract> tags)
+        public static Condition From(string conditionString, IEnumerable<TagAbstract> tags)
         {
             string operatorName = default;
             foreach (var o in Operators.Keys)
@@ -244,7 +246,7 @@ namespace RPCExp.AlarmLogger
                 args[i] = Argument.From(argsTxt[i], tags);
             }
 
-            return new Condition(operatorName, args[0], args[1]) ;
+            return new Condition(operatorName, args[0], args[1]);
         }
     }
 
@@ -283,34 +285,34 @@ namespace RPCExp.AlarmLogger
         public Argument(long constValue)
         {
             IsConst = true;
-            this.constValue = (decimal)constValue;
+            this.constValue = constValue;
         }
 
         public Argument(int constValue)
         {
             IsConst = true;
-            this.constValue = (decimal)constValue;
+            this.constValue = constValue;
         }
 
         public Argument(Int16 constValue)
         {
             IsConst = true;
-            this.constValue = (decimal)constValue;
+            this.constValue = constValue;
         }
 
         public Argument(uint constValue)
         {
             IsConst = true;
-            this.constValue = (decimal)constValue;
+            this.constValue = constValue;
         }
 
         public Argument(UInt16 constValue)
         {
             IsConst = true;
-            this.constValue = (decimal)constValue;
+            this.constValue = constValue;
         }
 
-        bool IsConst { get; set; } = false;
+        private bool IsConst { get; set; } = false;
 
         public bool IsOk => IsConst || ((tag?.Quality ?? 0) >= TagQuality.GOOD);
 
@@ -324,11 +326,13 @@ namespace RPCExp.AlarmLogger
 #pragma warning restore CA1305 // Укажите IFormatProvider
         }
 
-        static readonly System.Text.RegularExpressions.Regex regNumber = new System.Text.RegularExpressions.Regex(@"^[\+\-]?[0-9\,\.]+$");
+        private static readonly System.Text.RegularExpressions.Regex regNumber = new System.Text.RegularExpressions.Regex(@"^[\+\-]?[0-9\,\.]+$");
+
         //static readonly System.Text.RegularExpressions.Regex regString = new System.Text.RegularExpressions.Regex("^\\\".*\\\"$");
-        static readonly System.Text.RegularExpressions.Regex regTagName = new System.Text.RegularExpressions.Regex("^[_a-zA-Zа-яА-Я]+[_a-zA-Zа-яА-Я0-9]*$");
-        static readonly TagsGroup AlarmsTagGroup = new TagsGroup(new BasicPeriodSource()) {
-            Name = "AlarmsTagGroup", 
+        private static readonly System.Text.RegularExpressions.Regex regTagName = new System.Text.RegularExpressions.Regex("^[_a-zA-Zа-яА-Я]+[_a-zA-Zа-яА-Я0-9]*$");
+        private static readonly TagsGroup AlarmsTagGroup = new TagsGroup(new BasicPeriodSource())
+        {
+            Name = "AlarmsTagGroup",
             Description = "Tags group to periodically check alarms",
             Min = 2 * 10_000_000,
         };

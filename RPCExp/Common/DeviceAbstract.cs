@@ -1,12 +1,9 @@
-﻿using System;
+﻿using RPCExp.Connections;
+using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Threading;
-using RPCExp.Connections;
+using System.Threading.Tasks;
 
 namespace RPCExp.Common
 {
@@ -17,10 +14,10 @@ namespace RPCExp.Common
     {
         private const int ONE_SECOND_TICKS = 10_000_000;
 
-        public string Name { get ; set ; }
+        public string Name { get; set; }
 
         public string Description { get; set; }
-        
+
         /// <summary>
         /// Amount of ticks to wait then communication issue occurs.
         /// </summary>
@@ -36,7 +33,7 @@ namespace RPCExp.Common
         public IDictionary<string, TagsGroup> Groups { get; } = new Dictionary<string, TagsGroup>();
 
         public IDictionary<string, TagAbstract> Tags { get; } = new Dictionary<string, TagAbstract>();
-        
+
         public ConnectionSourceAbstract ConnectionSource { get; set; }
 
         /// <summary>
@@ -50,7 +47,7 @@ namespace RPCExp.Common
             var nextTime = nowTick + BadCommPeriod + UpdateInActiveTagsPeriod + ONE_SECOND_TICKS;
 
             List<TagAbstract> retTags = new List<TagAbstract>();
-            
+
             foreach (var tag in Tags.Values)
             {
                 if ((!tag.IsActive) && (!UpdateInActiveTags))
@@ -73,7 +70,7 @@ namespace RPCExp.Common
 
                 if (nextTime > tagNextTick)
                     nextTime = tagNextTick;
-                
+
             }
 
             return (retTags, nextTime);
@@ -83,25 +80,26 @@ namespace RPCExp.Common
         /// Вывод списка групп
         /// </summary>
         /// <returns>группа со списком имен тегов входящих в эту группу</returns>
-        public virtual IDictionary< string, IEnumerable<string>> GetTagsGroups()
+        public virtual IDictionary<string, IEnumerable<string>> GetTagsGroups()
         {
             var r = new Dictionary<string, IEnumerable<string>>(Tags.Count);
             foreach (var t in Tags.Values)
-                r.Add(t.Name, t.Groups.Values.Select(s=>s.Name));
+                r.Add(t.Name, t.Groups.Values.Select(s => s.Name));
             return r;
         }
 
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested) {
+            while (!cancellationToken.IsCancellationRequested)
+            {
                 long nextTime = await PeriodicUpdate(cancellationToken).ConfigureAwait(false);
-                
+
                 // Ожидание до времени обновления следующего тега
                 long waitTime = nextTime - DateTime.Now.Ticks;
                 waitTime = waitTime > 10_000 ? waitTime : 10_000; // не меньше 10_000 = 1 миллисекунда
                 waitTime = waitTime > 50_000_000 ? waitTime / 2 : waitTime;
                 waitTime = waitTime < 50_000_000 ? waitTime : 50_000_000; // не больше 50_000_000 = 5 сек
-                
+
                 await Task.Delay((int)(waitTime / 10_000)).ConfigureAwait(false);
             }
         }
@@ -117,7 +115,7 @@ namespace RPCExp.Common
             if (ConnectionSource.IsOpen)
             {
                 (ICollection<TagAbstract> tags, long periodicNextTime) = GetPeriodicTagsForUpdate();
-             
+
                 nextTime = periodicNextTime;
 
                 await Read(tags, cancellationToken).ConfigureAwait(false);
@@ -166,8 +164,8 @@ namespace RPCExp.Common
             Groups[groupName].Tick();
 
             return from t in Tags.Values
-                     where t.Groups.ContainsKey(groupName)
-                     select new TagData(t);
+                   where t.Groups.ContainsKey(groupName)
+                   select new TagData(t);
         }
 
         /// <summary>
@@ -199,7 +197,7 @@ namespace RPCExp.Common
 
             return datas;
         }
-        
+
         protected abstract Task Read(ICollection<TagAbstract> tags, CancellationToken cancellationToken);
 
         /// <summary>
@@ -225,7 +223,7 @@ namespace RPCExp.Common
                     {
                         var val = tag.Scale?.ScaleSrvToDev(tv.Value) ?? tv.Value;
                         tags.Add(tag, val);
-                    }                        
+                    }
                 }
 
             return await Write(tags).ConfigureAwait(false);

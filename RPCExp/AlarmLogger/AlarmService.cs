@@ -3,7 +3,6 @@ using RPCExp.AlarmLogger.Entities;
 using RPCExp.Common;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,13 +11,13 @@ namespace RPCExp.AlarmLogger
 {
     public class AlarmService : ServiceAbstract
     {
-        const int baseCapacityOfTmpList = 32; // Начальная емкость промежуточного хранилища
+        private const int baseCapacityOfTmpList = 32; // Начальная емкость промежуточного хранилища
 
-        const int minWaitTimeMs = 50; // Минимальное время ожидания, мсек
+        private const int minWaitTimeMs = 50; // Минимальное время ожидания, мсек
 
         public TimeSpan MinMaintainPeriod { get; set; } = TimeSpan.FromSeconds(10);
 
-        DateTime nextMaintain = DateTime.Now;
+        private DateTime nextMaintain = DateTime.Now;
 
         public TimeSpan CheckPeriod { get; set; } = TimeSpan.FromMilliseconds(500);
 
@@ -26,7 +25,7 @@ namespace RPCExp.AlarmLogger
 
         public long StoreItemsCount { get; set; } = 10_000_000;
 
-        long DeltaRecordsCount => 1 + StoreItemsCount * 5 / 100;
+        private long DeltaRecordsCount => 1 + StoreItemsCount * 5 / 100;
 
         public string FileName { get; set; } = "alarmLog.sqlite3";
 
@@ -40,13 +39,13 @@ namespace RPCExp.AlarmLogger
         /// <summary>
         /// Синхронизация/инициализация категорий и AlarmInfo
         /// </summary>
-        private async Task InnitDB(CancellationToken cancellationToken) 
+        private async Task InnitDB(CancellationToken cancellationToken)
         {
             var context = new AlarmContext(FileName);
-            
+
             var storedCategories = await context.AlarmCategories.ToListAsync(cancellationToken).ConfigureAwait(false);
             var storedInfos = await context.AlarmsInfo.ToListAsync(cancellationToken).ConfigureAwait(false);
-            
+
             foreach (var cfg in Configs)
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -104,7 +103,7 @@ namespace RPCExp.AlarmLogger
                 cfg.AlarmInfo = storedAlarmInfo;
             }
 
-            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false); 
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
             context.Dispose();
         }
@@ -113,7 +112,7 @@ namespace RPCExp.AlarmLogger
         {
             if ((cache?.Count ?? 0) == 0)
                 return;
-            
+
             var context = new AlarmContext(FileName);
 
             /* // Код как оно должно работать
@@ -150,14 +149,14 @@ namespace RPCExp.AlarmLogger
                 nextMaintain = DateTime.Now + MinMaintainPeriod;
 
                 var count = await context.Alarms.LongCountAsync(cancellationToken).ConfigureAwait(false);
-            
-                if(count > StoreItemsCount)
+
+                if (count > StoreItemsCount)
                 {
                     var countToRemove = count - StoreItemsCount + DeltaRecordsCount;
                     int ctr = countToRemove < 0 ? 0 :
-                            countToRemove > int.MaxValue ? int.MaxValue:
+                            countToRemove > int.MaxValue ? int.MaxValue :
                             (int)countToRemove;
-                    
+
                     var itemsToRemove = context.Alarms.Take(ctr);
 
                     context.Alarms.RemoveRange(itemsToRemove);
@@ -165,7 +164,7 @@ namespace RPCExp.AlarmLogger
                     await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
                     await context.Database.ExecuteSqlRawAsync("VACUUM ;").ConfigureAwait(false);
-                    
+
                     nextMaintain = DateTime.Now + 4 * MinMaintainPeriod; // после такого можно чуть подольше не проверять кэш:)
                 }
             }
@@ -183,10 +182,10 @@ namespace RPCExp.AlarmLogger
             var tNextSave = DateTime.Now + SavePeriod;
 
             // Главный цикл (проверка алармов и запись)
-            while (!cancellationToken.IsCancellationRequested) 
+            while (!cancellationToken.IsCancellationRequested)
             {
                 var tNextCheck = DateTime.Now + CheckPeriod;
-                
+
                 foreach (var cfg in Configs)
                 {
                     if (!cfg.IsOk)
@@ -208,10 +207,10 @@ namespace RPCExp.AlarmLogger
 #pragma warning restore CA1305 // Укажите IFormatProvider
                             };
 
-                            cache.Add(alarm);                         
+                            cache.Add(alarm);
                         }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         System.Diagnostics.Trace.Fail(GetType().Name + ":" + ex.InnerMessage());
                     }
@@ -221,17 +220,19 @@ namespace RPCExp.AlarmLogger
                 {
                     if (cache.Count > 0)
                     {
-                        if ((tNextSave <= DateTime.Now) || (cache.Count >= (baseCapacityOfTmpList * 4 / 5 ))) // 80% заполненности - чтобы избежать разрастания памяти
+                        if ((tNextSave <= DateTime.Now) || (cache.Count >= (baseCapacityOfTmpList * 4 / 5))) // 80% заполненности - чтобы избежать разрастания памяти
                         {
                             tNextSave = DateTime.Now + SavePeriod;
                             var newCache = new Queue<Alarm>(cache);
-                            _ = Task.Run(async () => { 
-                                await SaveAsync(newCache, cancellationToken).ConfigureAwait(false); 
+                            _ = Task.Run(async () =>
+                            {
+                                await SaveAsync(newCache, cancellationToken).ConfigureAwait(false);
                             });
-                            cache.Clear();                            
+                            cache.Clear();
                         }
                     }
-                }catch(Exception ex)
+                }
+                catch (Exception ex)
                 {
                     System.Diagnostics.Trace.Fail(GetType().Name + ":" + ex.InnerMessage());
                 }
@@ -268,10 +269,10 @@ namespace RPCExp.AlarmLogger
         {
             var context = new AlarmContext(FileName);
 
-            var query =  from a in context.Alarms
-                   select a;
+            var query = from a in context.Alarms
+                        select a;
 
-            if(filter != default)
+            if (filter != default)
             {
                 if (filter.TBegin != long.MinValue)
                     query = query.Where(a => a.TimeStamp >= filter.TBegin);
@@ -280,10 +281,10 @@ namespace RPCExp.AlarmLogger
                     query = query.Where(a => a.TimeStamp <= filter.TEnd);
 
                 if (filter.InfoIds != default)
-                    query = query.Where(a => filter.InfoIds.Contains( a.AlarmInfo.Id));
-                
+                    query = query.Where(a => filter.InfoIds.Contains(a.AlarmInfo.Id));
+
                 if (filter.AlarmCategoriesIds?.Count() > 0)
-                    query = query.Where(a => filter.AlarmCategoriesIds.Contains( a.AlarmInfo.Category.Id ));
+                    query = query.Where(a => filter.AlarmCategoriesIds.Contains(a.AlarmInfo.Category.Id));
 
                 if (filter.FacilityAccessName != default)
                     query = query.Where(a => a.AlarmInfo.FacilityAccessName.Contains(filter.FacilityAccessName, StringComparison.OrdinalIgnoreCase));
@@ -292,7 +293,7 @@ namespace RPCExp.AlarmLogger
                     query = query.Where(a => a.AlarmInfo.DeviceName == filter.DeviceName);
 
                 if (filter.Count != 0)
-                    query = query.Skip(filter.Offset).Take(filter.Count);                
+                    query = query.Skip(filter.Offset).Take(filter.Count);
             }
 
             var result = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
@@ -312,13 +313,13 @@ namespace RPCExp.AlarmLogger
         public long TEnd { get; set; } = long.MaxValue;
 
         public IEnumerable<int> AlarmCategoriesIds { get; set; }
-        
+
         public IEnumerable<int> InfoIds { get; set; }
 
         public string FacilityAccessName { get; set; }
 
         public string DeviceName { get; set; }
-        
+
         public int Offset { get; set; } = 0;
 
         public int Count { get; set; } = 0;

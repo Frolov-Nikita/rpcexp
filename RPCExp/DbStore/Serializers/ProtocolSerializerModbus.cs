@@ -1,11 +1,6 @@
-﻿using RPCExp.Common;
+﻿using Newtonsoft.Json;
+using RPCExp.Common;
 using RPCExp.Modbus;
-using RPCExp.DbStore.Entities;
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Text;
-using Newtonsoft.Json;
 
 namespace RPCExp.DbStore.Serializers
 {
@@ -28,7 +23,7 @@ namespace RPCExp.DbStore.Serializers
                 FrameType = mdev.FrameType.ToString(),
                 mdev.MaxGroupLength,
                 mdev.MaxGroupSpareLength,
-            });            
+            });
         }
 
         protected override DeviceAbstract UnpackDeviceSpecific(string custom)
@@ -36,7 +31,7 @@ namespace RPCExp.DbStore.Serializers
             var device = new ModbusDevice();
 
             var jo = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(custom);
-            
+
             if (jo.ContainsKey(nameof(device.SlaveId)))
                 device.SlaveId = (byte)jo[nameof(device.SlaveId)].ToObject(typeof(byte));
 

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Text;
+﻿using Microsoft.EntityFrameworkCore;
 using RPCExp.Common;
-using RPCExp.Connections;
 using RPCExp.DbStore.Entities;
 using RPCExp.DbStore.Serializers;
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RPCExp.DbStore
 {
@@ -15,8 +13,8 @@ namespace RPCExp.DbStore
     /// </summary>
     public class SqliteStoreSource : IDisposable
     {
-        Dictionary<string, ProtocolSerializerAbstract> protorolSerializers = new Dictionary<string, ProtocolSerializerAbstract>();
-        Dictionary<string, IConnectionSourceSerializer> connectionSerializers = new Dictionary<string, IConnectionSourceSerializer>();
+        private Dictionary<string, ProtocolSerializerAbstract> protorolSerializers = new Dictionary<string, ProtocolSerializerAbstract>();
+        private Dictionary<string, IConnectionSourceSerializer> connectionSerializers = new Dictionary<string, IConnectionSourceSerializer>();
 
         public SqliteStoreSource()
         {
@@ -45,14 +43,31 @@ namespace RPCExp.DbStore
         public Store Load(string target)
         {
             var context = new StoreContext(target);
+
             var store = new Store();
+            var scales = new Dictionary<int, Scale>();
+
+            foreach(var scaleCfg in context.Scales)
+                scales.Add(
+                    scaleCfg.Id, 
+                    new Scale {
+                        Name = scaleCfg.Name,
+                        Description = scaleCfg.Description,
+                        Units = scaleCfg.Units,
+                        DevMax = scaleCfg.DevMax,
+                        DevMin = scaleCfg.DevMin,
+                        Max = scaleCfg.Max,
+                        Min = scaleCfg.Min,
+                    }
+                );
             
+
             foreach (var cfg in context.Connections)
             {
-                var connectionSource = connectionSerializers[cfg.ClassName].Unpack(cfg);                
+                var connectionSource = connectionSerializers[cfg.ClassName].Unpack(cfg);
                 store.ConnectionsSources.Add(cfg.Name, connectionSource);
             }
-            
+
             var storedDeviceToTemplates = context.DeviceToTemplates
                 .Include(e => e.Device)
                 .Include(e => e.Template)
@@ -61,11 +76,11 @@ namespace RPCExp.DbStore
                     .ThenInclude((TagsToTagsGroups e) => e.TagsGroupCfg)
                 .Include(e => e.Template)
                     .ThenInclude(e => e.Alarms)
-                    .ThenInclude((AlarmCfg e)=> e.Category)
+                    .ThenInclude((AlarmCfg e) => e.Category)
                 .Include(e => e.Template)
                     .ThenInclude(e => e.Archives)
                 .ToList();
-                
+
             var facilityConfigs = context.Facilities.Include(e => e.Devices).ToList();
             foreach (var facilityCfg in facilityConfigs)
             {
@@ -77,8 +92,8 @@ namespace RPCExp.DbStore
                     Id = facilityCfg.Id,
                 };
 
-                
-                foreach(var deviceCfg in facilityCfg.Devices)
+
+                foreach (var deviceCfg in facilityCfg.Devices)
                 {
                     var protocolSerializer = protorolSerializers[deviceCfg.ClassName];
                     var device = protocolSerializer.UnpackDevice(deviceCfg, store);
@@ -92,9 +107,12 @@ namespace RPCExp.DbStore
                         {
                             var tag = protocolSerializer.UnpackTag(tagCfg);
                             tag.TemplateId = template.Id;
+                            if(scales.ContainsKey(tagCfg.ScaleId))
+                                tag.Scale = scales[tagCfg.ScaleId];
+
                             // добавим/восстановим/создадим группы тэгов
 
-                            foreach(var tttg in tagCfg.TagsToTagsGroups)
+                            foreach (var tttg in tagCfg.TagsToTagsGroups)
                             {
                                 var tagGroupCfg = tttg.TagsGroupCfg;
                                 TagsGroup tagGroup;
@@ -121,7 +139,8 @@ namespace RPCExp.DbStore
                                     Hyst = tagCfg.ArchiveCfg.Hyst,
                                     PeriodMaxSec = tagCfg.ArchiveCfg.PeriodMaxSec,
                                     PeriodMinSec = tagCfg.ArchiveCfg.PeriodMinSec,
-                                    TagLogInfo = new TagLogger.Entities.TagLogInfo { 
+                                    TagLogInfo = new TagLogger.Entities.TagLogInfo
+                                    {
                                         DeviceName = deviceCfg.Name,
                                         FacilityAccessName = facilityCfg.AccessName,
                                         TagName = tagCfg.Name,
@@ -137,7 +156,7 @@ namespace RPCExp.DbStore
                         // Распакуем алармы
                         foreach (var alarmCfg in template.Alarms)
                         {
-                            var alarmInfo = new AlarmLogger.Entities.AlarmInfo 
+                            var alarmInfo = new AlarmLogger.Entities.AlarmInfo
                             {
                                 Category = alarmCfg.Category,
                                 Name = alarmCfg.Name,
@@ -154,7 +173,7 @@ namespace RPCExp.DbStore
 
                     facility.Devices.AddByName(device);
                 }
-                
+
                 store.Facilities.Add(facility.AccessName, facility);
             }
             context.Dispose();
@@ -174,22 +193,23 @@ namespace RPCExp.DbStore
             foreach (var cs in store.ConnectionsSources.Values)
             {
                 var csConfig = connectionSerializers[cs.ClassName].Pack(cs);
-                var stored = context.Connections.GetOrCreate( o=>o.Name == csConfig.Name);
+                var stored = context.Connections.GetOrCreate(o => o.Name == csConfig.Name);
                 stored.CopyFrom(csConfig);
             }
 
             foreach (var facility in store.Facilities.Values)
             {
-                var facilityCfg = new FacilityCfg {
+                var facilityCfg = new FacilityCfg
+                {
                     Name = facility.Name,
                     AccessName = facility.AccessName,
                     Description = facility.Description,
                     Id = facility.Id,
                 };
 
-                var storedFacility = context.Facilities.GetOrCreate( f => f.Name == facilityCfg.Name);
+                var storedFacility = context.Facilities.GetOrCreate(f => f.Name == facilityCfg.Name);
                 storedFacility.CopyFrom(facilityCfg);
-                
+
                 foreach (var device in facility.Devices.Values)
                 {
                     var deviceCfg = protocolSerializer.PackDevice(device, context);

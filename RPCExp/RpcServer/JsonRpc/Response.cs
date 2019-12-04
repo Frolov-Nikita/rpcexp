@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Text;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace RPCExp.RpcServer.JsonRpc
 {
@@ -20,12 +18,12 @@ namespace RPCExp.RpcServer.JsonRpc
         [JsonProperty("error")]
         public ResponseError Error { get; set; } = null;
 
-        public static Response FromJson(string json) => 
+        public static Response FromJson(string json) =>
             JsonConvert.DeserializeObject<Response>(json);
 
         public string ToJson()
         {
-            var jsonId = "\"id\":" + (Id == default ? "null": "\"" + Id +"\"");
+            var jsonId = "\"id\":" + (Id == default ? "null" : "\"" + Id + "\"");
             if (Error == null)
                 //return $"{{\"jsonrpc\":\"{Version}\",{jsonId},\"result\":{JsonConvert.SerializeObject(Result, Formatting.Indented, new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore})}}}";
                 return $"{{\"jsonrpc\":\"{Version}\",{jsonId},\"result\":{JsonConvert.SerializeObject(Result, JsonSerializerSettingsSource.Settings)}}}";
@@ -44,24 +42,26 @@ namespace RPCExp.RpcServer.JsonRpc
         -32000 to -32099 | Server error	        |   Reserved for implementation-defined server-errors.
          */
 
-        public static Response GetErrorParse(string id = "") => 
-            new Response {
+        public static Response GetErrorParse(string id = "") =>
+            new Response
+            {
                 Id = id,
-                Error = new ResponseError {
+                Error = new ResponseError
+                {
                     Code = -32700,
                     Message = "Parse error"
                 }
             };
 
-        public static Response GetErrorInvalidRequest()=> new Response
+        public static Response GetErrorInvalidRequest() => new Response
+        {
+            Error = new ResponseError
             {
-                Error = new ResponseError
-                {
-                    Code = -32600,
-                    Message = "Invalid Request"
-                }
+                Code = -32600,
+                Message = "Invalid Request"
+            }
         };
-        
+
 
         public static Response GetErrorMethodNotFound(string id, string methodName) => new Response
         {
@@ -84,7 +84,7 @@ namespace RPCExp.RpcServer.JsonRpc
             }
         };
 
-        public static Response GetErrorInternalError(string id, string methodName, string message="") => new Response
+        public static Response GetErrorInternalError(string id, string methodName, string message = "") => new Response
         {
             Id = id,
             Error = new ResponseError

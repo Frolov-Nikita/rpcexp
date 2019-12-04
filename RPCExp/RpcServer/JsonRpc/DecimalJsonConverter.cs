@@ -1,9 +1,9 @@
-﻿using System;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace RPCExp.RpcServer.JsonRpc
 {
-    class DecimalJsonConverter : JsonConverter
+    internal class DecimalJsonConverter : JsonConverter
     {
         public DecimalJsonConverter()
         {

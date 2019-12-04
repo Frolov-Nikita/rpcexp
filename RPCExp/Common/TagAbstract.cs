@@ -4,20 +4,18 @@ using System.Linq;
 
 namespace RPCExp.Common
 {
-    public enum Access { ReadOnly, ReadWrite, WriteOnly}
+    public enum Access { ReadOnly, ReadWrite, WriteOnly }
 
     public abstract class TagAbstract : TagData, INameDescription
     {
-        static readonly long DefaultPeriod = TimeSpan.FromSeconds(1).Ticks;
+        private static readonly long DefaultPeriod = TimeSpan.FromSeconds(1).Ticks;
 
         public string Name { get; set; }
 
         public string DisplayName { get; set; }
 
         public string Description { get; set; }
-
-        public string Units { get; set; }
-
+        
         public string Format { get; set; }
 
         public virtual Access Access { get; set; }
@@ -39,10 +37,13 @@ namespace RPCExp.Common
         /// <summary>
         /// Период опроса определяется как минимальный период из групп опроса
         /// </summary>
-        public long Period { get {
+        public long Period
+        {
+            get
+            {
                 if ((Groups?.Count ?? 0) == 0)
                     return DefaultPeriod;
-                return Groups.Values.Min( group => group.Period);
+                return Groups.Values.Min(group => group.Period);
             }
         }
 
@@ -50,7 +51,9 @@ namespace RPCExp.Common
         /// Тег активен, если активна хоть одна и групп опроса тэга
         /// </summary>
         public bool IsActive
-        { get {
+        {
+            get
+            {
                 foreach (var s in Groups.Values)
                     if (s.IsActive)
                         return true;
@@ -63,13 +66,12 @@ namespace RPCExp.Common
             Name,
             DisplayName,
             Description,
-            Units,
             Format,
             Access,
             ValueType,
-            Scale = Scale != null ? new { Scale.Min, Scale.Max } : null,
+            Scale = Scale != null ? new { Scale.Min, Scale.Max, Scale.Units } : null,
             Groups = Groups.Keys,
-            
+
             Value,
             Quality,
             LastGood,

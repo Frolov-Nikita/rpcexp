@@ -1,17 +1,14 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RPCExp.RpcServer.JsonRpc
 {
-    static class JsonSerializerSettingsSource
+    internal static class JsonSerializerSettingsSource
     {
-
-        static JsonSerializerSettings settings;
+        private static JsonSerializerSettings settings;
         public static JsonSerializerSettings Settings
         {
-            get {
+            get
+            {
                 if (settings == default)
                 {
                     settings = new JsonSerializerSettings

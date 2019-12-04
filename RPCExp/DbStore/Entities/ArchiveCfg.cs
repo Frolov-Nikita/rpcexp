@@ -3,10 +3,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RPCExp.DbStore.Entities
 {
-    public class ArchiveCfg: INameDescription, ICopyFrom, IIdentity
+    public class ArchiveCfg : INameDescription, ICopyFrom, IIdentity
     {
         public int Id { get; set; }
-        
+
         public string Name { get; set; }
 
         public string Description { get; set; }

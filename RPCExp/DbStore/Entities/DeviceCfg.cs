@@ -1,10 +1,5 @@
-﻿using RPCExp.Common;
-using RPCExp.Modbus;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace RPCExp.DbStore.Entities
 {
@@ -16,7 +11,7 @@ namespace RPCExp.DbStore.Entities
         public string ClassName { get; set; }
 
         public string Custom { get; set; }
-        
+
         public string Name { get; set; }
 
         public string Description { get; set; }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RPCExp.TagLogger.Entities
 {
@@ -11,7 +8,7 @@ namespace RPCExp.TagLogger.Entities
 
         public int TagLogInfoId { get; set; }
 
-        public TagLogInfo TagLogInfo { get; set; }        
+        public TagLogInfo TagLogInfo { get; set; }
 
         [Column(TypeName = "DECIMAL")]
         public decimal Value { get; set; }

@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace RPCExp.DbStore.Entities
 {
@@ -12,7 +11,7 @@ namespace RPCExp.DbStore.Entities
 
         public TagsGroupCfg(TagsGroupCfg original) { CopyFrom(original); }
 
-        public TagsGroupCfg(TagsGroup original) 
+        public TagsGroupCfg(TagsGroup original)
         {
             if (original is null)
                 return;

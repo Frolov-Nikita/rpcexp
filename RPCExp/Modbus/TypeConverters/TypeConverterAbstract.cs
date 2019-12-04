@@ -1,5 +1,4 @@
 ﻿using System;
-using RPCExp.Common;
 
 namespace RPCExp.Modbus.TypeConverters
 {

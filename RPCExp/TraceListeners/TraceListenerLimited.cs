@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 
 namespace RPCExp.TraceListeners
 {
-
-    class TraceListenerLimited : TraceListener
+    internal class TraceListenerLimited : TraceListener
     {
         public LimitedObservableCollection<TraceMessage> Messages { get; } = new LimitedObservableCollection<TraceMessage> { Limit = 10 };
 
