@@ -3,6 +3,9 @@ using System.Reflection;
 
 namespace RPCExp.RpcServer
 {
+    /// <summary>
+    /// class to view summary information about methods
+    /// </summary>
     public class RpcMetodInfo
     {
         private string GetParamInfo(ParameterInfo info)

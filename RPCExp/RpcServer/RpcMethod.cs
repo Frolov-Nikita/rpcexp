@@ -4,29 +4,64 @@ using System.Threading.Tasks;
 
 namespace RPCExp.RpcServer
 {
+    /// <summary>
+    /// container to store method, its object, parameters list and other related to rpc method
+    /// </summary>
     public class RpcMethod
     {
+        /// <summary>
+        /// Access name of the object
+        /// </summary>
         public string TargetName { get; set; }
 
+        /// <summary>
+        /// Name of the method
+        /// </summary>
         public string MethodName { get; set; }
 
+        /// <summary>
+        /// some description if it is documented
+        /// </summary>
         public string Description { get; set; }
 
+        /// <summary>
+        /// Full name contains object access name and method name concatenated by dot.
+        /// </summary>
         public string FullMethodName =>
             (TargetName != default) ? TargetName + "." + MethodName : MethodName;
 
+        /// <summary>
+        /// reference to methods owner object
+        /// </summary>
         public object Target { get; set; }
 
+        /// <summary>
+        /// describe how to call this method
+        /// </summary>
         public bool IsAsync { get; set; }
 
 #pragma warning disable CA1819 // Свойства не должны возвращать массивы
+        /// <summary>
+        /// List of parameters information
+        /// </summary>
         public System.Reflection.ParameterInfo[] Parameters { get; set; }
 #pragma warning restore CA1819 // Свойства не должны возвращать массивы
 
+        /// <summary>
+        /// type that method should return
+        /// </summary>
         public Type ReturnType { get; set; }
 
+        /// <summary>
+        /// count of parameters
+        /// </summary>
         public int ParametersLength => Parameters?.Length ?? 0;
 
+        /// <summary>
+        /// Unified invoke function.
+        /// </summary>
+        /// <param name="parametrs"></param>
+        /// <returns></returns>
         public async Task<object> InvokeAsync(object parametrs)
         {
             object[] args = null;

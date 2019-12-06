@@ -2,6 +2,9 @@
 
 namespace RPCExp.Connections
 {
+    /// <summary>
+    /// Implementation of ConnectionSource for serial port connections
+    /// </summary>
     public class SerialConnectionSource : ConnectionSourceAbstract
     {
         public override string ClassName => "Serial";

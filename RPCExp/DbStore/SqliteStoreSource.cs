@@ -35,11 +35,21 @@ namespace RPCExp.DbStore
             //throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Same as Load
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
         public Store Get(string target)
         {
             return Load(target);
         }
 
+        /// <summary>
+        /// Loads and restores main storage
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
         public Store Load(string target)
         {
             var context = new StoreContext(target);
@@ -181,6 +191,13 @@ namespace RPCExp.DbStore
             return store;
         } // Load();
 
+        /// <summary>
+        /// Saves storage into DB.
+        /// it doesn't work properly, cause of templates,
+        /// but it makes good initialization for new db.
+        /// </summary>
+        /// <param name="store"></param>
+        /// <param name="target"></param>
         public void Save(Store store, string target)
         {
             if (store is null)

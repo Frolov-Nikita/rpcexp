@@ -7,16 +7,25 @@ using System.Threading.Tasks;
 
 namespace RPCExp.RpcServer
 {
+    /// <summary>
+    /// base class for WebSocket Servers
+    /// provide listener configuration
+    /// </summary>
     public abstract class WebSocketServerAbstract : ServiceAbstract
     {
         private readonly List<Task> socketsHandlers = new List<Task>(4);
         private readonly string[] hosts;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="hosts"></param>
         public WebSocketServerAbstract(string[] hosts)
         {
             this.hosts = hosts ?? new string[] { "http://localhost:6666/", };
         }
 
+        /// <inheritdoc/>
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             HttpListener httpListener = new HttpListener();
@@ -51,7 +60,6 @@ namespace RPCExp.RpcServer
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         protected abstract Task SocketHandlerAsync(WebSocket socket, CancellationToken cancellationToken = default);
-
 
 
     }//class

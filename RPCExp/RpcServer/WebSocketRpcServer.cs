@@ -5,10 +5,18 @@ using System.Threading.Tasks;
 
 namespace RPCExp.RpcServer
 {
+    /// <summary>
+    /// main class to provide data
+    /// </summary>
     public class WebSocketRpcServer : WebSocketServerAbstract
     {
         private readonly Router router;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="router">see Router description</param>
+        /// <param name="hosts">should be localhost! and loks like new string[] { "http://localhost:8888/" }</param>
         public WebSocketRpcServer(Router router, string[] hosts = null)
             : base(hosts ?? new string[] { "http://localhost:8888/" })
         {

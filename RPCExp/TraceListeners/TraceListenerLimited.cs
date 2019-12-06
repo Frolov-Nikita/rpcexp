@@ -3,6 +3,12 @@ using System.Diagnostics;
 
 namespace RPCExp.TraceListeners
 {
+
+    /// <summary>
+    /// Listens Trace and debug messages from System.Diagnostics.Trace / Debug
+    /// Stores it in limited Observable collection
+    /// To get new messages you need to subscribe to Messages.CollectionChanged event
+    /// </summary>
     internal class TraceListenerLimited : TraceListener
     {
         public LimitedObservableCollection<TraceMessage> Messages { get; } = new LimitedObservableCollection<TraceMessage> { Limit = 10 };
@@ -19,6 +25,7 @@ namespace RPCExp.TraceListeners
         private void Add(TraceMessage message)
         {
             Messages.Add(message);
+            
         }
 
         public override void Fail(string message)

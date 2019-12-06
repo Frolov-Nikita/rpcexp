@@ -1,6 +1,11 @@
 ﻿namespace RPCExp.Common
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1707:Идентификаторы не должны содержать символы подчеркивания", Justification = "<Ожидание>")]
+    /// <summary>
+    /// Represents standard OPC quality for the tag.
+    /// Good qualities are bigger or equal 0xC0.
+    /// Qualities helps to detect connection problems.
+    /// </summary>
+#pragma warning disable CA1707 // Идентификаторы не должны содержать символы подчеркивания
     public enum TagQuality
     {
         /// <summary>
@@ -54,5 +59,6 @@
         /// подмененное
         /// </summary>
         GOOD_LOCAL_OVERRIDE = 0xD8,
+#pragma warning restore CA1707 // Идентификаторы не должны содержать символы подчеркивания
     }
 }

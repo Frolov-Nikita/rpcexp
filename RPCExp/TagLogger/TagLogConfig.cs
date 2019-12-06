@@ -4,15 +4,23 @@ using System;
 
 namespace RPCExp.TagLogger
 {
+    /// <summary>
+    /// describes when and how tags need to be archived
+    /// </summary>
     public class TagLogConfig
     {
         private decimal lastVal = 0;
 
-
         private long lastTime = 0;
 
+        /// <summary>
+        /// Tag reference which value will be archived
+        /// </summary>
         public TagAbstract Tag { get; private set; }
 
+        /// <summary>
+        /// information about the tag
+        /// </summary>
         public TagLogInfo TagLogInfo { get; set; }
 
         /// <summary>
@@ -37,6 +45,10 @@ namespace RPCExp.TagLogger
             Min = 20 * 10_000_000,
         };
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="tag"></param>
         public TagLogConfig(TagAbstract tag)
         {
             Tag = tag ?? throw new ArgumentNullException(nameof(tag));
@@ -45,6 +57,11 @@ namespace RPCExp.TagLogger
                 tag.Groups.AddByName(TagsLogTagGroup);
         }
 
+        /// <summary>
+        /// Property getter decide: does tag value needs to be archived now?
+        /// if it does getter will return tag data to save into db.
+        /// if it doesn't getter will return null
+        /// </summary>
         public TagLogData NeedToArcive
         {
             get

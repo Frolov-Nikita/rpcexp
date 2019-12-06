@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace RPCExp.Common
 {
     /// <summary>
-    /// main container for services and resources
+    /// Main container for services and resources
     /// </summary>
     public class Store
     {
@@ -20,11 +20,19 @@ namespace RPCExp.Common
         /// </summary>
         public Dictionary<string, Facility> Facilities { get; } = new Dictionary<string, Facility>();
 
-
+        /// <summary>
+        /// HashSet of connection resources for entire project
+        /// </summary>
         public IDictionary<string, ConnectionSourceAbstract> ConnectionsSources { get; } = new Dictionary<string, ConnectionSourceAbstract>();
 
+        /// <summary>
+        /// Tag logging service
+        /// </summary>
         public TagLogService TagLogService { get; } = new TagLogService();
 
+        /// <summary>
+        /// Alarm(message) logging service
+        /// </summary>
         public AlarmService AlarmService { get; } = new AlarmService();
     }
 }

@@ -9,26 +9,49 @@ using System.Threading.Tasks;
 
 namespace RPCExp.TagLogger
 {
+    /// <summary>
+    /// Tag logging service class
+    /// After starting it watching 
+    /// </summary>
     public class TagLogService : ServiceAbstract
     {
+        //TODO: Учесть в этом классе "запущенность" сервера при добавлении/удалении групп в опрашиваемые теги.
         private const int baseCapacityOfTmpList = 32; // Начальная емкость промежуточного хранилища
 
         private const int minWaitTimeMs = 50; // Минимальное время ожидания, мсек
 
+        /// <summary>
+        /// Period for maintain db. Maintain will start when save new messages into db AND this period is elapsed. 
+        /// </summary>
         public TimeSpan MinMaintainPeriod { get; set; } = TimeSpan.FromSeconds(10);
 
         private DateTime nextMaintain = DateTime.Now;
 
+        /// <summary>
+        /// Period for check conditions of dband or period elapsed.
+        /// </summary>
         public TimeSpan CheckPeriod { get; set; } = TimeSpan.FromMilliseconds(500);
 
+        /// <summary>
+        /// Period for saving data into db. Data can be saved faster, if caching buffer is full.
+        /// </summary>
         public TimeSpan SavePeriod { get; set; } = TimeSpan.FromSeconds(10);
 
+        /// <summary>
+        /// Limit of stored items in DB
+        /// </summary>
         public long StoreItemsCount { get; set; } = 10_000_000;
 
         private long DeltaRecordsCount => 1 + StoreItemsCount * 5 / 100;
 
+        /// <summary>
+        /// SQlite db file name
+        /// </summary>
         public string FileName { get; set; } = "alarmLog.sqlite3";
 
+        /// <summary>
+        /// Configured tags for archiving
+        /// </summary>
         public List<TagLogConfig> Configs { get; } = new List<TagLogConfig>();
 
         private async Task InnitDB(CancellationToken cancellationToken)
@@ -124,6 +147,7 @@ namespace RPCExp.TagLogger
         }
 
 
+        /// <inheritdoc/>
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
             // Старт (Инициализация контекста БД алармов)
@@ -242,23 +266,51 @@ namespace RPCExp.TagLogger
             return result;
         }
     }
-
+    /// <summary>
+    /// Messages filter
+    /// Every member of this class is optional.
+    /// </summary>
     public class TagLogFilter
     {
+        /// <summary>
+        /// Time of the begin selection.
+        /// </summary>
         public long TBegin { get; set; } = long.MinValue;
 
+
+        /// <summary>
+        /// Time of the end selection.
+        /// </summary>
         public long TEnd { get; set; } = long.MaxValue;
 
+        /// <summary>
+        /// List of ids of concrete tags.
+        /// </summary>
         public IEnumerable<int> InfoIds { get; set; }
-
+        
+        /// <summary>
+        /// Select facility related archive tags.
+        /// </summary>
         public IEnumerable<string> FacilityAccessNames { get; set; }
 
+        /// <summary>
+        /// Select archives related to device with this name
+        /// </summary>
         public IEnumerable<string> DeviceNames { get; set; }
 
+        /// <summary>
+        /// Select archives data by tags names
+        /// </summary>
         public IEnumerable<string> TagNames { get; set; }
 
+        /// <summary>
+        /// Part of pagination. Sets limit offset for the resulting query.
+        /// </summary>
         public int Offset { get; set; } = 0;
 
+        /// <summary>
+        /// Part of pagination. Sets limit count for the resulting query.
+        /// </summary>
         public int Count { get; set; } = 0;
     }
 }

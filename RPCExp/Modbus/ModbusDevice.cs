@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 
 namespace RPCExp.Modbus
 {
-
+    /// <summary>
+    /// Tells how to format ADU
+    /// </summary>
     public enum FrameType
     {
         Ip,
@@ -17,16 +19,29 @@ namespace RPCExp.Modbus
         Ascii,
     }
 
+    /// <summary>
+    /// Adapt usage Modbus protocol to DeviceAbstract
+    /// </summary>
     public class ModbusDevice : DeviceAbstract
     {
         private static readonly ModbusFactory factory = new ModbusFactory();
 
         private static readonly Dictionary<Common.ValueType, TypeConverterAbstract> typeConverters = new Dictionary<Common.ValueType, TypeConverterAbstract>();
 
+        /// <summary>
+        /// Max number of registers in modbus request/response
+        /// </summary>
         public int MaxGroupLength { get; set; } = 100;
 
+        /// <summary>
+        /// Max number of unused registers that can be placed in single request, to avoid splitting it to several requests.
+        /// > 0 can be the reason of bad communication with some devices.
+        /// </summary>
         public int MaxGroupSpareLength { get; set; } = 0;
 
+        /// <summary>
+        /// function that updating typeConverters. It's needs to be used when byteOrder changing.
+        /// </summary>
         private void UpdateTypeConverters()
         {
             typeConverters.Clear();
@@ -35,19 +50,30 @@ namespace RPCExp.Modbus
             typeConverters.Add(Common.ValueType.Int32, new TypeConverterInt32(ByteOrder));
         }
 
+        /// <summary>
+        /// If requested typeConverter doesn't exist, then update function will be called, and typeConverter will be returned or exception will be thrown.
+        /// </summary>
+        /// <param name="modbusValueType"></param>
+        /// <returns></returns>
         private TypeConverterAbstract GetTypeConverter(Common.ValueType modbusValueType)
         {
-            if (typeConverters.ContainsKey(modbusValueType))
-                return typeConverters[modbusValueType];
-            UpdateTypeConverters();
+            if (!typeConverters.ContainsKey(modbusValueType))                
+                UpdateTypeConverters();
             return typeConverters[modbusValueType];
         }
 
+
         private byte[] byteOrder = new byte[] { 0, 1, 2, 3 };
 
+        /// <summary>
+        /// Modbus slave identificator
+        /// </summary>
         public byte SlaveId { get; set; }
 
 #pragma warning disable CA1819 // Свойства не должны возвращать массивы
+        /// <summary>
+        /// Byte order in request or response need to convert value properly
+        /// </summary>
         public byte[] ByteOrder
         {
             get => byteOrder;
@@ -58,7 +84,9 @@ namespace RPCExp.Modbus
             }
         }
 #pragma warning restore CA1819 // Свойства не должны возвращать массивы
-
+        /// <summary>
+        /// Tells how to format ADU
+        /// </summary>
         public FrameType FrameType { get; set; } = FrameType.Ip;
 
         private readonly MasterSource masterSource = new MasterSource();
@@ -156,7 +184,7 @@ namespace RPCExp.Modbus
             }
         }
 
-
+        /// <inheritdoc/>
         protected override async Task Read(ICollection<TagAbstract> tags, CancellationToken cancellationToken)
         {
             if (tags is null)

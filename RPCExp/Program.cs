@@ -60,9 +60,9 @@ namespace RPCExp
                     router.RegisterMethods(device, fullAccesName);
                 }
 
-            WebSocketRpcServer wss = new WebSocketRpcServer(router, global.WebSocketServerHosts); //any Ip - "http://*:8888/"; "http://localhost:8888/"
+            WebSocketRpcServer wss = new WebSocketRpcServer(router, global.WebSocketRpcServerHosts); //any Ip - "http://*:8888/"; "http://localhost:8888/"
 
-            Console.WriteLine($"Start webSocket at {global.WebSocketServerHosts[0]}");
+            Console.WriteLine($"Start webSocket at {global.WebSocketRpcServerHosts[0]}");
             wss.Start();
             Console.WriteLine("Press \"Escape\" to quit");
 

@@ -4,12 +4,22 @@ using System;
 
 namespace RPCExp.Modbus
 {
+    /// <summary>
+    /// factory-like class that create specific modbusMaster, and store it for future use in cache.
+    /// </summary>
     public class MasterSource
     {
         private ConnectionSourceAbstract _connectionSource;
 
         private IModbusMaster modbusMaster;
 
+        /// <summary>
+        /// Gets modbus master object from cache or create new one.
+        /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="frameType"></param>
+        /// <param name="connectionSource"></param>
+        /// <returns></returns>
         public IModbusMaster Get(IModbusFactory factory, FrameType frameType, ConnectionSourceAbstract connectionSource)
         {
             if (factory == default)

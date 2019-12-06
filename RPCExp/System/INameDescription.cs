@@ -7,6 +7,7 @@ namespace System
     /// </summary>
     public interface INameDescription
     {
+
         [MaxLength(64)]
         [Required]
         string Name { get; set; }

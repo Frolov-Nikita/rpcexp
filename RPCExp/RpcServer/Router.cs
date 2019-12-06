@@ -7,11 +7,18 @@ using System.Threading.Tasks;
 
 namespace RPCExp.RpcServer
 {
+    /// <summary>
+    /// Registered method.
+    /// </summary>
     public class Router
     {
         private static readonly Encoding encoding = Encoding.UTF8;
         private readonly List<RpcMethod> rpcMethods = new List<RpcMethod>();
 
+        /// <summary>
+        /// Gets list of stored methods.
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<RpcMetodInfo> GetMethods()
         {
             List<RpcMetodInfo> infos = new List<RpcMetodInfo>();
@@ -20,6 +27,10 @@ namespace RPCExp.RpcServer
             return infos;
         }
 
+
+        /// <summary>
+        /// ctor initialize basic access methods.
+        /// </summary>
         public Router()
         {
             var rm = new RpcMethod
@@ -33,11 +44,20 @@ namespace RPCExp.RpcServer
             rpcMethods.Add(rm);
         }
 
+        /// <summary>
+        /// Gets information (comments/ summary) about stored method.
+        /// </summary>
+        /// <returns></returns>
         private static string GetDesc(MethodInfo methodInfo)
         {
             return methodInfo.GetDocumentation()?.InnerXml;
         }
 
+        /// <summary>
+        /// registering public methods of object
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="targetName"></param>
         public void RegisterMethods(object target, string targetName = default)
         {
             if (target == default)
@@ -60,6 +80,14 @@ namespace RPCExp.RpcServer
             }
         }
 
+        /// <summary>
+        /// Decode JsonRequest from byte[]
+        /// call middleware, encode results and return byte[]
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="index"></param>
+        /// <param name="bytesCount"></param>
+        /// <returns></returns>
         public async Task<byte[]> Handle(byte[] buffer, int index, int bytesCount)
         {
             string id = "";
@@ -76,6 +104,13 @@ namespace RPCExp.RpcServer
             }
         }//Handle()
 
+        /// <summary>
+        /// Unpack request
+        /// Find object, then find match method and call it.
+        /// Then pack request and return it.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         private async Task<Response> Handle(Request request)
         {
             var tmp = request.MethodName.Split('.', 2);

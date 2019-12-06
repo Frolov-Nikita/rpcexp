@@ -3,22 +3,29 @@ using System.Collections.Generic;
 
 namespace RPCExp.Modbus
 {
-
-
+    /// <summary>
+    /// Collection of modbus tags from same region of memory of device.
+    /// It used to Slice raw unsorted collection to list of collections which can be used as modbus request
+    /// </summary>
     public class MTagsCollection : List<MTag>, IRange //Hack: Сделать multiset :)
     {
-        private int begin;
-        private int end;
+        /// <summary>
+        /// Address of first modbus register of this collection.
+        /// </summary>
+        public int Begin { get; private set; }
 
-        public int Begin => begin;
+        /// <summary>
+        /// Count of register between first and last modbus register of this collection.
+        /// </summary>
+        public int Length => End - Begin + 1;
 
-        public int Length => end - begin + 1;
-
-        public int End => end;
-
-        public string Name { get; set; }
-
+        /// <summary>
+        /// Address of last modbus register of this collection.
+        /// </summary>
+        public int End { get; private set; }
+        
         private static int Max(int x, int y) => x > y ? x : y;
+
         private static int Min(int x, int y) => x < y ? x : y;
 
         private int SpareTo(IRange r)
@@ -65,6 +72,10 @@ namespace RPCExp.Modbus
             return nearestGroup;
         }
 
+        /// <summary>
+        /// Add new tag
+        /// </summary>
+        /// <param name="item"></param>
         public new void Add(MTag item)
         {
             if (item is null)
@@ -72,8 +83,8 @@ namespace RPCExp.Modbus
 
             if (Count > 0)
             {
-                begin = Min(item.Begin, begin);
-                end = Max(item.End, end);
+                Begin = Min(item.Begin, Begin);
+                End = Max(item.End, End);
 
                 var i = base.FindIndex(x => x.Begin > item.Begin);
                 if (i >= 0)
@@ -83,12 +94,17 @@ namespace RPCExp.Modbus
             }
             else
             {
-                begin = item.Begin;
-                end = item.End;
+                Begin = item.Begin;
+                End = item.End;
                 base.Add(item);
             }
         }
 
+        /// <summary>
+        /// remove tag from collection
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public new bool Remove(MTag item)
         {
             if (item is null)
@@ -99,32 +115,38 @@ namespace RPCExp.Modbus
 
             if (Count == 0)
             {
-                begin = 0;
-                end = 0;
+                Begin = 0;
+                End = 0;
                 return true;
             }
 
-            if (item.Begin == begin)
-                begin = this.Count > 0 ? this[0].Begin : 0;
+            if (item.Begin == Begin)
+                Begin = this.Count > 0 ? this[0].Begin : 0;
 
-            if (item.End == end)
+            if (item.End == End)
             {
-                end = this.Count > 0 ? this[this.Count - 1].End : 0;
+                End = this.Count > 0 ? this[this.Count - 1].End : 0;
                 foreach (var t in this)
-                    if (t.End > end)
-                        end = t.End;
+                    if (t.End > End)
+                        End = t.End;
             }
 
             return true;
         }
 
+        /// <summary>
+        /// Slice this collection to list of collection which can be used to create requests
+        /// </summary>
+        /// <param name="maxGroupLength"></param>
+        /// <param name="maxSpareLength"></param>
+        /// <returns></returns>
         public List<MTagsCollection> Slice(int maxGroupLength = 100, int maxSpareLength = 0)
         {
             //124 - макс // (255 - slaveId - func - start*2 - length*2 - crc*2)/2 = 248/2 = 124
             var grouped = new List<MTagsCollection>();
 
             // Для ускорения сортируем // По идее должно быть уже отсортировано
-            this.Sort((x1, x2) => x1.Begin.CompareTo(x2.Begin));
+            Sort((x1, x2) => x1.Begin.CompareTo(x2.Begin));
 
             // Группируем все тэги 
             foreach (var tag in this)
