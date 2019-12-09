@@ -502,7 +502,7 @@
         </member>
         <member name="T:RPCExp.Common.Store">
             <summary>
-            main container for services and resources
+            Main container for services and resources
             </summary>
         </member>
         <member name="F:RPCExp.Common.Store.nameSeparator">
@@ -515,9 +515,68 @@
             HashSet of automation objects, hashed by AccesNames
             </summary>
         </member>
+        <member name="P:RPCExp.Common.Store.ConnectionsSources">
+            <summary>
+            HashSet of connection resources for entire project
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.Store.TagLogService">
+            <summary>
+            Tag logging service
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.Store.AlarmService">
+            <summary>
+            Alarm(message) logging service
+            </summary>
+        </member>
+        <member name="T:RPCExp.Common.Access">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:RPCExp.Common.TagAbstract">
+            <summary>
+            Base class for implementation variables tags for concrete protocol
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagAbstract.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.TagAbstract.DisplayName">
+            <summary>
+            Text to display in frontend
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagAbstract.Description">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.TagAbstract.Format">
+            <summary>
+            Format shows how to display value.
+            Value should be formated in frontend.
+            Value transmit from this app as is.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagAbstract.Access">
+            <summary>
+            Some tags be with limited access by protocol implementation.
+            Some of them - by configuration/
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagAbstract.ValueType">
+            <summary>
+            Type of value
+            </summary>
+        </member>
         <member name="P:RPCExp.Common.TagAbstract.Groups">
             <summary>
             Группы через которые можно опросить тег
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagAbstract.TemplateId">
+            <summary>
+            Reference to template contains this tag
             </summary>
         </member>
         <member name="P:RPCExp.Common.TagAbstract.Scale">
@@ -534,6 +593,13 @@
             <summary>
             Тег активен, если активна хоть одна и групп опроса тэга
             </summary>
+        </member>
+        <member name="M:RPCExp.Common.TagAbstract.GetInfo">
+            <summary>
+            Information about this tag
+            It should be cached.
+            </summary>
+            <returns></returns>
         </member>
         <member name="M:RPCExp.Common.TagAbstract.SetValue(System.Object,RPCExp.Common.TagQuality)">
             <summary>
@@ -574,6 +640,13 @@
         <member name="P:RPCExp.Common.TagData.Value">
             <summary>
             Last updated value
+            </summary>
+        </member>
+        <member name="T:RPCExp.Common.TagQuality">
+            <summary>
+            Represents standard OPC quality for the tag.
+            Good qualities are bigger or equal 0xC0.
+            Qualities helps to detect connection problems.
             </summary>
         </member>
         <member name="F:RPCExp.Common.TagQuality.BAD">
@@ -631,15 +704,196 @@
             подмененное
             </summary>
         </member>
+        <member name="T:RPCExp.Common.TagsGroup">
+            <summary>
+            Represent group of the tags which infos or data can be requested by single query from frontend.
+            This entity doesn't apply to communication with devices.
+            It also provide the period of update tags in this group.
+            </summary>
+        </member>
+        <member name="M:RPCExp.Common.TagsGroup.#ctor">
+            <summary>
+            ctor initialize Group name by new guid value.
+            </summary>
+        </member>
+        <member name="M:RPCExp.Common.TagsGroup.#ctor(RPCExp.Common.IPeriodSource)">
+            <summary>
+            ctor allows to create Group with custom updatePeriod "calculator"
+            </summary>
+            <param name="periodSource"></param>
+        </member>
         <member name="M:RPCExp.Common.TagsGroup.#ctor(RPCExp.Common.TagsGroup)">
             <summary>
-            копирующий конструктор
+            Копирующий конструктор
             </summary>
             <param name="tagsGroupOriginal"></param>
+        </member>
+        <member name="P:RPCExp.Common.TagsGroup.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.TagsGroup.Description">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.TagsGroup.IsActive">
+            <summary>
+            Encapsulates periodSource.IsActive property of updatePeriod "calculator".
+            It should be false if groups data or info doesn't requested too long.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagsGroup.Last">
+            <summary>
+            Encapsulates periodSource.Last property of updatePeriod "calculator".
+            It shows when data of this group was requested.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagsGroup.Min">
+            <summary>
+            Encapsulates periodSource.Min property of updatePeriod "calculator".
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TagsGroup.Period">
+            <summary>
+            Encapsulates periodSource.Period property of updatePeriod "calculator".
+            </summary>
+        </member>
+        <member name="M:RPCExp.Common.TagsGroup.Tick">
+            <summary>
+            Encapsulates periodSource.Tick() method of updatePeriod "calculator".
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.IPeriodSource.IsActive">
+            <summary>
+            Indicates that tagGroup doesn't requested too long.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.IPeriodSource.Last">
+            <summary>
+            DateTime.Ticks of last Tick() call.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.IPeriodSource.Min">
+            <summary>
+            minimum period to limit calculated period
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.IPeriodSource.Period">
+            <summary>
+            Calculated period. It should be used as period for requests values of tags in group from device.
+            </summary>
+        </member>
+        <member name="M:RPCExp.Common.IPeriodSource.Tick">
+            <summary>
+            It mast be called every time when tagGroup values are requested
+            </summary>
+        </member>
+        <member name="T:RPCExp.Common.BasicPeriodSource">
+            <summary>
+            This is dummy class for providing constant period.
+            It uses in tagGroups of alarmLogging and tagLogging.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.BasicPeriodSource.IsActive">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.BasicPeriodSource.Last">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.BasicPeriodSource.Min">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.BasicPeriodSource.Period">
+            <inheritdoc/>
+        </member>
+        <member name="M:RPCExp.Common.BasicPeriodSource.Tick">
+            <inheritdoc/>
+        </member>
+        <member name="T:RPCExp.Common.TickPeriodSource">
+            <summary>
+            Calculates avg timespan between several Tick() method calls.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TickPeriodSource.Min">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.TickPeriodSource.IsActive">
+            <summary>
+            <inheritdoc/>
+            if method Tick() was not call in 3 calculated period it returns false.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Common.TickPeriodSource.Period">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Common.TickPeriodSource.Last">
+            <inheritdoc/>
+        </member>
+        <member name="M:RPCExp.Common.TickPeriodSource.Tick">
+            <inheritdoc/>
+        </member>
+        <member name="T:RPCExp.Common.ValueType">
+            <summary>
+            represents the type of tags value.
+            </summary>
+        </member>
+        <member name="T:RPCExp.Connections.ConnectionSourceAbstract">
+            <summary>
+            base class for connection sources.
+            implementation should contain all connection parameters.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Connections.ConnectionSourceAbstract.ClassName">
+            <summary>
+            Name of the concrete class for deserialization
+            </summary>
+        </member>
+        <member name="P:RPCExp.Connections.ConnectionSourceAbstract.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Connections.ConnectionSourceAbstract.Description">
+            <inheritdoc/>
+        </member>
+        <member name="P:RPCExp.Connections.ConnectionSourceAbstract.IsOpen">
+            <summary>
+            encapsulate streamResource.IsOpen
+            </summary>
+        </member>
+        <member name="M:RPCExp.Connections.ConnectionSourceAbstract.EnshureConnected">
+            <summary>
+            Ensures that connection is initialized
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.Connections.ConnectionSourceAbstract.Get">
+            <summary>
+            Getting streamSource.
+            It also tries to open it if it's not opened yet.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.Connections.ConnectionSourceAbstract.TryOpen">
+            <summary>
+            Tries to initialize and open connection. 
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:RPCExp.Connections.SerialConnectionSource">
+            <summary>
+            Implementation of ConnectionSource for serial port connections
+            </summary>
         </member>
         <member name="T:RPCExp.Connections.SerialPortStreamAdapter">
             <summary>
             An adapter for the SerialPortStream class. Useful for getting serial port access on non-Windows devices.
+            </summary>
+        </member>
+        <member name="T:RPCExp.Connections.TcpConnectionSource">
+            <summary>
+            Implementation of ConnectionSource for tcp port connections
+            </summary>
+        </member>
+        <member name="T:RPCExp.Connections.UdpConnectionSource">
+            <summary>
+            Implementation of ConnectionSource for udp port connections
             </summary>
         </member>
         <member name="T:RPCExp.DbStore.Entities.DeviceToTemplate">
@@ -657,6 +911,99 @@
             Many2Many relation
             </summary>
         </member>
+        <member name="T:RPCExp.DbStore.GlobalConfig">
+            <summary>
+            Global configuration for entire project miscellaneous constants.
+            object of this class should be serialized/deserialized into json config file.
+            </summary>
+        </member>
+        <member name="P:RPCExp.DbStore.GlobalConfig.DbConfigFile">
+            <summary>
+            Db file that contains configuration for restoring store object.
+            </summary>
+        </member>
+        <member name="P:RPCExp.DbStore.GlobalConfig.TagLogServiceDbFile">
+            <summary>
+            Db file which is used by TagLogging service.
+            </summary>
+        </member>
+        <member name="P:RPCExp.DbStore.GlobalConfig.TagLogServiceCheckPeriod">
+            <summary>
+            Base period to check conditions to decide that tags value need to be saved
+            </summary>
+        </member>
+        <member name="P:RPCExp.DbStore.GlobalConfig.TagLogServiceSavePeriod">
+            <summary>
+            Base period for service saving function
+            </summary>
+        </member>
+        <member name="P:RPCExp.DbStore.GlobalConfig.TagLogServiceOnErrorWait">
+            <summary>
+            When TagLogging service fails this timespan will be used to wait. Needs to avoid big load on cyclic exceptions.
+            </summary>
+        </member>
+        <member name="P:RPCExp.DbStore.GlobalConfig.TagLogServiceStoreItemsCount">
+            <summary>
+             count of stored values to avoid disk space overfill.
+            </summary>
+        </member>
+        <member name="P:RPCExp.DbStore.GlobalConfig.AlarmServiceDbFile">
+            <summary>
+            Db file which is used by AlarmService.
+            </summary>
+        </member>
+        <member name="P:RPCExp.DbStore.GlobalConfig.AlarmServiceCheckPeriod">
+            <summary>
+            Base period to check conditions of rising alarms
+            </summary>
+        </member>
+        <member name="P:RPCExp.DbStore.GlobalConfig.AlarmServiceSavePeriod">
+            <summary>
+            Base period for service saving function
+            </summary>
+        </member>
+        <member name="P:RPCExp.DbStore.GlobalConfig.AlarmServiceOnErrorWait">
+            <summary>
+            When AlarmLogging service fails this timespan will be used to wait. Needs to avoid big load on cyclic exceptions.
+            </summary>
+        </member>
+        <member name="P:RPCExp.DbStore.GlobalConfig.AlarmServiceStoreItemsCount">
+            <summary>
+             count of stored values to avoid disk space overfill.
+            </summary>
+        </member>
+        <member name="P:RPCExp.DbStore.GlobalConfig.WebSocketRpcServerHosts">
+            <summary>
+            host:port parameter for WebSocketRpcServers listener
+            </summary>
+        </member>
+        <member name="T:RPCExp.DbStore.GlobalConfigFactory">
+            <summary>
+            Source of global config.
+            It knows how to (re)store it.
+            </summary>
+        </member>
+        <member name="M:RPCExp.DbStore.GlobalConfigFactory.Get(System.String)">
+            <summary>
+            gets cached config or loads it if cache is empty.
+            </summary>
+            <param name="file"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.DbStore.GlobalConfigFactory.Load(System.String)">
+            <summary>
+            Loads cache from storage
+            </summary>
+            <param name="fileName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.DbStore.GlobalConfigFactory.Save(RPCExp.DbStore.GlobalConfig,System.String)">
+            <summary>
+            Saves config into storage
+            </summary>
+            <param name="config"></param>
+            <param name="fileName"></param>
+        </member>
         <member name="T:RPCExp.DbStore.Serializers.ProtocolSerializerAbstract">
             <summary>
             Класс преобразует сущности из БД в объекты программы и обратно.
@@ -667,6 +1014,29 @@
             <summary>
             Класс сохранения конфигурации в БД и восстановления конфигурации из БД
             </summary>
+        </member>
+        <member name="M:RPCExp.DbStore.SqliteStoreSource.Get(System.String)">
+            <summary>
+            Same as Load
+            </summary>
+            <param name="target"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.DbStore.SqliteStoreSource.Load(System.String)">
+            <summary>
+            Loads and restores main storage
+            </summary>
+            <param name="target"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.DbStore.SqliteStoreSource.Save(RPCExp.Common.Store,System.String)">
+            <summary>
+            Saves storage into DB.
+            it doesn't work properly, cause of templates,
+            but it makes good initialization for new db.
+            </summary>
+            <param name="store"></param>
+            <param name="target"></param>
         </member>
         <member name="T:RPCExp.DocumenationExtensions">
             <summary>
@@ -751,6 +1121,71 @@
             <param name="assembly">The assembly to find the XML document for</param>
             <returns>The XML document</returns>
         </member>
+        <member name="T:RPCExp.Modbus.MasterSource">
+            <summary>
+            factory-like class that create specific modbusMaster, and store it for future use in cache.
+            </summary>
+        </member>
+        <member name="M:RPCExp.Modbus.MasterSource.Get(ModbusBasic.IModbusFactory,RPCExp.Modbus.FrameType,RPCExp.Connections.ConnectionSourceAbstract)">
+            <summary>
+            Gets modbus master object from cache or create new one.
+            </summary>
+            <param name="factory"></param>
+            <param name="frameType"></param>
+            <param name="connectionSource"></param>
+            <returns></returns>
+        </member>
+        <member name="T:RPCExp.Modbus.FrameType">
+            <summary>
+            Tells how to format ADU
+            </summary>
+        </member>
+        <member name="T:RPCExp.Modbus.ModbusDevice">
+            <summary>
+            Adapt usage Modbus protocol to DeviceAbstract
+            </summary>
+        </member>
+        <member name="P:RPCExp.Modbus.ModbusDevice.MaxGroupLength">
+            <summary>
+            Max number of registers in modbus request/response
+            </summary>
+        </member>
+        <member name="P:RPCExp.Modbus.ModbusDevice.MaxGroupSpareLength">
+            <summary>
+            Max number of unused registers that can be placed in single request, to avoid splitting it to several requests.
+            > 0 can be the reason of bad communication with some devices.
+            </summary>
+        </member>
+        <member name="M:RPCExp.Modbus.ModbusDevice.UpdateTypeConverters">
+            <summary>
+            function that updating typeConverters. It's needs to be used when byteOrder changing.
+            </summary>
+        </member>
+        <member name="M:RPCExp.Modbus.ModbusDevice.GetTypeConverter(RPCExp.Common.ValueType)">
+            <summary>
+            If requested typeConverter doesn't exist, then update function will be called, and typeConverter will be returned or exception will be thrown.
+            </summary>
+            <param name="modbusValueType"></param>
+            <returns></returns>
+        </member>
+        <member name="P:RPCExp.Modbus.ModbusDevice.SlaveId">
+            <summary>
+            Modbus slave identificator
+            </summary>
+        </member>
+        <member name="P:RPCExp.Modbus.ModbusDevice.ByteOrder">
+            <summary>
+            Byte order in request or response need to convert value properly
+            </summary>
+        </member>
+        <member name="P:RPCExp.Modbus.ModbusDevice.FrameType">
+            <summary>
+            Tells how to format ADU
+            </summary>
+        </member>
+        <member name="M:RPCExp.Modbus.ModbusDevice.Read(System.Collections.Generic.ICollection{RPCExp.Common.TagAbstract},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="M:RPCExp.Modbus.ModbusDevice.Write(System.Collections.Generic.IDictionary{RPCExp.Common.TagAbstract,System.Object})">
             <summary>
             Записать значения тегов в устройство 
@@ -783,10 +1218,225 @@
             <param name="data">registers.</param>
             <returns></returns>
         </member>
+        <member name="T:RPCExp.Modbus.ModbusRegion">
+            <summary>
+            regions of memory for modbus device
+            </summary>
+        </member>
+        <member name="F:RPCExp.Modbus.ModbusRegion.Coils">
+            <summary>
+            device logic bits (often digital outputs)
+            </summary>
+        </member>
+        <member name="F:RPCExp.Modbus.ModbusRegion.DiscreteInputs">
+            <summary>
+            Digital inputs and read only device logic bits
+            </summary>
+        </member>
+        <member name="F:RPCExp.Modbus.ModbusRegion.InputRegisters">
+            <summary>
+            read only registers
+            </summary>
+        </member>
+        <member name="F:RPCExp.Modbus.ModbusRegion.HoldingRegisters">
+            <summary>
+            registers for reading and writing
+            </summary>
+        </member>
+        <member name="T:RPCExp.Modbus.MTag">
+            <summary>
+            Modbus implementation of tag.
+            Additionally contains modbus related parameters
+            </summary>
+        </member>
         <member name="P:RPCExp.Modbus.MTag.Access">
             <summary>
             Разрешение на запись
             </summary>
+        </member>
+        <member name="P:RPCExp.Modbus.MTag.Region">
+            <summary>
+            region of memory of device contains this tag
+            </summary>
+        </member>
+        <member name="P:RPCExp.Modbus.MTag.Begin">
+            <summary>
+            Address of first modbus register of this tag.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Modbus.MTag.Length">
+            <summary>
+            count of registers of this tag
+            </summary>
+        </member>
+        <member name="P:RPCExp.Modbus.MTag.End">
+            <summary>
+            Address of last modbus register of this tag.
+            </summary>
+        </member>
+        <member name="T:RPCExp.Modbus.MTagsCollection">
+            <summary>
+            Collection of modbus tags from same region of memory of device.
+            It used to Slice raw unsorted collection to list of collections which can be used as modbus request
+            </summary>
+        </member>
+        <member name="P:RPCExp.Modbus.MTagsCollection.Begin">
+            <summary>
+            Address of first modbus register of this collection.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Modbus.MTagsCollection.Length">
+            <summary>
+            Count of register between first and last modbus register of this collection.
+            </summary>
+        </member>
+        <member name="P:RPCExp.Modbus.MTagsCollection.End">
+            <summary>
+            Address of last modbus register of this collection.
+            </summary>
+        </member>
+        <member name="M:RPCExp.Modbus.MTagsCollection.Add(RPCExp.Modbus.MTag)">
+            <summary>
+            Add new tag
+            </summary>
+            <param name="item"></param>
+        </member>
+        <member name="M:RPCExp.Modbus.MTagsCollection.Remove(RPCExp.Modbus.MTag)">
+            <summary>
+            remove tag from collection
+            </summary>
+            <param name="item"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.Modbus.MTagsCollection.Slice(System.Int32,System.Int32)">
+            <summary>
+            Slice this collection to list of collection which can be used to create requests
+            </summary>
+            <param name="maxGroupLength"></param>
+            <param name="maxSpareLength"></param>
+            <returns></returns>
+        </member>
+        <member name="T:RPCExp.RpcServer.Router">
+            <summary>
+            Registered method.
+            </summary>
+        </member>
+        <member name="M:RPCExp.RpcServer.Router.GetMethods">
+            <summary>
+            Gets list of stored methods.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.RpcServer.Router.#ctor">
+            <summary>
+            ctor initialize basic access methods.
+            </summary>
+        </member>
+        <member name="M:RPCExp.RpcServer.Router.GetDesc(System.Reflection.MethodInfo)">
+            <summary>
+            Gets information (comments/ summary) about stored method.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.RpcServer.Router.RegisterMethods(System.Object,System.String)">
+            <summary>
+            registering public methods of object
+            </summary>
+            <param name="target"></param>
+            <param name="targetName"></param>
+        </member>
+        <member name="M:RPCExp.RpcServer.Router.Handle(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Decode JsonRequest from byte[]
+            call middleware, encode results and return byte[]
+            </summary>
+            <param name="buffer"></param>
+            <param name="index"></param>
+            <param name="bytesCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RPCExp.RpcServer.Router.Handle(RPCExp.RpcServer.JsonRpc.Request)">
+            <summary>
+            Unpack request
+            Find object, then find match method and call it.
+            Then pack request and return it.
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="T:RPCExp.RpcServer.RpcMethod">
+            <summary>
+            container to store method, its object, parameters list and other related to rpc method
+            </summary>
+        </member>
+        <member name="P:RPCExp.RpcServer.RpcMethod.TargetName">
+            <summary>
+            Access name of the object
+            </summary>
+        </member>
+        <member name="P:RPCExp.RpcServer.RpcMethod.MethodName">
+            <summary>
+            Name of the method
+            </summary>
+        </member>
+        <member name="P:RPCExp.RpcServer.RpcMethod.Description">
+            <summary>
+            some description if it is documented
+            </summary>
+        </member>
+        <member name="P:RPCExp.RpcServer.RpcMethod.FullMethodName">
+            <summary>
+            Full name contains object access name and method name concatenated by dot.
+            </summary>
+        </member>
+        <member name="P:RPCExp.RpcServer.RpcMethod.Target">
+            <summary>
+            reference to methods owner object
+            </summary>
+        </member>
+        <member name="P:RPCExp.RpcServer.RpcMethod.IsAsync">
+            <summary>
+            describe how to call this method
+            </summary>
+        </member>
+        <member name="P:RPCExp.RpcServer.RpcMethod.Parameters">
+            <summary>
+            List of parameters information
+            </summary>
+        </member>
+        <member name="P:RPCExp.RpcServer.RpcMethod.ReturnType">
+            <summary>
+            type that method should return
+            </summary>
+        </member>
+        <member name="P:RPCExp.RpcServer.RpcMethod.ParametersLength">
+            <summary>
+            count of parameters
+            </summary>
+        </member>
+        <member name="M:RPCExp.RpcServer.RpcMethod.InvokeAsync(System.Object)">
+            <summary>
+            Unified invoke function.
+            </summary>
+            <param name="parametrs"></param>
+            <returns></returns>
+        </member>
+        <member name="T:RPCExp.RpcServer.RpcMetodInfo">
+            <summary>
+            class to view summary information about methods
+            </summary>
+        </member>
+        <member name="T:RPCExp.RpcServer.WebSocketRpcServer">
+            <summary>
+            main class to provide data
+            </summary>
+        </member>
+        <member name="M:RPCExp.RpcServer.WebSocketRpcServer.#ctor(RPCExp.RpcServer.Router,System.String[])">
+            <summary>
+            ctor
+            </summary>
+            <param name="router">see Router description</param>
+            <param name="hosts">should be localhost! and loks like new string[] { "http://localhost:8888/" }</param>
         </member>
         <member name="M:RPCExp.RpcServer.WebSocketRpcServer.SocketHandlerAsync(System.Net.WebSockets.WebSocket,System.Threading.CancellationToken)">
             <summary>
@@ -796,6 +1446,21 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="T:RPCExp.RpcServer.WebSocketServerAbstract">
+            <summary>
+            base class for WebSocket Servers
+            provide listener configuration
+            </summary>
+        </member>
+        <member name="M:RPCExp.RpcServer.WebSocketServerAbstract.#ctor(System.String[])">
+            <summary>
+            ctor
+            </summary>
+            <param name="hosts"></param>
+        </member>
+        <member name="M:RPCExp.RpcServer.WebSocketServerAbstract.ServiceTaskAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="M:RPCExp.RpcServer.WebSocketServerAbstract.SocketHandlerAsync(System.Net.WebSockets.WebSocket,System.Threading.CancellationToken)">
             <summary>
             Обработка сообщений от подключившегося клиента
@@ -803,6 +1468,21 @@
             <param name="socket"></param>
             <param name="cancellationToken"></param>
             <returns></returns>
+        </member>
+        <member name="T:RPCExp.TagLogger.TagLogConfig">
+            <summary>
+            describes when and how tags need to be archived
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogConfig.Tag">
+            <summary>
+            Tag reference which value will be archived
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogConfig.TagLogInfo">
+            <summary>
+            information about the tag
+            </summary>
         </member>
         <member name="P:RPCExp.TagLogger.TagLogConfig.Hyst">
             <summary>
@@ -819,6 +1499,58 @@
             Минимальный период в секундах
             </summary>
         </member>
+        <member name="M:RPCExp.TagLogger.TagLogConfig.#ctor(RPCExp.Common.TagAbstract)">
+            <summary>
+            ctor
+            </summary>
+            <param name="tag"></param>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogConfig.NeedToArcive">
+            <summary>
+            Property getter decide: does tag value needs to be archived now?
+            if it does getter will return tag data to save into db.
+            if it doesn't getter will return null
+            </summary>
+        </member>
+        <member name="T:RPCExp.TagLogger.TagLogService">
+            <summary>
+            Tag logging service class
+            After starting it watching 
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogService.MinMaintainPeriod">
+            <summary>
+            Period for maintain db. Maintain will start when save new messages into db AND this period is elapsed. 
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogService.CheckPeriod">
+            <summary>
+            Period for check conditions of dband or period elapsed.
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogService.SavePeriod">
+            <summary>
+            Period for saving data into db. Data can be saved faster, if caching buffer is full.
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogService.StoreItemsCount">
+            <summary>
+            Limit of stored items in DB
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogService.FileName">
+            <summary>
+            SQlite db file name
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogService.Configs">
+            <summary>
+            Configured tags for archiving
+            </summary>
+        </member>
+        <member name="M:RPCExp.TagLogger.TagLogService.ServiceTaskAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="M:RPCExp.TagLogger.TagLogService.GetInfos">
             <summary>
             Получение информации о хранящихся в архиве переменных.
@@ -834,6 +1566,72 @@
             <param name="tBegin">Время начала для выборки</param>
             <param name="tEnd">время окончания выборки</param>
             <returns></returns>
+        </member>
+        <member name="T:RPCExp.TagLogger.TagLogFilter">
+            <summary>
+            Messages filter
+            Every member of this class is optional.
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogFilter.TBegin">
+            <summary>
+            Time of the begin selection.
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogFilter.TEnd">
+            <summary>
+            Time of the end selection.
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogFilter.InfoIds">
+            <summary>
+            List of ids of concrete tags.
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogFilter.FacilityAccessNames">
+            <summary>
+            Select facility related archive tags.
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogFilter.DeviceNames">
+            <summary>
+            Select archives related to device with this name
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogFilter.TagNames">
+            <summary>
+            Select archives data by tags names
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogFilter.Offset">
+            <summary>
+            Part of pagination. Sets limit offset for the resulting query.
+            </summary>
+        </member>
+        <member name="P:RPCExp.TagLogger.TagLogFilter.Count">
+            <summary>
+            Part of pagination. Sets limit count for the resulting query.
+            </summary>
+        </member>
+        <member name="T:RPCExp.TraceListeners.TraceListenerLimited">
+            <summary>
+            Listens Trace and debug messages from System.Diagnostics.Trace / Debug
+            Stores it in limited Observable collection
+            To get new messages you need to subscribe to Messages.CollectionChanged event
+            </summary>
+        </member>
+        <member name="T:System.DictionaryExtention">
+            <summary>
+            Extensions methods for standard IDictionary
+            </summary>
+        </member>
+        <member name="M:System.DictionaryExtention.AddByName``1(System.Collections.Generic.IDictionary{System.String,``0},``0)">
+            <summary>
+            if value class implements INameDescription, then name property can be used as key.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="dictionary"></param>
+            <param name="item"></param>
         </member>
         <member name="T:System.ExceptionExtension">
             <summary>

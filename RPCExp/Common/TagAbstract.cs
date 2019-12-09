@@ -100,7 +100,11 @@ namespace RPCExp.Common
             Format,
             Access,
             ValueType,
-            Scale?.Units,
+            Scale = Scale == null ? null : new {
+                Scale.Max, 
+                Scale.Min,
+                Scale.Units
+            },
             Groups = Groups.Keys,
 
             Value,

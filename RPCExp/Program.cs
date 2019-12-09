@@ -15,10 +15,10 @@ namespace RPCExp
         {
             var stopwatch = Stopwatch.StartNew();
 
-            var wsts = new WebSocketTraceServer();
-            wsts.Start();
-
             var global = GlobalConfigFactory.Get();
+
+            var wsts = new WebSocketTraceServer(global.WebSocketTraceServerHosts);
+            wsts.Start();
 
             Common.Store store;
 

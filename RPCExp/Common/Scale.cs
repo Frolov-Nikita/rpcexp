@@ -51,7 +51,7 @@ namespace RPCExp.Common
                 return 0M;
 
             decimal val = (decimal)Convert.ChangeType(valueFromDev, typeof(decimal));
-
+            //TODO: ускорить за счет предварительно вычисленных коэф-тов 
             return ((val - DevMin) * (Max - Min) / (DevMax - DevMin)) + Min;
         }
 
@@ -66,7 +66,7 @@ namespace RPCExp.Common
                 return 0M;
 
             decimal val = (decimal)Convert.ChangeType(valueFromSrv, typeof(decimal));
-
+            //TODO: ускорить за счет предварительно вычисленных коэф-тов
             return ((val - Min) * (DevMax - DevMin) / (Max - Min)) + DevMin;
         }
 

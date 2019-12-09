@@ -67,6 +67,11 @@ namespace RPCExp.DbStore
         /// host:port parameter for WebSocketRpcServers listener
         /// </summary>
         public string[] WebSocketRpcServerHosts { get; set; } = new string[] { "http://localhost:8888/" };
+        
+        /// <summary>
+        /// host:port parameter for WebSocketRpcServers listener
+        /// </summary>
+        public string[] WebSocketTraceServerHosts { get; set; } = new string[] { "http://*:7777/" };
 #pragma warning restore CA1819 // Свойства не должны возвращать массивы
     }
 }

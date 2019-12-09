@@ -10,7 +10,6 @@ namespace RPCExp.DbStore.Serializers
     /// <summary>
     /// Класс преобразует сущности из БД в объекты программы и обратно.
     /// </summary>
-    /// <typeparam name="T">Класс устройства реализующего протокол</typeparam>
     internal abstract class ProtocolSerializerAbstract
     {
         public ProtocolSerializerAbstract()
