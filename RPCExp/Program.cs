@@ -2,7 +2,9 @@
 using RPCExp.RpcServer;
 using RPCExp.TraceListeners;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 namespace RPCExp
@@ -10,6 +12,11 @@ namespace RPCExp
     internal class Program
     {
         private static readonly CancellationTokenSource Cts = new CancellationTokenSource();
+
+        class A
+        {
+            public IDictionary<string, string> Dic { get; set; } = new Dictionary<string, string>();
+        }
 
         private static void Main(/*string[] args*/)
         {
@@ -52,6 +59,8 @@ namespace RPCExp
             router.RegisterMethods(store.AlarmService, "Alarms");
             router.RegisterMethods(store.TagLogService, "TagLog");
             foreach (var facility in store.Facilities.Values)
+            {
+                router.RegisterMethods(facility, facility.AccessName);
                 foreach (var device in facility.Devices.Values)
                 {
                     var fullAccesName = facility.AccessName + Common.Store.nameSeparator + device.Name;
@@ -59,6 +68,7 @@ namespace RPCExp
                     device.Start();
                     router.RegisterMethods(device, fullAccesName);
                 }
+            }                
 
             WebSocketRpcServer wss = new WebSocketRpcServer(router, global.WebSocketRpcServerHosts); //any Ip - "http://*:8888/"; "http://localhost:8888/"
 

@@ -1,6 +1,6 @@
 ﻿
 using System;
-
+using System.Linq;
 using System.Collections.Generic;
 
 
@@ -23,11 +23,11 @@ namespace RPCExp.Common
         /// for example nameSeparator == "$"
         /// AccessName == "Нефтедобывающая компания$Цех 321$Месторождение 123$Куст 5$Скважина 456А"
         /// The tree should looks like:
-        /// "Нефтедобывающая компания"
-        ///  └ "Цех 321"
-        ///     └ "Месторождение 123"
-        ///        └ "Куст 5"
-        ///           └ "Скважина 456А"
+        /// <para>"Нефтедобывающая компания"</para>
+        /// <para> └ "Цех 321"</para>
+        /// <para>    └ "Месторождение 123"</para>
+        /// <para>       └ "Куст 5"</para>
+        /// <para>          └ "Скважина 456А"</para>
         /// </example>
         public string AccessName { get; set; }
 
@@ -41,6 +41,19 @@ namespace RPCExp.Common
         /// Collection of automation devices inside the automation object
         /// </summary>
         public IDictionary<string, DeviceAbstract> Devices { get; } = new Dictionary<string, DeviceAbstract>();
+
+        /// <summary>
+        /// Получает имена всех устройств и их групп
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<object> GetDevices() =>
+                from device in Devices.Values
+                select new {
+                    device.Name,
+                    device.Description,
+                    device.State,
+                    Groups = device.Groups.Keys,
+                };
 
     }
 }

@@ -94,7 +94,7 @@ namespace RPCExp.Common
         /// Вывод списка групп
         /// </summary>
         /// <returns>группа со списком имен тегов входящих в эту группу</returns>
-        public virtual IDictionary<string, IEnumerable<string>> GetTagsGroups()
+        public virtual IDictionary<string, IEnumerable<string>> GetGroups()
         {
             var r = new Dictionary<string, IEnumerable<string>>(Tags.Count);
             foreach (var t in Tags.Values)
@@ -153,7 +153,7 @@ namespace RPCExp.Common
         /// </summary>
         /// <param name="groupName">Имя группы</param>
         /// <returns></returns>
-        public virtual IEnumerable<object> GetGroupInfos(string groupName)
+        public virtual IEnumerable<object> GetGroupInfo(string groupName)
         {
             return from t in Tags.Values
                    where t.Groups.ContainsKey(groupName)

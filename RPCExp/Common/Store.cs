@@ -34,5 +34,20 @@ namespace RPCExp.Common
         /// Alarm(message) logging service
         /// </summary>
         public AlarmService AlarmService { get; } = new AlarmService();
+
+        /// <summary>
+        /// gets info about all facilities in the storage
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<object> GetFacilitiesInfos()
+        {
+            foreach (var facility in Facilities.Values)
+                yield return new {
+                    facility.AccessName,
+                    facility.Name,
+                    facility.Description,
+                    Devices = facility.Devices.Keys,
+                };
+        }
     }
 }
