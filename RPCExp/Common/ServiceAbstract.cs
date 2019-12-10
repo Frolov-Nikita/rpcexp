@@ -60,7 +60,7 @@ namespace RPCExp.Common
 
         private async Task OnErrorBaseAsync(Task preTask)
         {
-            System.Diagnostics.Trace.Fail(GetType().Name + " FAIL: " + preTask.Exception.InnerMessage());
+            System.Diagnostics.Trace.TraceError(GetType().Name + " FAIL: " + preTask.Exception.InnerMessage());
 
             State = ServiceState.Fault;
             await OnErrorAsync(preTask.Exception, cts.Token).ConfigureAwait(false);

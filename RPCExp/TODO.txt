@@ -29,3 +29,12 @@ throw заменить на более дешевую диагностику.
 -- fix db entities types
 -- mbdev limit request length
 -- Scale only analogs
+
+-------------buglog:----------------
+Process terminated. Assertion Failed
+WebSocketRpcServer.SocketHandlerAsync(): Connection reset by peer in method:
+   at RPCExp.RpcServer.WebSocketRpcServer.SocketHandlerAsync(WebSocket socket, CancellationToken cancellationToken) in D:\src\RPCExp\RPCExp\RpcServer\WebSocketRpcServer.cs:line 42
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.AsyncStateMachineBox`1.MoveNext(Thread threadPoolThread)
+....
+Возможно максимальное число подключений достигнуто

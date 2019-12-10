@@ -37,25 +37,31 @@ namespace RPCExp.RpcServer
             try
             {
                 var buffer = new ArraySegment<byte>(new byte[16384]);
-                while (socket.State == WebSocketState.Open)
+                //if (socket.State == WebSocketState.Open)
+                while ((socket.State == WebSocketState.Open) && (!cancellationToken.IsCancellationRequested))
                 {
                     var req = await socket.ReceiveAsync(buffer, cancellationToken).ConfigureAwait(false);
 
-                    // --TODO дочитка для партальных пакетов
-                    while (!req.EndOfMessage)
-                        await socket.ReceiveAsync(buffer, cancellationToken).ConfigureAwait(false);
+                    //while (!req.EndOfMessage)
+                    //    await socket.ReceiveAsync(buffer, cancellationToken).ConfigureAwait(false);
+                    
+                    if ((socket.State != WebSocketState.Open) || (cancellationToken.IsCancellationRequested))
+                        break;
 
                     var respBytes = await router.Handle(buffer.Array, 0, req.Count).ConfigureAwait(false);
 
-                    //var resp = await router.Handle(buffer.AsSpan(0, r.Count));
+                    if ((socket.State != WebSocketState.Open) || (cancellationToken.IsCancellationRequested))
+                        break;
+
                     await socket.SendAsync(respBytes, WebSocketMessageType.Text, true, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (WebSocketException ex)
+            catch (Exception ex)
             {
-                socket.Abort();
-                System.Diagnostics.Trace.Fail($"{nameof(WebSocketRpcServer)}.SocketHandlerAsync(): {ex.InnerMessage()}");
+                System.Diagnostics.Trace.TraceError($"{nameof(WebSocketRpcServer)}.SocketHandlerAsync(): {ex.InnerMessage()}");
             }
+            
+            socket.Abort();
             socket.Dispose();
         }
 

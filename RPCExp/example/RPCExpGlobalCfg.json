@@ -1,0 +1,19 @@
+{
+  "AlarmServiceDbFile": "AlarmLog.sqlite3",
+  "AlarmServiceCheckPeriod": "00:00:01",
+  "AlarmServiceSavePeriod": "00:00:20",
+  "AlarmServiceOnErrorWait": "00:00:10",
+  "AlarmServiceStoreItemsCount": 16384,
+  "TagLogServiceDbFile": "TagLog.sqlite3",
+  "TagLogServiceCheckPeriod": "00:00:01",
+  "TagLogServiceSavePeriod": "00:00:20",
+  "TagLogServiceOnErrorWait": "00:00:10",
+  "TagLogServiceStoreItemsCount": 16777216,
+  "DbConfigFile": "RPCExpCfg.sqlite3",
+  "WebSocketRpcServerHosts": [
+    "http://*:8889/"
+  ],
+    "WebSocketTraceServerHosts": [
+    "http://*:7777/"
+  ]
+}

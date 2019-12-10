@@ -180,7 +180,7 @@ namespace RPCExp.TagLogger
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Trace.Fail(GetType().Name + ":" + ex.InnerMessage());
+                        System.Diagnostics.Trace.TraceError(GetType().Name + ":" + ex.InnerMessage());
                     }
                 }//for
 
@@ -202,7 +202,7 @@ namespace RPCExp.TagLogger
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Trace.Fail(GetType().Name + ":" + ex.InnerMessage());
+                    System.Diagnostics.Trace.TraceError(GetType().Name + ":" + ex.InnerMessage());
                 }
 
                 int tSleep = tNextCheck > DateTime.Now ? (int)(tNextCheck - DateTime.Now).TotalMilliseconds : minWaitTimeMs;

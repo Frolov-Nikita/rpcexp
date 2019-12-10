@@ -2,6 +2,7 @@
 using RPCExp.Connections;
 using RPCExp.TagLogger;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RPCExp.Common
 {
@@ -41,13 +42,14 @@ namespace RPCExp.Common
         /// <returns></returns>
         public IEnumerable<object> GetFacilitiesInfos()
         {
-            foreach (var facility in Facilities.Values)
-                yield return new {
-                    facility.AccessName,
-                    facility.Name,
-                    facility.Description,
-                    Devices = facility.Devices.Keys,
-                };
+            return from facility in Facilities.Values
+                    select new
+                    {
+                        facility.AccessName,
+                        facility.Name,
+                        facility.Description,
+                        Devices = facility.Devices.Keys,
+                    };
         }
     }
 }
