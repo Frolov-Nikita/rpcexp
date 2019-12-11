@@ -1,6 +1,7 @@
 ﻿using RPCExp.Connections;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,18 +91,6 @@ namespace RPCExp.Common
             return (retTags, nextTime);
         }
 
-        /// <summary>
-        /// Вывод списка групп
-        /// </summary>
-        /// <returns>группа со списком имен тегов входящих в эту группу</returns>
-        public virtual IDictionary<string, IEnumerable<string>> GetGroups()
-        {
-            var r = new Dictionary<string, IEnumerable<string>>(Tags.Count);
-            foreach (var t in Tags.Values)
-                r.Add(t.Name, t.Groups.Values.Select(s => s.Name));
-            return r;
-        }
-
         /// <inheritdoc/>
         protected override async Task ServiceTaskAsync(CancellationToken cancellationToken)
         {
@@ -149,6 +138,25 @@ namespace RPCExp.Common
         }
 
         /// <summary>
+        /// Вывод списка групп
+        /// </summary>
+        /// <returns>группа со списком имен тегов входящих в эту группу</returns>
+        public virtual IDictionary<string, IEnumerable<string>> GetGroups()
+        {
+            var r = new Dictionary<string, IEnumerable<string>>(Tags.Count);
+
+            foreach (var gp in Groups.Values)
+                r.Add(
+                    gp.Name, 
+                    from tag in Tags.Values 
+                    where tag.Groups.ContainsKey(gp.Name) 
+                    select tag.Name );
+
+            return r;
+        }
+
+
+        /// <summary>
         /// Получить полное описание группы тегов
         /// </summary>
         /// <param name="groupName">Имя группы</param>
@@ -181,6 +189,15 @@ namespace RPCExp.Common
             return from t in Tags.Values
                    where t.Groups.ContainsKey(groupName)
                    select new TagData(t);
+        }
+
+        public IDictionary<string, ICollection<string>> GetTagsGroups()
+        {
+            var retval = new Dictionary<string, ICollection<string>>(Tags.Count);
+            foreach (var tag in Tags.Values)
+                retval.Add(tag.Name, tag.Groups.Keys);
+
+            return retval;
         }
 
         /// <summary>
@@ -246,6 +263,9 @@ namespace RPCExp.Common
                         tags.Add(tag, val);
                     }
                 }
+
+            if (!ConnectionSource.IsOpen)
+                throw new IOException("Connection isn't opened");
 
             return await Write(tags).ConfigureAwait(false);
         }
