@@ -140,7 +140,7 @@ namespace RPCExp.RpcServer
                 res.Result = await method.InvokeAsync(request.Parameters).ConfigureAwait(false);
                 return res;
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
                 return Response.GetErrorInvalidParams(request.Id, request.MethodName, request.Parameters);
             }

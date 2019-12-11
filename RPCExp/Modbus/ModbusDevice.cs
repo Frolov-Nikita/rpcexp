@@ -319,7 +319,9 @@ namespace RPCExp.Modbus
 
             IModbusMaster master = masterSource.Get(factory, FrameType, ConnectionSource);
 
+#pragma warning disable IDE0066 // Преобразовать оператор switch в выражение //спасибо, не надо
             switch (region)
+#pragma warning restore IDE0066 // Преобразовать оператор switch в выражение
             {
                 case ModbusRegion.InputRegisters:
                     return await master.ReadInputRegistersAsync(SlaveId, begin, length).ConfigureAwait(false);
