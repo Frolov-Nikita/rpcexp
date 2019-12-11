@@ -16,7 +16,7 @@ namespace RPCExp.RpcServer.JsonRpc
 
         public string ToJson()
         {
-            var jsonData = Data == null ? "" : ",\"data\"" + JsonConvert.SerializeObject(Data, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            var jsonData = Data == null ? "" : ",\"data\":" + JsonConvert.SerializeObject(Data, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             return $"{{\"code\":{Code}, \"message\":{JsonConvert.SerializeObject(Message)}{jsonData}}}";
         }
     }//class ResponseError
