@@ -41,7 +41,7 @@ namespace RPCExp.TagLogger
         private static TagsGroup TagsLogTagGroup = new TagsGroup(new BasicPeriodSource())
         {
             Name = "TagsLogTagGroup",
-            Description = "Tags group to periodically check alarms",
+            Description = "Tags group to periodically check condition of logging",
             Min = 20 * 10_000_000,
         };
 
@@ -70,14 +70,15 @@ namespace RPCExp.TagLogger
                     return null;
 
                 var now = DateTime.Now.Ticks;
-                if (lastTime + PeriodMinSec * 10_000_000 >= now)
+                // TODO: кешировать вычисление периодов
+                if (lastTime + ((long)PeriodMinSec) * 10_000_000 >= now)
                     return null;
 
 #pragma warning disable CA1305 // Укажите IFormatProvider
                 var val = (decimal)Convert.ChangeType(Tag?.Value ?? 0, typeof(decimal));
 #pragma warning restore CA1305 // Укажите IFormatProvider
 
-                if (((lastTime + PeriodMaxSec * 10_000_000) <= now) ||
+                if (((lastTime + ((long)PeriodMaxSec) * 10_000_000) <= now) ||
                     (Math.Abs(lastVal - val) >= Hyst))
                 {
                     lastVal = val;
