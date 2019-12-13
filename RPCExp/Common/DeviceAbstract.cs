@@ -266,7 +266,7 @@ namespace RPCExp.Common
 
             if (!ConnectionSource.IsOpen)
                 throw new IOException("Connection isn't opened");
-
+            // TODO: write in separate task, return now; Add write query;
             return await Write(tags).ConfigureAwait(false);
         }
 
