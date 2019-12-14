@@ -23,7 +23,8 @@
     <Language>en-US</Language>
     <DocumentationSources>
       <DocumentationSource sourceFile="..\RPCExp\RPCExp.xml" />
-<DocumentationSource sourceFile="..\RPCExp\bin\Debug\netcoreapp3.0\RPCExp.dll" /></DocumentationSources>
+      <DocumentationSource sourceFile="..\RPCExp\bin\Debug\netcoreapp3.0\RPCExp.dll" />
+    </DocumentationSources>
     <HelpFileFormat>HtmlHelp1</HelpFileFormat>
     <SyntaxFilters>C#</SyntaxFilters>
     <PresentationStyle>VS2013</PresentationStyle>
