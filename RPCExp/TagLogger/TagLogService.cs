@@ -229,13 +229,17 @@ namespace RPCExp.TagLogger
         /// <param name="tBegin">Время начала для выборки</param>
         /// <param name="tEnd">время окончания выборки</param>
         /// <returns></returns>
-        public async Task<IEnumerable<TagLogData>> GetData(TagLogFilter filter, CancellationToken cancellationToken)
+        public async Task<IEnumerable<TagLogData>> GetData(TagLogFilter filter)
         {
             var context = new TagLogContext(FileName);
 
             var query = from a in context.TagLogData
                         select a;
 
+            var offset = 0;
+            var count = 200;
+
+#pragma warning disable CA1307 // Укажите StringComparison
             if (filter != default)
             {
                 if (filter.TBegin != long.MinValue)
@@ -246,21 +250,25 @@ namespace RPCExp.TagLogger
 
                 if (filter.InfoIds != default)
                     query = query.Where(a => filter.InfoIds.Contains(a.TagLogInfo.Id));
+                
+                if (filter.FacilityAccessName != default)
+                    query = query.Where(a => a.TagLogInfo.FacilityAccessName.StartsWith( filter.FacilityAccessName ));
 
-                if (filter.FacilityAccessNames != default)
-                    query = query.Where(a => filter.FacilityAccessNames.Contains(a.TagLogInfo.FacilityAccessName));
-
-                if (filter.DeviceNames != default)
-                    query = query.Where(a => filter.DeviceNames.Contains(a.TagLogInfo.DeviceName));
+                if (filter.DeviceName != default)
+                    query = query.Where(a => a.TagLogInfo.DeviceName.StartsWith( filter.DeviceName));
 
                 if (filter.TagNames != default)
                     query = query.Where(a => filter.TagNames.Contains(a.TagLogInfo.TagName));
 
                 if (filter.Count != 0)
-                    query = query.Skip(filter.Offset).Take(filter.Count);
+                {
+                    offset = filter.Offset;
+                    count = filter.Count;
+                }
             }
+#pragma warning restore CA1307 // Укажите StringComparison
 
-            var result = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
+            var result = await query.Skip(offset).Take(count).ToListAsync().ConfigureAwait(false);
 
             context.Dispose();
             return result;
@@ -291,12 +299,12 @@ namespace RPCExp.TagLogger
         /// <summary>
         /// Select facility related archive tags.
         /// </summary>
-        public IEnumerable<string> FacilityAccessNames { get; set; }
+        public string FacilityAccessName { get; set; }
 
         /// <summary>
         /// Select archives related to device with this name
         /// </summary>
-        public IEnumerable<string> DeviceNames { get; set; }
+        public string DeviceName { get; set; }
 
         /// <summary>
         /// Select archives data by tags names

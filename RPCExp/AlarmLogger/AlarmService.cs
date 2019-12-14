@@ -296,7 +296,7 @@ namespace RPCExp.AlarmLogger
         /// filter is optional. If filter.offset and filter.count doesn't set, then count will be limited by first 20 records.
         /// </param>
         /// <returns></returns>
-        public async Task<IEnumerable<Alarm>> GetAlarms(AlarmFilter filter, CancellationToken cancellationToken)
+        public async Task<IEnumerable<Alarm>> GetAlarms(AlarmFilter filter)
         {
             var context = new AlarmContext(FileName);
 
@@ -333,7 +333,7 @@ namespace RPCExp.AlarmLogger
                 }
             }
 
-            var result = await query.Skip(offset).Take(count).ToListAsync(cancellationToken).ConfigureAwait(false);
+            var result = await query.Skip(offset).Take(count).ToListAsync().ConfigureAwait(false);
 
             context.Dispose();
             return result;
@@ -365,6 +365,8 @@ namespace RPCExp.AlarmLogger
         /// List of ids of concrete alarms.
         /// </summary>
         public IEnumerable<int> InfoIds { get; set; }
+
+        // TODO: IEnumerable
 
         /// <summary>
         /// Select facility related messages.

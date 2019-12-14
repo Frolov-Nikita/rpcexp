@@ -1,6 +1,6 @@
 ﻿web sockets - запрос на повышение win
 
-Документирование + ревизия public
+DateTimeTicks -> unixTimestampMs
 
 ? refactor service abstract:
 1) Расчет времени главного цикла
