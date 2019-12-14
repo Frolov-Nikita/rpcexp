@@ -13,10 +13,7 @@ namespace RPCExp
     {
         private static readonly CancellationTokenSource Cts = new CancellationTokenSource();
 
-        class A
-        {
-            public IDictionary<string, string> Dic { get; set; } = new Dictionary<string, string>();
-        }
+
 
         private static void Main(/*string[] args*/)
         {
