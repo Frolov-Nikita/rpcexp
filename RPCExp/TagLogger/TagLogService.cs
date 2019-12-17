@@ -252,10 +252,10 @@ namespace RPCExp.TagLogger
                     query = query.Where(a => filter.InfoIds.Contains(a.TagLogInfo.Id));
                 
                 if (filter.FacilityAccessName != default)
-                    query = query.Where(a => a.TagLogInfo.FacilityAccessName.StartsWith( filter.FacilityAccessName ));
+                    query = query.Where(a => a.TagLogInfo.FacilityAccessName == filter.FacilityAccessName);
 
                 if (filter.DeviceName != default)
-                    query = query.Where(a => a.TagLogInfo.DeviceName.StartsWith( filter.DeviceName));
+                    query = query.Where(a => a.TagLogInfo.DeviceName == filter.DeviceName);
 
                 if (filter.TagNames != default)
                     query = query.Where(a => filter.TagNames.Contains(a.TagLogInfo.TagName));

@@ -321,7 +321,7 @@ namespace RPCExp.AlarmLogger
                     query = query.Where(a => filter.AlarmCategoriesIds.Contains(a.AlarmInfo.Category.Id));
 
                 if (filter.FacilityAccessName != default)
-                    query = query.Where(a => a.AlarmInfo.FacilityAccessName.Contains(filter.FacilityAccessName, StringComparison.OrdinalIgnoreCase));
+                    query = query.Where(a => filter.FacilityAccessName == a.AlarmInfo.FacilityAccessName);
 
                 if (filter.DeviceName != default)
                     query = query.Where(a => a.AlarmInfo.DeviceName == filter.DeviceName);

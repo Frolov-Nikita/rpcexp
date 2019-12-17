@@ -2,13 +2,16 @@
 
 DateTimeTicks -> unixTimestampMs
 
+set AlarmTimestamp via tag timestamp
+Alarms also from chche!
+
 ? refactor service abstract:
 1) Расчет времени главного цикла
 2) Выделение цикличной функции - async Task<int> Cycle(cts);
 
 TagsGroup track period for each client (Tick(int hash))
 
- memory device
+memory device
 
 Статический анализ
 
