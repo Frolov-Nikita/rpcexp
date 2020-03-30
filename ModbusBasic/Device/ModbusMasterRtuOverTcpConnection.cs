@@ -42,7 +42,6 @@ namespace ModbusBasic.Device
         public event EventHandler<TcpConnectionEventArgs> ModbusMasterTcpConnectionClosed;
 
 
-
         public string EndPoint { get; }
 
         public Stream Stream { get; }
@@ -54,6 +53,7 @@ namespace ModbusBasic.Device
             if (disposing)
             {
                 Stream.Dispose();
+                TcpClient.Dispose();
             }
 
             base.Dispose(disposing);
@@ -100,6 +100,8 @@ namespace ModbusBasic.Device
                 {
                     //Logger.Warning($"IO Exception encountered while listening for requests - {ioe.Message}");
                     serialTransport.DiscardInBuffer();
+                    
+                    ModbusMasterTcpConnectionClosed?.Invoke(this, new TcpConnectionEventArgs(EndPoint));
                 }
                 catch (TimeoutException /*te*/)
                 {

@@ -200,6 +200,8 @@ namespace ModbusBasic.Device
                 throw new ArgumentException(msg);
             }
 
+            connection?.TcpClient?.Close();
+            connection?.Dispose();
             //Logger.Information($"Removed Master {e.EndPoint}");
         }
     }

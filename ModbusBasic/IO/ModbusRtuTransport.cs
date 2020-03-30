@@ -51,9 +51,17 @@ namespace ModbusBasic.IO
             byte[] frameBytes = new byte[count];
             int numBytesRead = 0;
 
-            while (numBytesRead != count)
+            while ((numBytesRead != count) && (StreamResource.IsOpen))
             {
                 numBytesRead += StreamResource.Read(frameBytes, numBytesRead, count - numBytesRead);
+                if (numBytesRead == 0)
+                {
+                    if (StreamResource is TcpClientAdapter)
+                    {
+                        throw new IOException("There is no connection on TCP.");
+                    }
+                }
+
             }
 
             return frameBytes;

@@ -1,4 +1,6 @@
-﻿web sockets - запрос на повышение win
+﻿onStart show connection params
+
+web sockets - запрос на повышение win
 
 DateTimeTicks -> unixTimestampMs
 
